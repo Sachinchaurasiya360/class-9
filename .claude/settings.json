@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c:*)",
+      "Bash(pip install:*)",
+      "Read(//c/Program Files/**)",
+      "Bash(winget install:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(echo:*)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Read(//c/CodeBase/**)",
+      "Bash(grep -o \"useState\\\\|useRef\\\\|useCallback\\\\|useMemo\\\\|useEffect\" \"/c/CodeBase/class 9/refrence\"/*.tsx)",
+      "Bash(mkdir -p components lessons/level1 lessons/level2 lessons/level3)",
+      "Bash(rm -f App.css assets/react.svg)"
+    ]
+  }
+}
