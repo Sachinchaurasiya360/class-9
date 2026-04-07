@@ -180,7 +180,7 @@ export default function LandingPage() {
             </a>
           </div>
 
-          {/* Hero visual — mini neural network SVG */}
+          {/* Hero visual  mini neural network SVG */}
           <div className="mt-14 flex justify-center">
             <svg viewBox="0 0 400 160" className="w-full max-w-md">
               {[40, 80, 120].map((y, i) => (

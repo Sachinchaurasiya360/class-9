@@ -3,6 +3,14 @@ import { ArrowUpDown, FolderOpen, Timer, Shuffle, Play, Pause, SkipForward, Rota
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
+import { playClick, playPop, playSuccess } from "../../utils/sounds";
+
+const INK = "#2b2a35";
+const CORAL = "#ff6b6b";
+const MINT = "#4ecdc4";
+const YELLOW = "#ffd93d";
+const LAVENDER = "#b18cf2";
+const SKY = "#6bb6ff";
 
 /* ------------------------------------------------------------------ */
 /*  Seeded PRNG                                                        */
@@ -35,16 +43,8 @@ function generateArray(size: number, seed: number): number[] {
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-function barColor(value: number, max: number): string {
-  const t = value / max;
-  const r = Math.round(59 + (30 - 59) * t);
-  const g = Math.round(130 + (64 - 130) * t);
-  const b = Math.round(246 + (255 - 246) * t);
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Sort It Out (Bubble Sort)                                  */
+/*  Tab 1  Sort It Out (Bubble Sort)                                  */
 /* ------------------------------------------------------------------ */
 
 interface SortState {
@@ -140,15 +140,23 @@ function SortItOut() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const step = useCallback(() => {
+    playClick();
     setState((prev) => bubbleSortStep(prev));
   }, []);
 
   const shuffle = useCallback(() => {
+    playPop();
     seedRef.current = Date.now() % 100000;
     setState(initSortState(seedRef.current));
     setPlaying(false);
     if (intervalRef.current) clearInterval(intervalRef.current);
   }, []);
+
+  const prevSortedRef = useRef(false);
+  useEffect(() => {
+    if (state.sorted && !prevSortedRef.current) playSuccess();
+    prevSortedRef.current = state.sorted;
+  }, [state.sorted]);
 
   useEffect(() => {
     if (playing && !state.sorted) {
@@ -187,12 +195,36 @@ function SortItOut() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Watch how bubble sort organizes data step by step</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-base font-bold text-center" style={{ color: INK }}>
+          Watch how bubble sort organizes data step by step
+        </h3>
 
         {/* SVG bars */}
         <div className="flex justify-center overflow-x-auto">
           <svg width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="max-w-full">
+            <defs>
+              <linearGradient id="bar-grad-cool" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#94caff" />
+                <stop offset="100%" stopColor={SKY} />
+              </linearGradient>
+              <linearGradient id="bar-grad-mint" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#7ee0d8" />
+                <stop offset="100%" stopColor={MINT} />
+              </linearGradient>
+              <linearGradient id="bar-grad-lav" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#c9adf7" />
+                <stop offset="100%" stopColor={LAVENDER} />
+              </linearGradient>
+              <linearGradient id="bar-grad-hot" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ffe066" />
+                <stop offset="100%" stopColor={YELLOW} />
+              </linearGradient>
+              <linearGradient id="bar-grad-done" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#7ee0d8" />
+                <stop offset="100%" stopColor={MINT} />
+              </linearGradient>
+            </defs>
             {state.array.map((value, i) => {
               const barHeight = (value / maxVal) * maxBarHeight;
               const x = gap + i * (barWidth + gap);
@@ -200,15 +232,12 @@ function SortItOut() {
               const isComparing = !state.sorted && (i === state.comparingIndex || i === state.comparingIndex + 1);
               const isSwapped = state.justSwapped.includes(i);
 
-              let fill: string;
-              if (state.sorted) {
-                fill = "#22c55e";
-              } else if (isSwapped) {
-                fill = "#4ade80";
-              } else if (isComparing) {
-                fill = "#f59e0b";
-              } else {
-                fill = barColor(value, maxVal);
+              let grad: string;
+              if (state.sorted) grad = "url(#bar-grad-done)";
+              else if (isComparing || isSwapped) grad = "url(#bar-grad-hot)";
+              else {
+                const t = value / maxVal;
+                grad = t < 0.34 ? "url(#bar-grad-lav)" : t < 0.67 ? "url(#bar-grad-cool)" : "url(#bar-grad-mint)";
               }
 
               return (
@@ -219,23 +248,63 @@ function SortItOut() {
                     width={barWidth}
                     height={barHeight}
                     rx={4}
-                    fill={fill}
-                    style={{ transition: "all 0.15s ease-in-out" }}
+                    fill={grad}
+                    stroke={INK}
+                    strokeWidth={2}
+                    className={isComparing && !state.sorted ? "pulse-glow" : ""}
+                    style={{
+                      transition: "all 0.15s ease-in-out",
+                      filter: state.sorted ? "drop-shadow(2px 2px 0 #2b2a35)" : "drop-shadow(1.5px 1.5px 0 #2b2a35)",
+                      color: isComparing ? YELLOW : MINT,
+                    }}
                   />
+                  {isComparing && !state.sorted && (
+                    <line
+                      x1={x} y1={y - 4} x2={x + barWidth} y2={y - 4}
+                      stroke={CORAL} strokeWidth={2.5} strokeLinecap="round"
+                      className="signal-flow"
+                    />
+                  )}
                   <text
                     x={x + barWidth / 2}
-                    y={y - 6}
+                    y={y - 8}
                     textAnchor="middle"
-                    className="fill-slate-600"
-                    style={{ fontSize: 11, fontWeight: 600 }}
+                    fill={INK}
+                    fontFamily="Kalam"
+                    style={{ fontSize: 12, fontWeight: 700 }}
                   >
                     {value}
                   </text>
                   {isComparing && !state.sorted && (
                     <polygon
-                      points={`${x + barWidth / 2 - 4},${svgHeight - 20} ${x + barWidth / 2 + 4},${svgHeight - 20} ${x + barWidth / 2},${svgHeight - 26}`}
-                      fill="#f59e0b"
+                      points={`${x + barWidth / 2 - 5},${svgHeight - 18} ${x + barWidth / 2 + 5},${svgHeight - 18} ${x + barWidth / 2},${svgHeight - 25}`}
+                      fill={CORAL}
+                      stroke={INK}
+                      strokeWidth={1}
                     />
+                  )}
+                  {/* Spark particles on completion */}
+                  {state.sorted && (
+                    <g>
+                      {[0, 1].map((k) => {
+                        const angle = ((i + k * 4) / state.array.length) * Math.PI * 2;
+                        const cx = x + barWidth / 2;
+                        const cy = y;
+                        return (
+                          <line
+                            key={k}
+                            x1={cx} y1={cy}
+                            x2={cx + Math.cos(angle) * 14}
+                            y2={cy + Math.sin(angle) * 14}
+                            stroke={YELLOW}
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            className="spark"
+                            style={{ animationDelay: `${(i * 0.05) + k * 0.2}s` }}
+                          />
+                        );
+                      })}
+                    </g>
                   )}
                 </g>
               );
@@ -245,49 +314,47 @@ function SortItOut() {
 
         {/* Sorted banner */}
         {state.sorted && (
-          <div className="bg-green-100 border border-green-300 rounded-lg p-3 flex items-center justify-center gap-2">
-            <Trophy className="w-5 h-5 text-green-600" />
-            <span className="text-sm font-bold text-green-700">Sorted!</span>
+          <div className="card-sketchy p-3 flex items-center justify-center gap-2" style={{ background: MINT + "33" }}>
+            <Trophy className="w-5 h-5" style={{ color: INK }} />
+            <span className="font-hand text-base font-bold" style={{ color: INK }}>Sorted!</span>
           </div>
         )}
 
         {/* Stats */}
-        <div className="flex justify-center gap-6 text-xs font-medium text-slate-600">
-          <span>Comparisons: <span className="font-bold text-slate-800">{state.comparisons}</span></span>
-          <span>Swaps: <span className="font-bold text-slate-800">{state.swaps}</span></span>
-          <span>Pass: <span className="font-bold text-slate-800">{state.pass}</span></span>
+        <div className="flex justify-center gap-6 font-hand text-sm font-bold" style={{ color: INK }}>
+          <span>Comparisons: <span style={{ color: CORAL }}>{state.comparisons}</span></span>
+          <span>Swaps: <span style={{ color: LAVENDER }}>{state.swaps}</span></span>
+          <span>Pass: <span style={{ color: SKY }}>{state.pass}</span></span>
         </div>
 
         {/* Controls */}
         <div className="flex flex-wrap justify-center gap-2">
           <button
             onClick={shuffle}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors"
+            className="px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground bg-background hover:bg-accent-yellow/40 shadow-[2px_2px_0_#2b2a35] inline-flex items-center gap-1.5"
           >
-            <Shuffle className="w-3.5 h-3.5" />
-            Shuffle
+            <Shuffle className="w-3.5 h-3.5" /> Shuffle
           </button>
           <button
             onClick={step}
             disabled={state.sorted || playing}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground inline-flex items-center gap-1.5 ${
               state.sorted || playing
-                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                ? "bg-muted text-muted-foreground opacity-60 cursor-not-allowed"
+                : "bg-background hover:bg-accent-yellow/40 shadow-[2px_2px_0_#2b2a35]"
             }`}
           >
-            <SkipForward className="w-3.5 h-3.5" />
-            Step
+            <SkipForward className="w-3.5 h-3.5" /> Step
           </button>
           <button
-            onClick={togglePlay}
+            onClick={() => { playClick(); togglePlay(); }}
             disabled={state.sorted}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground inline-flex items-center gap-1.5 ${
               state.sorted
-                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                ? "bg-muted text-muted-foreground opacity-60 cursor-not-allowed"
                 : playing
-                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                  : "bg-green-100 text-green-700 hover:bg-green-200"
+                  ? "bg-accent-coral text-white shadow-[2px_2px_0_#2b2a35]"
+                  : "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]"
             }`}
           >
             {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -297,7 +364,7 @@ function SortItOut() {
 
         {/* Speed slider */}
         <div className="flex items-center justify-center gap-3">
-          <span className="text-xs text-slate-500">Fast</span>
+          <span className="font-hand text-xs font-bold" style={{ color: INK }}>Fast</span>
           <input
             type="range"
             min={100}
@@ -305,14 +372,14 @@ function SortItOut() {
             step={50}
             value={speed}
             onChange={(e) => setSpeed(Number(e.target.value))}
-            className="w-40 accent-indigo-500"
+            className="w-40 accent-accent-coral"
           />
-          <span className="text-xs text-slate-500">Slow</span>
+          <span className="font-hand text-xs font-bold" style={{ color: INK }}>Slow</span>
         </div>
       </div>
 
       <InfoBox variant="blue">
-        Sorting means putting things in order — smallest to largest. Bubble sort works by comparing neighbors and
+        Sorting means putting things in order  smallest to largest. Bubble sort works by comparing neighbors and
         swapping them if they're in the wrong order. The biggest values "bubble up" to the end!
       </InfoBox>
     </div>
@@ -320,7 +387,7 @@ function SortItOut() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Grouping Game                                              */
+/*  Tab 2  Grouping Game                                              */
 /* ------------------------------------------------------------------ */
 
 type Shape = "Circle" | "Square" | "Triangle";
@@ -420,19 +487,21 @@ function GroupingGame() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Group these items in different ways</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-base font-bold text-center" style={{ color: INK }}>
+          Group these items in different ways
+        </h3>
 
         {/* Grouping selector */}
         <div className="flex justify-center gap-2">
           {(["Shape", "Color", "Size"] as GroupBy[]).map((option) => (
             <button
               key={option}
-              onClick={() => setGroupBy(option)}
-              className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+              onClick={() => { playClick(); setGroupBy(option); }}
+              className={`px-4 py-2 rounded-lg font-hand text-xs font-bold border-2 border-foreground transition-all ${
                 groupBy === option
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]"
+                  : "bg-background hover:bg-accent-yellow/40"
               }`}
             >
               Group by {option}
@@ -530,7 +599,7 @@ function GroupingGame() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Which Is Faster? (Algorithm Race)                          */
+/*  Tab 3  Which Is Faster? (Algorithm Race)                          */
 /* ------------------------------------------------------------------ */
 
 // Selection sort: one step at a time
@@ -663,27 +732,41 @@ function RacePanel({
   const maxBarH = 120;
 
   return (
-    <div className={`flex-1 border rounded-xl p-3 space-y-2 ${isWinner === true ? "border-green-400 bg-green-50" : isWinner === false ? "border-slate-200 bg-slate-50" : "border-slate-200 bg-white"}`}>
-      <h4 className={`text-xs font-bold text-center ${isWinner === true ? "text-green-700" : "text-slate-700"}`}>
+    <div
+      className="flex-1 card-sketchy p-3 space-y-2"
+      style={{ background: isWinner === true ? MINT + "33" : "#fff" }}
+    >
+      <h4 className="font-hand text-sm font-bold text-center" style={{ color: isWinner === true ? INK : INK }}>
         {label}
         {isWinner === true && " (Winner!)"}
       </h4>
       <div className="flex justify-center overflow-x-auto">
         <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`}>
+          <defs>
+            <linearGradient id={`race-bar-${label.replace(/\s/g, "")}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#94caff" />
+              <stop offset="100%" stopColor={SKY} />
+            </linearGradient>
+            <linearGradient id={`race-bar-done-${label.replace(/\s/g, "")}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#7ee0d8" />
+              <stop offset="100%" stopColor={MINT} />
+            </linearGradient>
+            <linearGradient id={`race-bar-hot-${label.replace(/\s/g, "")}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ffe066" />
+              <stop offset="100%" stopColor={YELLOW} />
+            </linearGradient>
+          </defs>
           {array.map((value, i) => {
             const barHeight = (value / maxVal) * maxBarH;
             const x = gapW + i * (barW + gapW);
             const y = svgH - 20 - barHeight;
             const isHL = !sorted && (i === highlightA || i === highlightB);
 
-            let fill: string;
-            if (sorted) {
-              fill = "#22c55e";
-            } else if (isHL) {
-              fill = "#f59e0b";
-            } else {
-              fill = barColor(value, maxVal);
-            }
+            const fill = sorted
+              ? `url(#race-bar-done-${label.replace(/\s/g, "")})`
+              : isHL
+                ? `url(#race-bar-hot-${label.replace(/\s/g, "")})`
+                : `url(#race-bar-${label.replace(/\s/g, "")})`;
 
             return (
               <g key={i}>
@@ -694,15 +777,23 @@ function RacePanel({
                   height={barHeight}
                   rx={3}
                   fill={fill}
-                  style={{ transition: "all 0.1s ease-in-out" }}
+                  stroke={INK}
+                  strokeWidth={1.5}
+                  className={isHL ? "pulse-glow" : ""}
+                  style={{
+                    transition: "all 0.1s ease-in-out",
+                    color: isHL ? YELLOW : MINT,
+                    filter: "drop-shadow(1px 1px 0 #2b2a35)",
+                  }}
                 />
                 {barW >= 18 && (
                   <text
                     x={x + barW / 2}
                     y={y - 3}
                     textAnchor="middle"
-                    className="fill-slate-500"
-                    style={{ fontSize: 9, fontWeight: 600 }}
+                    fill={INK}
+                    fontFamily="Kalam"
+                    style={{ fontSize: 10, fontWeight: 700 }}
                   >
                     {value}
                   </text>
@@ -712,8 +803,8 @@ function RacePanel({
           })}
         </svg>
       </div>
-      <p className="text-center text-xs text-slate-600">
-        Comparisons: <span className="font-bold text-slate-800">{comparisons}</span>
+      <p className="text-center font-hand text-xs font-bold" style={{ color: INK }}>
+        Comparisons: <span style={{ color: CORAL }}>{comparisons}</span>
       </p>
     </div>
   );
@@ -780,26 +871,29 @@ function WhichIsFaster() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Race two sorting algorithms against each other!</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-base font-bold text-center" style={{ color: INK }}>
+          Race two sorting algorithms against each other!
+        </h3>
 
         {/* Array size selector */}
         <div className="flex items-center justify-center gap-3">
-          <span className="text-xs text-slate-500 font-medium">Array size:</span>
+          <span className="font-hand text-xs font-bold" style={{ color: INK }}>Array size:</span>
           {[5, 10, 15, 20].map((size) => (
             <button
               key={size}
               onClick={() => {
+                playClick();
                 setArraySize(size);
                 resetRace(size);
               }}
               disabled={racing}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground transition-all ${
                 arraySize === size
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]"
                   : racing
-                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-muted opacity-50 cursor-not-allowed"
+                    : "bg-background hover:bg-accent-yellow/40"
               }`}
             >
               {size}
@@ -831,13 +925,13 @@ function WhichIsFaster() {
 
         {/* Result */}
         {finished && (
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 text-center space-y-1">
-            <p className="text-sm font-bold text-indigo-800">
+          <div className="card-sketchy p-3 text-center space-y-1" style={{ background: YELLOW + "33" }}>
+            <p className="font-hand text-base font-bold" style={{ color: INK }}>
               {isTie
                 ? "It's a tie!"
                 : `${bubble.comparisons < selection.comparisons ? "Bubble Sort" : "Selection Sort"} wins!`}
             </p>
-            <p className="text-xs text-indigo-600">
+            <p className="font-hand text-xs" style={{ color: INK }}>
               Bubble Sort: {bubble.comparisons} comparisons | Selection Sort: {selection.comparisons} comparisons
             </p>
           </div>
@@ -846,28 +940,26 @@ function WhichIsFaster() {
         {/* Controls */}
         <div className="flex justify-center gap-3">
           <button
-            onClick={startRace}
+            onClick={() => { playPop(); startRace(); }}
             disabled={racing || finished}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground inline-flex items-center gap-1.5 ${
               racing || finished
-                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                : "bg-indigo-600 text-white hover:bg-indigo-700"
+                ? "bg-muted opacity-50 cursor-not-allowed"
+                : "bg-accent-coral text-white shadow-[2px_2px_0_#2b2a35]"
             }`}
           >
-            <Play className="w-4 h-4" />
-            Race!
+            <Play className="w-4 h-4" /> Race!
           </button>
           <button
-            onClick={() => resetRace()}
+            onClick={() => { playClick(); resetRace(); }}
             disabled={racing}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground inline-flex items-center gap-1.5 ${
               racing
-                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-muted opacity-50 cursor-not-allowed"
+                : "bg-background hover:bg-accent-yellow/40 shadow-[2px_2px_0_#2b2a35]"
             }`}
           >
-            <RotateCcw className="w-4 h-4" />
-            New Race
+            <RotateCcw className="w-4 h-4" /> New Race
           </button>
         </div>
       </div>
@@ -915,14 +1007,14 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "Sorted data makes patterns easier to spot — you can quickly find the smallest, largest, or most common values, and see how data is distributed.",
+      "Sorted data makes patterns easier to spot  you can quickly find the smallest, largest, or most common values, and see how data is distributed.",
   },
   {
     question: "Between bubble sort and selection sort, which one is always faster?",
     options: ["Bubble sort", "Selection sort", "They're always the same", "It depends on the data"],
     correctIndex: 3,
     explanation:
-      "Neither algorithm is always faster — it depends on how the data is initially arranged. This is why computer scientists study many different sorting algorithms!",
+      "Neither algorithm is always faster  it depends on how the data is initially arranged. This is why computer scientists study many different sorting algorithms!",
   },
 ];
 
@@ -962,18 +1054,18 @@ export default function L6_SortingActivity() {
       lessonNumber={3}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="You can sort and group data — awesome! Now let's use everything you've learned to make predictions. What if you could guess what happens next?"
+      nextLessonHint="You can sort and group data  awesome! Now let's use everything you've learned to make predictions. What if you could guess what happens next?"
       story={
         <StorySection
           paragraphs={[
-            "Aru's bookshelf was a disaster. Science books mixed with comics, thick novels next to tiny notebooks — she could never find anything.",
+            "Aru's bookshelf was a disaster. Science books mixed with comics, thick novels next to tiny notebooks  she could never find anything.",
             "Aru: \"Byte, I need to find my math textbook but it's buried somewhere in this mess!\"",
-            "Byte: \"Let me show you how I'd handle this. First, I'd sort them — maybe by size, or by subject. And then I'd group them — all science books together, all comics together. Sorting and grouping are two of the most powerful things you can do with messy data.\"",
+            "Byte: \"Let me show you how I'd handle this. First, I'd sort them  maybe by size, or by subject. And then I'd group them  all science books together, all comics together. Sorting and grouping are two of the most powerful things you can do with messy data.\"",
             "Aru: \"But how do you sort when you can only compare two things at a time?\"",
             "Byte: \"Great question! That's exactly how sorting algorithms work. Let me show you step by step.\""
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="Sorting means arranging items in order (smallest to largest, A to Z). Grouping means putting similar items together by a shared property. Computers sort by comparing two items at a time and swapping them if needed. Different sorting algorithms take different numbers of steps — finding faster algorithms is a core challenge in computer science."
+          conceptSummary="Sorting means arranging items in order (smallest to largest, A to Z). Grouping means putting similar items together by a shared property. Computers sort by comparing two items at a time and swapping them if needed. Different sorting algorithms take different numbers of steps  finding faster algorithms is a core challenge in computer science."
         />
       }
     />

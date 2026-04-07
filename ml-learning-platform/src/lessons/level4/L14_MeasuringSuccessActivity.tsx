@@ -5,14 +5,42 @@ import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
 import { playClick, playPop, playSuccess, playError } from "../../utils/sounds";
 
+const INK = "#2b2a35";
+
+/* Animated metric meter */
+function MetricMeter({ label, value, color, glow }: { label: string; value: number; color: string; glow: string }) {
+  const v = Math.max(0, Math.min(100, value));
+  return (
+    <div className="card-sketchy p-3" style={{ background: "#fff" }}>
+      <div className="flex justify-between font-hand text-xs font-bold text-foreground mb-1">
+        <span>{label}</span>
+        <span style={{ color }}>{v.toFixed(0)}%</span>
+      </div>
+      <svg viewBox="0 0 200 18" className="w-full">
+        <defs>
+          <linearGradient id={`mm-${label}`} x1="0" x2="1">
+            <stop offset="0%" stopColor={glow} />
+            <stop offset="100%" stopColor={color} />
+          </linearGradient>
+        </defs>
+        <rect x={1} y={1} width={198} height={16} rx={8} fill="#f3efe6" stroke={INK} strokeWidth={2} />
+        <rect x={3} y={3} width={(196 * v) / 100} height={12} rx={6}
+          fill={`url(#mm-${label})`}
+          className="pulse-glow"
+          style={{ color, transition: "width 0.5s ease" }} />
+      </svg>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Seeded PRNG                                                        */
 /* ------------------------------------------------------------------ */
 
-/* mulberry32 PRNG removed — not needed in this lesson */
+/* mulberry32 PRNG removed  not needed in this lesson */
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Confusion Matrix                                          */
+/*  Tab 1  Confusion Matrix                                          */
 /* ------------------------------------------------------------------ */
 
 interface EmailItem {
@@ -68,14 +96,14 @@ function ConfusionMatrix() {
   }, [emails, predictions]);
 
   const total = tp + fp + tn + fn;
-  const accuracy = total > 0 ? ((tp + tn) / total * 100).toFixed(0) : "—";
-  const precision = (tp + fp) > 0 ? (tp / (tp + fp) * 100).toFixed(0) : "—";
-  const recall = (tp + fn) > 0 ? (tp / (tp + fn) * 100).toFixed(0) : "—";
+  const accuracy = total > 0 ? ((tp + tn) / total * 100).toFixed(0) : "";
+  const precision = (tp + fp) > 0 ? (tp / (tp + fp) * 100).toFixed(0) : "";
+  const recall = (tp + fn) > 0 ? (tp / (tp + fn) * 100).toFixed(0) : "";
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Classify each email as Spam or Not Spam — watch the confusion matrix build!</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Classify each email as Spam or Not Spam  watch the confusion matrix build!</h3>
 
         {/* Current email */}
         {currentEmail ? (
@@ -145,11 +173,21 @@ function ConfusionMatrix() {
           </svg>
         </div>
 
+        {/* Animated metric meters */}
+        {total > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <MetricMeter label="Accuracy" value={Number(accuracy) || 0} color="#b18cf2" glow="#c9adf7" />
+            <MetricMeter label="Precision" value={Number(precision) || 0} color="#6bb6ff" glow="#94caff" />
+            <MetricMeter label="Recall" value={Number(recall) || 0} color="#4ecdc4" glow="#7ee0d8" />
+          </div>
+        )}
+
         {/* Progress */}
-        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-          <div className="h-full bg-indigo-500 rounded-full transition-all duration-300"
-            style={{ width: `${(currentIdx / emails.length) * 100}%` }} />
-        </div>
+        <svg viewBox="0 0 400 14" className="w-full">
+          <rect x={1} y={1} width={398} height={12} rx={6} fill="#f3efe6" stroke={INK} strokeWidth={2} />
+          <rect x={3} y={3} width={Math.max(0, (394 * currentIdx) / emails.length)} height={8} rx={4}
+            fill="#ffd93d" className="pulse-glow" style={{ color: "#ffd93d", transition: "width 0.4s" }} />
+        </svg>
       </div>
 
       <InfoBox variant="blue" title="Confusion Matrix Explained">
@@ -160,7 +198,7 @@ function ConfusionMatrix() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Accuracy Isn't Everything                                  */
+/*  Tab 2  Accuracy Isn't Everything                                  */
 /* ------------------------------------------------------------------ */
 
 function AccuracyIsntEverything() {
@@ -206,13 +244,13 @@ function AccuracyIsntEverything() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">A "lazy" model shows why accuracy alone can be misleading</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">A "lazy" model shows why accuracy alone can be misleading</h3>
 
         {/* Lazy model callout */}
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 max-w-md mx-auto">
           <p className="text-xs text-red-700">
-            <strong>Lazy Model:</strong> Always predicts "Healthy" — gets <strong>{lazyAccuracy}% accuracy</strong>!
+            <strong>Lazy Model:</strong> Always predicts "Healthy"  gets <strong>{lazyAccuracy}% accuracy</strong>!
             But it misses ALL {totalSick} sick patients.
           </p>
         </div>
@@ -235,7 +273,7 @@ function AccuracyIsntEverything() {
             {/* Background */}
             <rect x={10} y={10} width={480} height={140} rx={8} fill="#f8fafc" stroke="#e2e8f0" strokeWidth={1} />
 
-            {/* People dots — 100 total */}
+            {/* People dots  100 total */}
             {Array.from({ length: total }, (_, i) => {
               const row = Math.floor(i / 20);
               const col = i % 20;
@@ -274,32 +312,23 @@ function AccuracyIsntEverything() {
           <span><span className="inline-block w-3 h-3 rounded-full bg-amber-500 mr-1 align-middle" />False alarm</span>
         </div>
 
-        {/* Metrics comparison */}
-        <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
-          <div className="bg-slate-50 rounded-lg p-3 text-center">
-            <p className="text-[10px] text-slate-500 font-medium uppercase">Accuracy</p>
-            <p className="text-lg font-bold text-slate-800">{accuracy}%</p>
-          </div>
-          <div className="bg-slate-50 rounded-lg p-3 text-center">
-            <p className="text-[10px] text-slate-500 font-medium uppercase">Precision</p>
-            <p className="text-lg font-bold text-indigo-700">{precisionVal}%</p>
-          </div>
-          <div className="bg-slate-50 rounded-lg p-3 text-center">
-            <p className="text-[10px] text-slate-500 font-medium uppercase">Recall</p>
-            <p className="text-lg font-bold text-emerald-700">{recallVal}%</p>
-          </div>
+        {/* Animated metric meters */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-md mx-auto">
+          <MetricMeter label="Accuracy" value={Number(accuracy)} color="#b18cf2" glow="#c9adf7" />
+          <MetricMeter label="Precision" value={Number(precisionVal)} color="#6bb6ff" glow="#94caff" />
+          <MetricMeter label="Recall" value={Number(recallVal)} color="#4ecdc4" glow="#7ee0d8" />
         </div>
       </div>
 
       <InfoBox variant="amber" title="The Accuracy Trap">
-        With imbalanced data, a model can get high accuracy by just predicting the majority class. <strong>Precision</strong> tells us how many of our positive predictions were correct. <strong>Recall</strong> tells us how many actual positives we caught. For medical diagnosis, recall is critical — missing a sick patient is dangerous!
+        With imbalanced data, a model can get high accuracy by just predicting the majority class. <strong>Precision</strong> tells us how many of our positive predictions were correct. <strong>Recall</strong> tells us how many actual positives we caught. For medical diagnosis, recall is critical  missing a sick patient is dangerous!
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Compare Models                                             */
+/*  Tab 3  Compare Models                                             */
 /* ------------------------------------------------------------------ */
 
 interface ModelMetrics {
@@ -328,19 +357,19 @@ const SCENARIOS: Scenario[] = [
     title: "Medical Diagnosis",
     description: "Detecting whether a patient has a disease. Missing a sick patient could be life-threatening.",
     bestModel: 1,
-    reason: "Model B has the highest recall (95%) — it catches almost all sick patients, which is critical in healthcare.",
+    reason: "Model B has the highest recall (95%)  it catches almost all sick patients, which is critical in healthcare.",
   },
   {
     title: "Spam Filter",
     description: "Filtering spam emails. Marking a real email as spam is very annoying.",
     bestModel: 0,
-    reason: "Model A has the highest precision (88%) with high accuracy — it rarely marks real emails as spam.",
+    reason: "Model A has the highest precision (88%) with high accuracy  it rarely marks real emails as spam.",
   },
   {
     title: "Movie Recommendation",
     description: "Suggesting movies a user might enjoy. We want a good overall balance.",
     bestModel: 2,
-    reason: "Model C has the best F1 score (88%) — the best balance of precision and recall for general recommendations.",
+    reason: "Model C has the best F1 score (88%)  the best balance of precision and recall for general recommendations.",
   },
 ];
 
@@ -378,8 +407,8 @@ function CompareModels() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Compare 3 models — which is best for each scenario?</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Compare 3 models  which is best for each scenario?</h3>
 
         {/* Bar chart */}
         <div className="flex justify-center overflow-x-auto">
@@ -492,7 +521,7 @@ function CompareModels() {
       </div>
 
       <InfoBox variant="indigo" title="Which Metric Matters?">
-        There is no single "best" metric — it depends on the problem! For <strong>medical diagnosis</strong>, recall matters most (catch all sick patients). For <strong>spam filtering</strong>, precision matters (don't block real emails). <strong>F1 score</strong> balances both.
+        There is no single "best" metric  it depends on the problem! For <strong>medical diagnosis</strong>, recall matters most (catch all sick patients). For <strong>spam filtering</strong>, precision matters (don't block real emails). <strong>F1 score</strong> balances both.
       </InfoBox>
     </div>
   );
@@ -512,7 +541,7 @@ const quizQuestions = [
       "A spam email missed by the filter",
     ],
     correctIndex: 1,
-    explanation: "A True Positive means the model correctly predicted the positive class — in this case, correctly catching a spam email.",
+    explanation: "A True Positive means the model correctly predicted the positive class  in this case, correctly catching a spam email.",
   },
   {
     question: "Why can high accuracy be misleading with imbalanced data?",
@@ -585,14 +614,14 @@ export default function L14_MeasuringSuccessActivity() {
       lessonNumber={4}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Discover unsupervised learning — when data has no labels!"
+      nextLessonHint="Next: Discover unsupervised learning  when data has no labels!"
       story={
         <StorySection
           paragraphs={[
             "Aru was beaming after her math test. She got 80%!",
             "Byte: That's great! But let me ask you something. What if 80% of the questions had the answer 'True', and you just wrote 'True' for every single one?",
             "Aru: I'd still get 80%... but I wouldn't really know math at all!",
-            "Byte: Exactly! That's why accuracy alone can be misleading. In machine learning, we need better ways to measure success. We need to know — did you actually catch the right answers, or just get lucky?",
+            "Byte: Exactly! That's why accuracy alone can be misleading. In machine learning, we need better ways to measure success. We need to know  did you actually catch the right answers, or just get lucky?",
             "Aru: So how do we measure success properly?",
             "Byte: With tools like the confusion matrix, precision, recall, and F1 score. Let me show you!",
           ]}

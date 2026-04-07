@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Lock } from "lucide-react";
+import { useProgress, isLessonUnlocked } from "../utils/progress";
+import { useDueCount } from "../utils/reviewDeck";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Cpu,
@@ -34,6 +37,20 @@ import {
   Grid3X3,
   Move,
   Box,
+  Clock,
+  AlertTriangle,
+  Scale,
+  Radar,
+  ToggleLeft,
+  Tags,
+  Scissors,
+  Split,
+  ShieldAlert,
+  Minimize2,
+  Hand,
+  Eye,
+  Sliders,
+  Play,
 } from "lucide-react";
 
 interface LessonDef {
@@ -56,6 +73,8 @@ export const LEVELS: LevelDef[] = [
       { path: "/level1/machines", label: "Machines & Instructions", icon: <Cpu className="w-4 h-4" /> },
       { path: "/level1/computers", label: "How Computers Work", icon: <Binary className="w-4 h-4" /> },
       { path: "/level1/data", label: "What Is Data?", icon: <Database className="w-4 h-4" /> },
+      { path: "/level1/senses", label: "Sensors: How Machines Sense", icon: <Radar className="w-4 h-4" /> },
+      { path: "/level1/bits", label: "Bits, Bytes & Files", icon: <ToggleLeft className="w-4 h-4" /> },
     ],
   },
   {
@@ -65,6 +84,8 @@ export const LEVELS: LevelDef[] = [
       { path: "/level2/coordinates", label: "Coordinates & Graphs", icon: <Axis3D className="w-4 h-4" /> },
       { path: "/level2/patterns", label: "Spotting Patterns", icon: <Search className="w-4 h-4" /> },
       { path: "/level2/sorting", label: "Sorting & Grouping", icon: <ArrowUpDown className="w-4 h-4" /> },
+      { path: "/level2/outliers", label: "Spotting Outliers", icon: <AlertTriangle className="w-4 h-4" /> },
+      { path: "/level2/averages", label: "Mean & Median", icon: <Scale className="w-4 h-4" /> },
     ],
   },
   {
@@ -75,6 +96,8 @@ export const LEVELS: LevelDef[] = [
       { path: "/level3/best-line", label: "Drawing the Best Line", icon: <TrendingUp className="w-4 h-4" /> },
       { path: "/level3/algorithms", label: "What Is an Algorithm?", icon: <ListOrdered className="w-4 h-4" /> },
       { path: "/level3/how-computers-learn", label: "How Computers Learn", icon: <Brain className="w-4 h-4" /> },
+      { path: "/level3/features-labels", label: "Features & Labels", icon: <Tags className="w-4 h-4" /> },
+      { path: "/level3/train-test", label: "Train & Test Split", icon: <Scissors className="w-4 h-4" /> },
     ],
   },
   {
@@ -85,6 +108,8 @@ export const LEVELS: LevelDef[] = [
       { path: "/level4/knn", label: "K-Nearest Neighbors", icon: <Users className="w-4 h-4" /> },
       { path: "/level4/decision-trees", label: "Decision Trees", icon: <GitFork className="w-4 h-4" /> },
       { path: "/level4/measuring-success", label: "Measuring Success", icon: <BarChart3 className="w-4 h-4" /> },
+      { path: "/level4/train-test-split", label: "Train vs Test", icon: <Split className="w-4 h-4" /> },
+      { path: "/level4/confusion-matrix", label: "Confusion Matrix", icon: <Grid3X3 className="w-4 h-4" /> },
     ],
   },
   {
@@ -94,6 +119,8 @@ export const LEVELS: LevelDef[] = [
       { path: "/level5/unsupervised-learning", label: "What Is Unsupervised?", icon: <Layers className="w-4 h-4" /> },
       { path: "/level5/kmeans", label: "K-Means Clustering", icon: <CircleDot className="w-4 h-4" /> },
       { path: "/level5/choosing-k", label: "Choosing K", icon: <LineChart className="w-4 h-4" /> },
+      { path: "/level5/anomaly", label: "Anomaly Detection", icon: <ShieldAlert className="w-4 h-4" /> },
+      { path: "/level5/dimensionality", label: "Dimensionality Reduction", icon: <Minimize2 className="w-4 h-4" /> },
     ],
   },
   {
@@ -104,6 +131,8 @@ export const LEVELS: LevelDef[] = [
       { path: "/level6/activation-functions", label: "Activation Functions", icon: <Activity className="w-4 h-4" /> },
       { path: "/level6/neural-network", label: "Building a Neural Network", icon: <Network className="w-4 h-4" /> },
       { path: "/level6/backpropagation", label: "Backpropagation", icon: <ArrowLeftRight className="w-4 h-4" /> },
+      { path: "/level6/weights-biases", label: "Weights & Biases", icon: <Sliders className="w-4 h-4" /> },
+      { path: "/level6/forward-pass", label: "Forward Pass", icon: <Play className="w-4 h-4" /> },
     ],
   },
   {
@@ -124,12 +153,23 @@ export const LEVELS: LevelDef[] = [
       { path: "/level8/filters", label: "Filters & Convolution", icon: <Grid3X3 className="w-4 h-4" /> },
       { path: "/level8/stride-padding", label: "Stride, Padding & Pooling", icon: <Move className="w-4 h-4" /> },
       { path: "/level8/mini-cnn", label: "Building a Mini CNN", icon: <Box className="w-4 h-4" /> },
+      { path: "/level8/history", label: "The Story of ML", icon: <Clock className="w-4 h-4" /> },
+    ],
+  },
+  {
+    level: 9,
+    title: "Live AI with Your Camera",
+    lessons: [
+      { path: "/level9/hand-tracking", label: "Hand Tracking (MediaPipe)", icon: <Hand className="w-4 h-4" /> },
+      { path: "/level9/gesture-recognition", label: "Gesture Recognition", icon: <Sparkles className="w-4 h-4" /> },
+      { path: "/level9/object-detection", label: "Object Detection", icon: <Eye className="w-4 h-4" /> },
     ],
   },
 ];
 
-// Flat list of all lesson paths in order — used for prev/next navigation
+// Flat list of all lesson paths in order  used for prev/next navigation
 export const ALL_LESSONS = LEVELS.flatMap((l) => l.lessons.map((ls) => ls.path));
+export const ALL_LESSONS_META = LEVELS.flatMap((l) => l.lessons.map((ls) => ({ path: ls.path, label: ls.label })));
 
 interface SidebarProps {
   isOpen: boolean;
@@ -140,6 +180,8 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const location = useLocation();
+  const progress = useProgress();
+  const dueCount = useDueCount();
 
   // Determine which level the current route is in, and auto-expand it
   const currentLevelIdx = LEVELS.findIndex((l) =>
@@ -151,6 +193,12 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
     LEVELS.forEach((_, i) => { init[i] = i === currentLevelIdx; });
     return init;
   });
+
+  useEffect(() => {
+    if (currentLevelIdx >= 0) {
+      setExpandedLevels((prev) => (prev[currentLevelIdx] ? prev : { ...prev, [currentLevelIdx]: true }));
+    }
+  }, [currentLevelIdx]);
 
   function toggleLevel(idx: number) {
     setExpandedLevels((prev) => ({ ...prev, [idx]: !prev[idx] }));
@@ -191,6 +239,32 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
 
         {/* Navigation */}
         <nav className={`p-3 space-y-1 ${collapsed ? "px-2" : ""}`}>
+          <NavLink
+            to="/review"
+            onClick={onClose}
+            title={collapsed ? `Review (${dueCount} due)` : undefined}
+            className={({ isActive }) =>
+              `flex items-center rounded-lg text-sm font-hand transition-all mb-2 ${
+                collapsed ? "justify-center px-0 py-2.5" : "gap-2 px-2.5 py-2"
+              } ${
+                isActive
+                  ? "bg-accent-coral text-background border-2 border-foreground font-bold shadow-[2px_2px_0_#2b2a35]"
+                  : "text-foreground/80 hover:bg-accent-mint/30 hover:text-foreground border-2 border-transparent"
+              }`
+            }
+          >
+            <Brain className="w-4 h-4 shrink-0" />
+            {!collapsed && <span>Review Deck</span>}
+            {dueCount > 0 && (
+              <span
+                className={`${collapsed ? "absolute" : "ml-auto"} text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-foreground`}
+                style={{ background: "var(--accent-yellow)", color: "var(--foreground)" }}
+              >
+                {dueCount}
+              </span>
+            )}
+          </NavLink>
+
           {LEVELS.map((level, idx) => {
             const isExpanded = expandedLevels[idx] ?? false;
             const hasActivePage = level.lessons.some((ls) => ls.path === location.pathname);
@@ -200,7 +274,7 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
                 {!collapsed ? (
                   <button
                     onClick={() => toggleLevel(idx)}
-                    className={`w-full flex items-center justify-between px-2 py-2 rounded-lg font-hand transition-colors ${
+                    className={`w-full flex items-center justify-between px-2 py-2 rounded-lg font-hand text-left transition-colors ${
                       hasActivePage
                         ? "text-foreground bg-accent-yellow/40"
                         : "text-muted-foreground hover:bg-accent-yellow/20 hover:text-foreground"
@@ -221,26 +295,47 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
 
                 {(isExpanded || collapsed) && (
                   <div className={`space-y-0.5 ${!collapsed ? "mt-1 ml-1 border-l-2 border-dashed border-foreground/20 pl-2" : ""}`}>
-                    {level.lessons.map((lesson) => (
-                      <NavLink
-                        key={lesson.path}
-                        to={lesson.path}
-                        onClick={onClose}
-                        title={collapsed ? lesson.label : undefined}
-                        className={({ isActive }) =>
-                          `flex items-center rounded-lg text-sm font-hand transition-all ${
-                            collapsed ? "justify-center px-0 py-2.5" : "gap-2 px-2.5 py-2"
-                          } ${
-                            isActive
-                              ? "bg-accent-coral text-background border-2 border-foreground font-bold shadow-[2px_2px_0_#2b2a35]"
-                              : "text-foreground/80 hover:bg-accent-mint/30 hover:text-foreground"
-                          }`
-                        }
-                      >
-                        {lesson.icon}
-                        {!collapsed && lesson.label}
-                      </NavLink>
-                    ))}
+                    {level.lessons.map((lesson) => {
+                      const unlocked = isLessonUnlocked(lesson.path, progress);
+                      if (!unlocked) {
+                        return (
+                          <div
+                            key={lesson.path}
+                            title={collapsed ? `${lesson.label} (locked)` : "Complete the previous lesson to unlock"}
+                            className={`flex items-center rounded-lg text-sm font-hand opacity-50 cursor-not-allowed ${
+                              collapsed ? "justify-center px-0 py-2.5" : "gap-2 px-2.5 py-2"
+                            } text-foreground/60`}
+                          >
+                            <Lock className="w-3.5 h-3.5 shrink-0" />
+                            {!collapsed && (
+                              <span className="flex-1 text-left leading-tight wrap-break-word">{lesson.label}</span>
+                            )}
+                          </div>
+                        );
+                      }
+                      return (
+                        <NavLink
+                          key={lesson.path}
+                          to={lesson.path}
+                          onClick={onClose}
+                          title={collapsed ? lesson.label : undefined}
+                          className={({ isActive }) =>
+                            `flex items-center rounded-lg text-sm font-hand transition-all ${
+                              collapsed ? "justify-center px-0 py-2.5" : "gap-2 px-2.5 py-2"
+                            } ${
+                              isActive
+                                ? "bg-accent-coral text-background border-2 border-foreground font-bold shadow-[2px_2px_0_#2b2a35]"
+                                : "text-foreground/80 hover:bg-accent-mint/30 hover:text-foreground"
+                            }`
+                          }
+                        >
+                          <span className="shrink-0 flex items-center justify-center">{lesson.icon}</span>
+                          {!collapsed && (
+                            <span className="flex-1 leading-tight wrap-break-word">{lesson.label}</span>
+                          )}
+                        </NavLink>
+                      );
+                    })}
                   </div>
                 )}
               </div>

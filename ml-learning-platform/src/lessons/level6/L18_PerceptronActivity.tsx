@@ -34,7 +34,7 @@ const THEMES = [
 const INK = "#2b2a35";
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Build a Perceptron                                         */
+/*  Tab 1  Build a Perceptron                                         */
 /* ------------------------------------------------------------------ */
 
 function BuildPerceptronTab() {
@@ -430,7 +430,7 @@ function BuildPerceptronTab() {
 
       <InfoBox variant="blue">
         <span className="font-hand text-base">
-          🧠 Click input circles to flip them, change the theme, slow the signals down, or hit Auto to watch it cycle. Watch the pulses race down each wire — that's the signal flowing into the neuron!
+          🧠 Click input circles to flip them, change the theme, slow the signals down, or hit Auto to watch it cycle. Watch the pulses race down each wire  that's the signal flowing into the neuron!
         </span>
       </InfoBox>
     </div>
@@ -438,7 +438,7 @@ function BuildPerceptronTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — AND / OR Gates                                             */
+/*  Tab 2  AND / OR Gates                                             */
 /* ------------------------------------------------------------------ */
 
 const TRUTH_TABLE: [number, number][] = [[0, 0], [0, 1], [1, 0], [1, 1]];
@@ -699,7 +699,7 @@ function GatesTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — The XOR Problem                                            */
+/*  Tab 3  The XOR Problem                                            */
 /* ------------------------------------------------------------------ */
 
 const XOR_TARGETS = [0, 1, 1, 0];
@@ -899,7 +899,7 @@ function XORTab() {
 
       <InfoBox variant="amber" title="The XOR Problem">
         <span className="font-hand text-base">
-          A single perceptron draws ONE straight line. But XOR needs to separate DIAGONAL corners — no single line can do that! Watch the red ghost lines pile up as it tries (and fails). This is exactly why we need neural networks with hidden layers. 🧠
+          A single perceptron draws ONE straight line. But XOR needs to separate DIAGONAL corners  no single line can do that! Watch the red ghost lines pile up as it tries (and fails). This is exactly why we need neural networks with hidden layers. 🧠
         </span>
       </InfoBox>
     </div>

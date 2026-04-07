@@ -12,7 +12,7 @@ export default function StorySection({ paragraphs, conceptTitle, conceptSummary 
 
   return (
     <div className="rounded-xl border border-amber-200 overflow-hidden">
-      {/* Header — always visible, acts as toggle */}
+      {/* Header  always visible, acts as toggle */}
       <button
         onClick={() => setExpanded((e) => !e)}
         className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100 transition-colors text-left"
@@ -30,7 +30,7 @@ export default function StorySection({ paragraphs, conceptTitle, conceptSummary 
         )}
       </button>
 
-      {/* Body — collapsible */}
+      {/* Body  collapsible */}
       {expanded && (
         <div className="px-4 py-4 bg-gradient-to-b from-amber-50/60 to-white space-y-3">
           {/* Story paragraphs */}

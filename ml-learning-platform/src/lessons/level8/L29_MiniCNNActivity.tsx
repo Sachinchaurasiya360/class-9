@@ -1,9 +1,22 @@
-import { useState, useMemo, useCallback } from "react";
-import { Workflow, Eye, Dumbbell } from "lucide-react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { Workflow, Eye, Dumbbell, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
 import { playClick, playPop, playSuccess, playError } from "../../utils/sounds";
+
+/* ---- sketchy palette ---- */
+const INK = "#2b2a35";
+const PAPER = "#fffdf5";
+const CREAM = "#fff8e7";
+
+const THEMES = [
+  { name: "Coral",    node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint",     node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky",      node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+  { name: "Sunset",   node: "#ffb88c", glow: "#ffd0b3", accent: "#ff6b6b" },
+];
 
 /* ---- helpers ---- */
 function mulberry32(seed: number): () => number {
@@ -20,7 +33,7 @@ function clamp01(v: number): number {
   return Math.max(0, Math.min(1, v));
 }
 
-/* ---- patterns (8x8 normalized 0-1) ---- */
+/* ---- patterns ---- */
 const HORIZ_STRIPES: number[] = [];
 const VERT_STRIPES: number[] = [];
 const CHECKER: number[] = [];
@@ -40,9 +53,9 @@ const PATTERNS = [
 ];
 
 const CLASS_NAMES = ["Horizontal", "Vertical", "Checkerboard"];
-const CLASS_COLORS = ["#3b82f6", "#ef4444", "#22c55e"];
+const CLASS_COLORS = ["#6bb6ff", "#ff6b6b", "#4ecdc4"];
 
-/* ---- CNN forward pass helpers ---- */
+/* ---- CNN math ---- */
 function conv2d(input: number[], inSize: number, kernel: number[]): number[] {
   const outSize = inSize - 2;
   const out: number[] = [];
@@ -88,17 +101,13 @@ function softmax(arr: number[]): number[] {
   return exps.map((v) => v / sum);
 }
 
-/* ---- A fixed kernel for pipeline demo ---- */
-const DEMO_KERNEL = [-1, -1, -1, 0, 0, 0, 1, 1, 1]; // horizontal edge
+const DEMO_KERNEL = [-1, -1, -1, 0, 0, 0, 1, 1, 1];
 
-/* ---- dense layer weights (9 inputs -> 3 outputs) ---- */
 function makeDenseWeights(rand: () => number, inputs: number, outputs: number): { w: number[][]; b: number[] } {
   const w: number[][] = [];
   for (let o = 0; o < outputs; o++) {
     const row: number[] = [];
-    for (let i = 0; i < inputs; i++) {
-      row.push((rand() - 0.5) * 2);
-    }
+    for (let i = 0; i < inputs; i++) row.push((rand() - 0.5) * 2);
     w.push(row);
   }
   const b = Array.from({ length: outputs }, () => (rand() - 0.5));
@@ -113,11 +122,40 @@ function denseForward(input: number[], weights: number[][], bias: number[]): num
   });
 }
 
+/* ---- theme bar ---- */
+function ThemeBar({ themeIdx, setThemeIdx, speed, setSpeed }: { themeIdx: number; setThemeIdx: (i: number) => void; speed: number; setSpeed: (v: number) => void }) {
+  return (
+    <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+      <div className="flex items-center gap-2">
+        <Palette className="w-4 h-4 text-foreground/60" />
+        <span className="font-hand text-sm font-bold">Theme:</span>
+        <div className="flex gap-1.5">
+          {THEMES.map((t, i) => (
+            <button key={t.name} onClick={() => { playClick(); setThemeIdx(i); }} title={t.name}
+              className={`w-6 h-6 rounded-full border-2 transition-transform ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+              style={{ background: t.node }} />
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="font-hand text-sm font-bold">Speed:</span>
+        <input type="range" min={0.4} max={2.5} step={0.1} value={speed}
+          onChange={(e) => setSpeed(parseFloat(e.target.value))} className="w-24 accent-accent-coral" />
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Tab 1 -- CNN Pipeline                                              */
 /* ------------------------------------------------------------------ */
 function PipelineTab() {
-  const [stage, setStage] = useState(0); // 0=input, 1=conv, 2=relu, 3=pool, 4=flatten, 5=dense
+  const [stage, setStage] = useState(0);
+  const [themeIdx, setThemeIdx] = useState(2);
+  const [speed, setSpeed] = useState(1.2);
+  const [autoFire, setAutoFire] = useState(false);
+  const [fireKey, setFireKey] = useState(0);
+  const theme = THEMES[themeIdx];
 
   const input = PATTERNS[0].data;
 
@@ -125,12 +163,25 @@ function PipelineTab() {
   const reluOut = useMemo(() => relu(convOut), [convOut]);
   const poolOut = useMemo(() => maxPool2x2(reluOut, 6), [reluOut]);
   const flatOut = poolOut;
-  const denseW = useMemo(() => {
-    const rand = mulberry32(99);
-    return makeDenseWeights(rand, 9, 3);
-  }, []);
+  const denseW = useMemo(() => makeDenseWeights(mulberry32(99), 9, 3), []);
   const scores = useMemo(() => denseForward(flatOut, denseW.w, denseW.b), [flatOut, denseW]);
   const probs = useMemo(() => softmax(scores), [scores]);
+
+  useEffect(() => {
+    if (!autoFire) return;
+    const id = setInterval(() => {
+      setStage((s) => {
+        if (s >= 5) { setAutoFire(false); playSuccess(); setFireKey((k) => k + 1); return 5; }
+        playPop();
+        return s + 1;
+      });
+    }, Math.max(400, speed * 700));
+    return () => clearInterval(id);
+  }, [autoFire, speed]);
+
+  useEffect(() => {
+    if (stage === 5) setFireKey((k) => k + 1);
+  }, [stage]);
 
   const handleForward = useCallback(() => {
     playPop();
@@ -140,20 +191,23 @@ function PipelineTab() {
   const handleReset = useCallback(() => {
     playClick();
     setStage(0);
+    setAutoFire(false);
   }, []);
 
-  const stageNames = ["Input (8x8)", "Conv (6x6)", "ReLU", "Pool (3x3)", "Flatten (9)", "Dense (3 scores)"];
+  const stageNames = ["Input", "Conv", "ReLU", "Pool", "Flatten", "Dense"];
 
-  const cellSz = 28;
+  const cellSz = 26;
   const gapSz = 1;
 
-  const renderGrid = useCallback((data: number[], size: number, normalize: boolean, label: string) => {
+  const renderGrid = (data: number[], size: number, normalize: boolean, label: string, active: boolean) => {
     const gridW = cellSz * size + gapSz * (size + 1);
     const maxVal = normalize ? Math.max(...data.map(Math.abs), 0.01) : 1;
     return (
       <div className="flex flex-col items-center">
-        <p className="text-[10px] font-bold text-slate-500 mb-1">{label}</p>
-        <svg viewBox={`0 0 ${gridW} ${gridW}`} className="bg-slate-50 rounded border border-slate-200" style={{ width: Math.min(size * 36, 200) }}>
+        <p className="font-hand text-[10px] font-bold text-muted-foreground mb-1">{label}</p>
+        <svg viewBox={`0 0 ${gridW} ${gridW}`}
+          className={`rounded-lg ${active ? "pulse-glow" : ""}`}
+          style={{ background: INK, width: Math.min(size * 30, 180), color: theme.node }}>
           {data.map((val, idx) => {
             const row = Math.floor(idx / size);
             const col = idx % size;
@@ -166,7 +220,7 @@ function PipelineTab() {
               <g key={idx}>
                 <rect x={x} y={y} width={cellSz} height={cellSz} fill={`#${hex}${hex}${hex}`} rx={2} />
                 <text x={x + cellSz / 2} y={y + cellSz / 2 + 4} textAnchor="middle"
-                  fill={gray > 128 ? "#000" : "#fff"} className="text-[6px] font-mono pointer-events-none">
+                  fill={gray > 128 ? INK : "#fff"} fontFamily="Kalam" className="text-[7px] font-bold pointer-events-none">
                   {Number.isInteger(val) ? val : val.toFixed(1)}
                 </text>
               </g>
@@ -175,96 +229,111 @@ function PipelineTab() {
         </svg>
       </div>
     );
-  }, []);
+  };
+
+  const Arrow = ({ active }: { active: boolean }) => (
+    <svg viewBox="0 0 40 30" className="w-10 h-8 self-center">
+      <line x1={2} y1={15} x2={32} y2={15}
+        stroke={active ? theme.node : "#cbd5e1"} strokeWidth={3} strokeLinecap="round"
+        className={active ? "signal-flow" : ""}
+        style={active ? { animationDuration: `${speed}s`, color: theme.node } : undefined}
+        markerEnd="url(#mini-arrow)" />
+      <defs>
+        <marker id="mini-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+          <path d="M0,0 L10,4 L0,8 Z" fill={active ? theme.node : "#cbd5e1"} />
+        </marker>
+      </defs>
+    </svg>
+  );
+
+  const predicted = probs.indexOf(Math.max(...probs));
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Click "Forward" to push data through each CNN stage: Input, Conv, ReLU, Pool, Flatten, Dense.
-      </p>
+      <div className="card-sketchy p-3" style={{ background: CREAM }}>
+        <p className="font-hand text-base text-foreground text-center">
+          🚀 Click <b>Forward →</b> to push data through each CNN stage.
+        </p>
+      </div>
+
+      <ThemeBar themeIdx={themeIdx} setThemeIdx={setThemeIdx} speed={speed} setSpeed={setSpeed} />
 
       {/* Stage indicator */}
       <div className="flex gap-1 justify-center flex-wrap">
         {stageNames.map((name, i) => (
-          <div key={name} className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${i <= stage ? "bg-indigo-100 text-indigo-700 border border-indigo-300" : "bg-slate-100 text-slate-400 border border-slate-200"}`}>
+          <div key={name}
+            className={`px-2 py-1 rounded font-hand text-[11px] font-bold border-2 border-foreground transition-all ${i <= stage ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]" : "bg-background opacity-50"}`}>
             {name}
           </div>
         ))}
       </div>
 
-      {/* Visualization */}
-      <div className="flex gap-3 items-end justify-center flex-wrap">
-        {stage >= 0 && renderGrid(input, 8, false, "Input")}
-        {stage >= 1 && (
-          <>
-            <span className="text-slate-300 font-bold text-lg">&rarr;</span>
-            {renderGrid(convOut, 6, true, "Conv")}
-          </>
-        )}
-        {stage >= 2 && (
-          <>
-            <span className="text-slate-300 font-bold text-lg">&rarr;</span>
-            {renderGrid(reluOut, 6, true, "ReLU")}
-          </>
-        )}
-        {stage >= 3 && (
-          <>
-            <span className="text-slate-300 font-bold text-lg">&rarr;</span>
-            {renderGrid(poolOut, 3, true, "Pool")}
-          </>
-        )}
-        {stage >= 4 && (
-          <>
-            <span className="text-slate-300 font-bold text-lg">&rarr;</span>
+      {/* Pipeline */}
+      <div className="card-sketchy p-4 notebook-grid">
+        <div className="flex gap-2 items-end justify-center flex-wrap">
+          {stage >= 0 && renderGrid(input, 8, false, "Input (8×8)", stage === 0)}
+          {stage >= 1 && <Arrow active={stage >= 1} />}
+          {stage >= 1 && renderGrid(convOut, 6, true, "Conv (6×6)", stage === 1)}
+          {stage >= 2 && <Arrow active={stage >= 2} />}
+          {stage >= 2 && renderGrid(reluOut, 6, true, "ReLU", stage === 2)}
+          {stage >= 3 && <Arrow active={stage >= 3} />}
+          {stage >= 3 && renderGrid(poolOut, 3, true, "Pool (3×3)", stage === 3)}
+          {stage >= 4 && <Arrow active={stage >= 4} />}
+          {stage >= 4 && (
             <div className="flex flex-col items-center">
-              <p className="text-[10px] font-bold text-slate-500 mb-1">Flatten</p>
-              <svg viewBox="0 0 30 270" className="bg-slate-50 rounded border border-slate-200" style={{ width: 30, height: 160 }}>
+              <p className="font-hand text-[10px] font-bold text-muted-foreground mb-1">Flatten</p>
+              <svg viewBox="0 0 30 280" className={`rounded-lg ${stage === 4 ? "pulse-glow" : ""}`}
+                style={{ background: INK, width: 30, height: 160, color: theme.node }}>
                 {flatOut.map((val, i) => {
                   const maxV = Math.max(...flatOut.map(Math.abs), 0.01);
                   const norm = clamp01(val / maxV * 0.5 + 0.5);
                   const gray = Math.round(norm * 255);
                   const hex = gray.toString(16).padStart(2, "0");
-                  return (
-                    <rect key={i} x={2} y={2 + i * 29} width={26} height={27} fill={`#${hex}${hex}${hex}`} rx={3} />
-                  );
+                  return <rect key={i} x={2} y={2 + i * 30} width={26} height={28} fill={`#${hex}${hex}${hex}`} rx={3} />;
                 })}
               </svg>
             </div>
-          </>
-        )}
-        {stage >= 5 && (
-          <>
-            <span className="text-slate-300 font-bold text-lg">&rarr;</span>
-            <div className="flex flex-col items-center gap-1">
-              <p className="text-[10px] font-bold text-slate-500 mb-1">Scores</p>
+          )}
+          {stage >= 5 && <Arrow active={stage >= 5} />}
+          {stage >= 5 && (
+            <div className="flex flex-col items-center gap-1.5 relative">
+              <p className="font-hand text-[10px] font-bold text-muted-foreground mb-1">Scores</p>
               {probs.map((p, i) => (
-                <div key={i} className="flex items-center gap-1">
-                  <span className="text-[10px] font-semibold w-16 text-right" style={{ color: CLASS_COLORS[i] }}>{CLASS_NAMES[i]}</span>
+                <div key={i} className="flex items-center gap-1.5">
+                  <span className="font-hand text-[10px] font-bold w-20 text-right" style={{ color: CLASS_COLORS[i] }}>{CLASS_NAMES[i]}</span>
                   <svg viewBox="0 0 100 14" className="w-20">
-                    <rect x={0} y={0} width={100} height={14} fill="#e2e8f0" rx={3} />
+                    <rect x={0} y={0} width={100} height={14} fill="#f3efe6" stroke={INK} strokeWidth={1} rx={3} />
                     <rect x={0} y={0} width={p * 100} height={14} fill={CLASS_COLORS[i]} rx={3} />
                   </svg>
-                  <span className="text-[10px] font-mono text-slate-500">{(p * 100).toFixed(0)}%</span>
+                  <span className="font-hand text-[10px] font-bold text-muted-foreground">{(p * 100).toFixed(0)}%</span>
                 </div>
               ))}
+              {/* Fire ring on top prediction */}
+              <svg key={fireKey} viewBox="0 0 200 80" className="absolute inset-0 pointer-events-none w-full h-full" style={{ overflow: "visible" }}>
+                <circle cx={20} cy={20 + predicted * 20} r={14} fill="none" stroke={theme.accent} strokeWidth={3} className="fire-ring" />
+              </svg>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
 
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-2 justify-center flex-wrap">
         <button onClick={handleForward} disabled={stage >= 5}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">
-          Forward &rarr;
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+          Forward →
+        </button>
+        <button onClick={() => { playClick(); setAutoFire(!autoFire); }}
+          className={`px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground transition-all ${autoFire ? "bg-accent-coral text-white shadow-[2px_2px_0_#2b2a35]" : "bg-background"}`}>
+          {autoFire ? "■ Stop" : "▶ Auto"}
         </button>
         <button onClick={handleReset}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all">
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35] transition-all">
           Reset
         </button>
       </div>
 
       <InfoBox variant="blue" title="CNN Pipeline">
-        A CNN processes images in stages: Convolution (find features) &rarr; ReLU (remove negatives) &rarr; Pooling (shrink) &rarr; Flatten (make 1D) &rarr; Dense layer (classify). Each stage transforms the data step by step!
+        A CNN processes images in stages: Convolution (find features) → ReLU (remove negatives) → Pooling (shrink) → Flatten (make 1D) → Dense layer (classify). Each stage transforms the data step by step!
       </InfoBox>
     </div>
   );
@@ -275,6 +344,9 @@ function PipelineTab() {
 /* ------------------------------------------------------------------ */
 function LayerViewTab() {
   const [patternIdx, setPatternIdx] = useState(0);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const [speed, setSpeed] = useState(1.2);
+  const theme = THEMES[themeIdx];
 
   const kernels = useMemo(() => [
     { name: "Horiz Edge", k: [-1, -1, -1, 0, 0, 0, 1, 1, 1] },
@@ -291,14 +363,15 @@ function LayerViewTab() {
     });
   }, [patternIdx, kernels]);
 
-  const cellSz = 24;
+  const cellSz = 22;
   const gapSz = 1;
 
-  const renderSmallGrid = useCallback((data: number[], size: number, normalize: boolean) => {
+  const renderSmallGrid = (data: number[], size: number, normalize: boolean) => {
     const gridW = cellSz * size + gapSz * (size + 1);
     const maxVal = normalize ? Math.max(...data.map(Math.abs), 0.01) : 1;
     return (
-      <svg viewBox={`0 0 ${gridW} ${gridW}`} className="bg-slate-50 rounded" style={{ width: Math.min(size * 28, 140) }}>
+      <svg viewBox={`0 0 ${gridW} ${gridW}`} className="rounded-lg"
+        style={{ background: INK, width: Math.min(size * 26, 140) }}>
         {data.map((val, idx) => {
           const row = Math.floor(idx / size);
           const col = idx % size;
@@ -307,55 +380,52 @@ function LayerViewTab() {
           const norm = normalize ? clamp01(val / maxVal * 0.5 + 0.5) : clamp01(val);
           const gray = Math.round(norm * 255);
           const hex = gray.toString(16).padStart(2, "0");
-          return (
-            <rect key={idx} x={x} y={y} width={cellSz} height={cellSz} fill={`#${hex}${hex}${hex}`} rx={2} />
-          );
+          return <rect key={idx} x={x} y={y} width={cellSz} height={cellSz} fill={`#${hex}${hex}${hex}`} rx={2} />;
         })}
       </svg>
     );
-  }, []);
+  };
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Choose an input pattern and see how each layer transforms it. Different filters respond to different patterns!
-      </p>
+      <div className="card-sketchy p-3" style={{ background: CREAM }}>
+        <p className="font-hand text-base text-foreground text-center">
+          👁️ Pick a pattern and see how each filter responds differently.
+        </p>
+      </div>
 
-      {/* Pattern selector */}
-      <div className="flex gap-2 justify-center">
+      <ThemeBar themeIdx={themeIdx} setThemeIdx={setThemeIdx} speed={speed} setSpeed={setSpeed} />
+
+      <div className="flex gap-2 justify-center flex-wrap">
         {PATTERNS.map((p, i) => (
           <button key={p.name} onClick={() => { playClick(); setPatternIdx(i); }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${patternIdx === i ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"}`}>
+            className={`px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground transition-all ${patternIdx === i ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]" : "bg-background hover:bg-accent-yellow/40"}`}>
             {p.name}
           </button>
         ))}
       </div>
 
-      {/* Input */}
-      <div className="flex justify-center">
-        <div className="text-center">
-          <p className="text-[10px] font-bold text-slate-500 mb-1">Input: {PATTERNS[patternIdx].name}</p>
-          {renderSmallGrid(PATTERNS[patternIdx].data, 8, false)}
-        </div>
+      <div className="card-sketchy p-4 notebook-grid flex flex-col items-center gap-2">
+        <p className="font-hand text-[10px] font-bold text-muted-foreground">Input: {PATTERNS[patternIdx].name}</p>
+        {renderSmallGrid(PATTERNS[patternIdx].data, 8, false)}
       </div>
 
-      {/* Each filter's pipeline */}
       {kernels.map((kd, ki) => (
-        <div key={kd.name} className="bg-slate-50 rounded-lg border border-slate-200 p-3">
-          <p className="text-xs font-bold text-slate-600 mb-2">Filter: {kd.name}</p>
+        <div key={kd.name} className="card-sketchy p-3" style={{ background: PAPER }}>
+          <p className="font-hand text-sm font-bold mb-2" style={{ color: theme.node }}>Filter: {kd.name}</p>
           <div className="flex gap-2 items-center justify-center flex-wrap">
             <div className="text-center">
-              <p className="text-[9px] text-slate-400">Conv</p>
+              <p className="font-hand text-[10px] font-bold text-muted-foreground mb-1">Conv</p>
               {renderSmallGrid(results[ki].conv, 6, true)}
             </div>
-            <span className="text-slate-300 font-bold">&rarr;</span>
+            <span className="font-hand text-2xl text-foreground/40 signal-flow" style={{ animationDuration: `${speed}s`, color: theme.node }}>→</span>
             <div className="text-center">
-              <p className="text-[9px] text-slate-400">ReLU</p>
+              <p className="font-hand text-[10px] font-bold text-muted-foreground mb-1">ReLU</p>
               {renderSmallGrid(results[ki].relu, 6, true)}
             </div>
-            <span className="text-slate-300 font-bold">&rarr;</span>
+            <span className="font-hand text-2xl text-foreground/40 signal-flow" style={{ animationDuration: `${speed}s`, color: theme.node }}>→</span>
             <div className="text-center">
-              <p className="text-[9px] text-slate-400">Pool</p>
+              <p className="font-hand text-[10px] font-bold text-muted-foreground mb-1">Pool</p>
               {renderSmallGrid(results[ki].pool, 3, true)}
             </div>
           </div>
@@ -379,22 +449,20 @@ function TrainTab() {
   const [accHistory, setAccHistory] = useState<number[]>([]);
   const [userGrid, setUserGrid] = useState<number[]>(() => new Array(64).fill(0));
   const [prediction, setPrediction] = useState<number[] | null>(null);
+  const [themeIdx, setThemeIdx] = useState(1);
+  const [speed, setSpeed] = useState(1.2);
+  const theme = THEMES[themeIdx];
 
-  // Simulated training with deterministic PRNG
   const trainOnce = useCallback(() => {
     playPop();
     setEpoch((prev) => {
       const next = prev + 1;
       const rand = mulberry32(next * 42);
-      // Simulate loss decreasing and accuracy increasing
       const baseLoss = 1.1 / (1 + next * 0.4) + rand() * 0.05;
       const baseAcc = Math.min(1, 0.3 + next * 0.15 + rand() * 0.05);
       setLossHistory((h) => [...h, baseLoss]);
       setAccHistory((h) => [...h, baseAcc]);
-      if (next >= 5) {
-        setTrained(true);
-        playSuccess();
-      }
+      if (next >= 5) { setTrained(true); playSuccess(); }
       return next;
     });
   }, []);
@@ -419,19 +487,12 @@ function TrainTab() {
   }, [trained]);
 
   const handlePredict = useCallback(() => {
-    if (!trained) {
-      playError();
-      return;
-    }
+    if (!trained) { playError(); return; }
     playClick();
-    // Simple pattern matching heuristic for classification
-    const grid = userGrid;
-    let horizScore = 0;
-    let vertScore = 0;
-    let checkScore = 0;
+    let horizScore = 0, vertScore = 0, checkScore = 0;
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
-        const val = grid[r * 8 + c];
+        const val = userGrid[r * 8 + c];
         if (val > 0.5) {
           if (r % 2 === 0) horizScore += 1;
           if (c % 2 === 0) vertScore += 1;
@@ -441,8 +502,7 @@ function TrainTab() {
     }
     const total = Math.max(horizScore + vertScore + checkScore, 1);
     const raw = [horizScore / total, vertScore / total, checkScore / total];
-    const sm = softmax(raw.map((v) => v * 5));
-    setPrediction(sm);
+    setPrediction(softmax(raw.map((v) => v * 5)));
     playSuccess();
   }, [trained, userGrid]);
 
@@ -455,23 +515,26 @@ function TrainTab() {
   const cellSz = 32;
   const gapSz = 1;
   const gridW = cellSz * 8 + gapSz * 9;
-
-  // Chart dimensions
   const chartW = 240;
   const chartH = 80;
+  const predicted = prediction ? prediction.indexOf(Math.max(...prediction)) : -1;
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Train the mini CNN on 3 patterns, then draw your own and see what the network predicts!
-      </p>
+      <div className="card-sketchy p-3" style={{ background: CREAM }}>
+        <p className="font-hand text-base text-foreground text-center">
+          🏋️ Train the mini CNN on 3 patterns, then draw your own and watch it predict!
+        </p>
+      </div>
 
-      {/* Training patterns */}
+      <ThemeBar themeIdx={themeIdx} setThemeIdx={setThemeIdx} speed={speed} setSpeed={setSpeed} />
+
       <div className="flex gap-3 justify-center flex-wrap">
         {PATTERNS.map((p) => (
-          <div key={p.name} className="text-center">
-            <p className="text-[10px] font-bold mb-1" style={{ color: CLASS_COLORS[p.label] }}>{p.name}</p>
-            <svg viewBox={`0 0 ${cellSz * 8 + gapSz * 9} ${cellSz * 8 + gapSz * 9}`} className="bg-slate-50 rounded border border-slate-200" style={{ width: 80 }}>
+          <div key={p.name} className="text-center card-sketchy p-2" style={{ background: PAPER }}>
+            <p className="font-hand text-[10px] font-bold mb-1" style={{ color: CLASS_COLORS[p.label] }}>{p.name}</p>
+            <svg viewBox={`0 0 ${cellSz * 8 + gapSz * 9} ${cellSz * 8 + gapSz * 9}`}
+              className="rounded-lg" style={{ background: INK, width: 80 }}>
               {p.data.map((val, idx) => {
                 const row = Math.floor(idx / 8);
                 const col = idx % 8;
@@ -486,64 +549,53 @@ function TrainTab() {
         ))}
       </div>
 
-      {/* Train button + progress */}
-      <div className="flex gap-2 justify-center items-center">
+      <div className="flex gap-2 justify-center items-center flex-wrap">
         <button onClick={trainOnce} disabled={epoch >= 5}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40 disabled:cursor-not-allowed transition-all">
           {epoch === 0 ? "Train" : epoch >= 5 ? "Trained!" : `Train (Epoch ${epoch}/5)`}
         </button>
         <button onClick={handleReset}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all">
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35] transition-all">
           Reset
         </button>
       </div>
 
-      {/* Loss and accuracy charts */}
       {lossHistory.length > 0 && (
         <div className="flex gap-4 justify-center flex-wrap">
-          {/* Loss chart */}
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-red-500 mb-1">Loss</p>
-            <svg viewBox={`0 0 ${chartW} ${chartH}`} className="bg-white rounded border border-slate-200" style={{ width: chartW }}>
-              <line x1={20} y1={chartH - 10} x2={chartW - 10} y2={chartH - 10} stroke="#cbd5e1" strokeWidth={1} />
+          <div className="text-center card-sketchy p-2" style={{ background: PAPER }}>
+            <p className="font-hand text-[11px] font-bold mb-1" style={{ color: "#ff6b6b" }}>Loss</p>
+            <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: chartW, background: PAPER }}>
+              <line x1={20} y1={chartH - 10} x2={chartW - 10} y2={chartH - 10} stroke={INK} strokeWidth={1} opacity={0.4} />
               {lossHistory.map((loss, i) => {
                 const x = 30 + i * ((chartW - 50) / 4);
                 const y = chartH - 15 - (loss / 1.2) * (chartH - 25);
                 return (
                   <g key={i}>
-                    <circle cx={x} cy={y} r={4} fill="#ef4444" />
+                    <circle cx={x} cy={y} r={4} fill="#ff6b6b" stroke={INK} strokeWidth={1.5} />
                     {i > 0 && (
-                      <line
-                        x1={30 + (i - 1) * ((chartW - 50) / 4)}
+                      <line x1={30 + (i - 1) * ((chartW - 50) / 4)}
                         y1={chartH - 15 - (lossHistory[i - 1] / 1.2) * (chartH - 25)}
-                        x2={x} y2={y}
-                        stroke="#ef4444" strokeWidth={2}
-                      />
+                        x2={x} y2={y} stroke="#ff6b6b" strokeWidth={2} />
                     )}
                   </g>
                 );
               })}
             </svg>
           </div>
-
-          {/* Accuracy chart */}
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-green-500 mb-1">Accuracy</p>
-            <svg viewBox={`0 0 ${chartW} ${chartH}`} className="bg-white rounded border border-slate-200" style={{ width: chartW }}>
-              <line x1={20} y1={chartH - 10} x2={chartW - 10} y2={chartH - 10} stroke="#cbd5e1" strokeWidth={1} />
+          <div className="text-center card-sketchy p-2" style={{ background: PAPER }}>
+            <p className="font-hand text-[11px] font-bold mb-1" style={{ color: "#4ecdc4" }}>Accuracy</p>
+            <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: chartW, background: PAPER }}>
+              <line x1={20} y1={chartH - 10} x2={chartW - 10} y2={chartH - 10} stroke={INK} strokeWidth={1} opacity={0.4} />
               {accHistory.map((acc, i) => {
                 const x = 30 + i * ((chartW - 50) / 4);
                 const y = chartH - 15 - acc * (chartH - 25);
                 return (
                   <g key={i}>
-                    <circle cx={x} cy={y} r={4} fill="#22c55e" />
+                    <circle cx={x} cy={y} r={4} fill="#4ecdc4" stroke={INK} strokeWidth={1.5} />
                     {i > 0 && (
-                      <line
-                        x1={30 + (i - 1) * ((chartW - 50) / 4)}
+                      <line x1={30 + (i - 1) * ((chartW - 50) / 4)}
                         y1={chartH - 15 - accHistory[i - 1] * (chartH - 25)}
-                        x2={x} y2={y}
-                        stroke="#22c55e" strokeWidth={2}
-                      />
+                        x2={x} y2={y} stroke="#4ecdc4" strokeWidth={2} />
                     )}
                   </g>
                 );
@@ -553,23 +605,21 @@ function TrainTab() {
         </div>
       )}
 
-      {/* Drawing area (only after training) */}
       {trained && (
-        <div className="space-y-3">
-          <p className="text-sm font-semibold text-slate-700 text-center">Draw your own pattern and predict!</p>
+        <div className="space-y-3 card-sketchy p-4 notebook-grid">
+          <p className="font-hand text-sm font-bold text-foreground text-center">Draw your own pattern and predict!</p>
 
           <div className="flex gap-2 justify-center flex-wrap">
             {PATTERNS.map((p, i) => (
               <button key={p.name} onClick={() => handleLoadPattern(i)}
-                className="px-2 py-1 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 transition-all">
+                className="px-2 py-1 rounded font-hand text-[11px] font-bold border-2 border-foreground bg-background hover:bg-accent-yellow/40 shadow-[2px_2px_0_#2b2a35] transition-all">
                 Load {p.name}
               </button>
             ))}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-            {/* Drawing grid */}
-            <svg viewBox={`0 0 ${gridW} ${gridW}`} className="w-full max-w-[240px] bg-slate-800 rounded-lg cursor-pointer">
+            <svg viewBox={`0 0 ${gridW} ${gridW}`} className="w-full max-w-60 rounded-lg cursor-pointer" style={{ background: INK }}>
               {userGrid.map((val, idx) => {
                 const row = Math.floor(idx / 8);
                 const col = idx % 8;
@@ -579,34 +629,41 @@ function TrainTab() {
                 const hex = gray.toString(16).padStart(2, "0");
                 return (
                   <rect key={idx} x={x} y={y} width={cellSz} height={cellSz}
-                    fill={`#${hex}${hex}${hex}`} rx={2}
+                    fill={`#${hex}${hex}${hex}`} rx={3}
                     onClick={() => handleCellClick(idx)}
                     className="hover:opacity-80 transition-opacity" />
                 );
               })}
             </svg>
 
-            {/* Prediction */}
             {prediction && (
-              <div className="space-y-2">
-                <p className="text-xs font-bold text-slate-500">Prediction</p>
-                {prediction.map((p, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-xs font-semibold w-20 text-right" style={{ color: CLASS_COLORS[i] }}>{CLASS_NAMES[i]}</span>
-                    <svg viewBox="0 0 120 16" className="w-24">
-                      <rect x={0} y={0} width={120} height={16} fill="#e2e8f0" rx={4} />
-                      <rect x={0} y={0} width={p * 120} height={16} fill={CLASS_COLORS[i]} rx={4} className="transition-all duration-300" />
-                    </svg>
-                    <span className="text-xs font-mono text-slate-500">{(p * 100).toFixed(0)}%</span>
-                  </div>
-                ))}
+              <div className="space-y-2 relative">
+                <p className="font-hand text-xs font-bold text-muted-foreground uppercase tracking-wider">Prediction</p>
+                {prediction.map((p, i) => {
+                  const isTop = i === predicted;
+                  return (
+                    <div key={i} className="flex items-center gap-2 relative">
+                      <span className="font-hand text-xs font-bold w-24 text-right" style={{ color: CLASS_COLORS[i] }}>{CLASS_NAMES[i]}</span>
+                      <svg viewBox="0 0 120 16" className="w-28">
+                        <rect x={0} y={0} width={120} height={16} fill="#f3efe6" stroke={INK} strokeWidth={1} rx={4} />
+                        <rect x={0} y={0} width={p * 120} height={16} fill={CLASS_COLORS[i]} rx={4} />
+                      </svg>
+                      <span className="font-hand text-xs font-bold text-muted-foreground">{(p * 100).toFixed(0)}%</span>
+                      {isTop && (
+                        <svg className="absolute -left-2 top-0 w-6 h-6 pointer-events-none" viewBox="0 0 24 24" style={{ overflow: "visible" }}>
+                          <circle cx={12} cy={8} r={10} fill="none" stroke={theme.accent} strokeWidth={3} className="fire-ring" />
+                        </svg>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
 
           <div className="flex justify-center">
             <button onClick={handlePredict}
-              className="px-4 py-2 rounded-lg text-sm font-semibold bg-green-600 text-white hover:bg-green-700 transition-all shadow-sm">
+              className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-mint text-white shadow-[2px_2px_0_#2b2a35] transition-all">
               Predict
             </button>
           </div>
@@ -662,29 +719,14 @@ const quizQuestions = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Main component                                                     */
+/*  Main                                                               */
 /* ------------------------------------------------------------------ */
 export default function L29_MiniCNNActivity() {
   const tabs = useMemo(
     () => [
-      {
-        id: "pipeline",
-        label: "CNN Pipeline",
-        icon: <Workflow className="w-4 h-4" />,
-        content: <PipelineTab />,
-      },
-      {
-        id: "layers",
-        label: "What Each Layer Sees",
-        icon: <Eye className="w-4 h-4" />,
-        content: <LayerViewTab />,
-      },
-      {
-        id: "train",
-        label: "Train the Mini CNN",
-        icon: <Dumbbell className="w-4 h-4" />,
-        content: <TrainTab />,
-      },
+      { id: "pipeline", label: "CNN Pipeline", icon: <Workflow className="w-4 h-4" />, content: <PipelineTab /> },
+      { id: "layers", label: "What Each Layer Sees", icon: <Eye className="w-4 h-4" />, content: <LayerViewTab /> },
+      { id: "train", label: "Train the Mini CNN", icon: <Dumbbell className="w-4 h-4" />, content: <TrainTab /> },
     ],
     [],
   );

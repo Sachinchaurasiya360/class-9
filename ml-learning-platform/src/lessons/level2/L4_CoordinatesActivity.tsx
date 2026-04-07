@@ -4,6 +4,9 @@ import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import SVGGrid from "../../components/SVGGrid";
 import StorySection from "../../components/StorySection";
+import { playClick, playPop, playSuccess, playError } from "../../utils/sounds";
+
+const INK_COLOR = "#2b2a35";
 
 /* ------------------------------------------------------------------ */
 /*  Seeded PRNG (mulberry32)                                           */
@@ -85,6 +88,7 @@ function CoordinatePlane() {
       if (dots.length >= 10) return;
       const coords = getDataCoords(e);
       if (!coords) return;
+      playPop();
       setDots((prev) => [
         ...prev,
         { x: coords.x, y: coords.y, color: DOT_PALETTE[prev.length % DOT_PALETTE.length] },
@@ -93,21 +97,21 @@ function CoordinatePlane() {
     [dots.length, getDataCoords],
   );
 
-  const clearAll = useCallback(() => setDots([]), []);
+  const clearAll = useCallback(() => { playClick(); setDots([]); }, []);
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-base font-bold text-center" style={{ color: INK_COLOR }}>
           Click anywhere on the grid to place a point
         </h3>
 
         {/* Live coordinate display */}
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-600 font-mono">
+        <div className="flex items-center justify-between font-hand">
+          <p className="text-sm font-bold" style={{ color: INK_COLOR }}>
             {hover ? `(X: ${hover.x.toFixed(1)}, Y: ${hover.y.toFixed(1)})` : "(X: -, Y: -)"}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground font-bold">
             Points placed: {dots.length} / 10
           </p>
         </div>
@@ -166,10 +170,12 @@ function CoordinatePlane() {
                   <circle
                     cx={toSvgX(dot.x)}
                     cy={toSvgY(dot.y)}
-                    r={6}
+                    r={7}
                     fill={dot.color}
-                    stroke="white"
-                    strokeWidth={1.5}
+                    stroke={INK_COLOR}
+                    strokeWidth={2}
+                    className="pulse-glow"
+                    style={{ color: dot.color, filter: "drop-shadow(1.5px 1.5px 0 #2b2a35)" }}
                   />
                   <text
                     x={toSvgX(dot.x)}
@@ -191,10 +197,10 @@ function CoordinatePlane() {
           <button
             onClick={clearAll}
             disabled={dots.length === 0}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground transition-all ${
               dots.length === 0
-                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-muted text-muted-foreground opacity-60 cursor-not-allowed"
+                : "bg-background hover:bg-accent-yellow/40 shadow-[2px_2px_0_#2b2a35]"
             }`}
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -262,13 +268,13 @@ function PlotThePoints() {
       const dist = Math.sqrt((coords.x - target.x) ** 2 + (coords.y - target.y) ** 2);
 
       if (dist <= 0.5) {
-        // Correct
+        playSuccess();
         setCorrect((prev) => [...prev, true]);
         if (currentIdx < 4) {
           setCurrentIdx((i) => i + 1);
         }
       } else {
-        // Wrong -- flash red X briefly
+        playError();
         setWrongFlash({ x: coords.x, y: coords.y });
         setTimeout(() => setWrongFlash(null), 800);
       }
@@ -277,6 +283,7 @@ function PlotThePoints() {
   );
 
   const handleNewPoints = useCallback(() => {
+    playClick();
     setSeed((s) => s + 1);
     setCurrentIdx(0);
     setCorrect([]);
@@ -285,19 +292,19 @@ function PlotThePoints() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-base font-bold text-center" style={{ color: INK_COLOR }}>
           Click on the grid to plot each target point
         </h3>
 
         {/* Progress bar */}
-        <div className="w-full bg-slate-100 rounded-full h-2">
+        <div className="w-full bg-muted rounded-full h-2.5 border-2 border-foreground">
           <div
-            className="bg-green-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${(score / 5) * 100}%` }}
+            className="h-full rounded-full transition-all duration-300"
+            style={{ width: `${(score / 5) * 100}%`, background: "#4ecdc4" }}
           />
         </div>
-        <p className="text-xs text-slate-500 text-right">Correct: {score} / 5</p>
+        <p className="font-hand text-xs font-bold text-right" style={{ color: INK_COLOR }}>Correct: {score} / 5</p>
 
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Grid */}
@@ -328,10 +335,12 @@ function PlotThePoints() {
                       <circle
                         cx={toSvgX(targets[i].x)}
                         cy={toSvgY(targets[i].y)}
-                        r={7}
-                        fill="#22c55e"
-                        stroke="white"
-                        strokeWidth={1.5}
+                        r={8}
+                        fill="#4ecdc4"
+                        stroke={INK_COLOR}
+                        strokeWidth={2}
+                        className="pulse-glow"
+                        style={{ color: "#4ecdc4", filter: "drop-shadow(1.5px 1.5px 0 #2b2a35)" }}
                       />
                       {/* Checkmark */}
                       <text
@@ -376,7 +385,7 @@ function PlotThePoints() {
 
           {/* Target list panel */}
           <div className="lg:w-48 space-y-2">
-            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            <h4 className="font-hand text-xs font-bold uppercase tracking-wide" style={{ color: INK_COLOR }}>
               Target Points
             </h4>
             {targets.map((t, i) => {
@@ -385,12 +394,12 @@ function PlotThePoints() {
               return (
                 <div
                   key={i}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground transition-colors ${
                     isDone
-                      ? "bg-green-50 text-green-700 border border-green-200"
+                      ? "bg-accent-mint/30"
                       : isCurrent
-                        ? "bg-indigo-50 text-indigo-700 border border-indigo-300 font-bold"
-                        : "bg-slate-50 text-slate-400 border border-slate-100"
+                        ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]"
+                        : "bg-muted opacity-70"
                   }`}
                 >
                   {isDone ? (
@@ -411,7 +420,7 @@ function PlotThePoints() {
         <div className="flex justify-center">
           <button
             onClick={handleNewPoints}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-200 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] hover:bg-accent-yellow/80"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             New Points
@@ -419,8 +428,8 @@ function PlotThePoints() {
         </div>
 
         {allDone && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-            <p className="text-sm text-green-800 font-medium">
+          <div className="card-sketchy p-4 text-center" style={{ background: "#4ecdc433" }}>
+            <p className="font-hand text-base font-bold" style={{ color: INK_COLOR }}>
               All 5 points plotted correctly! Try a new set or move on.
             </p>
           </div>
@@ -557,21 +566,21 @@ function ScatterPlotExplorer() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-base font-bold text-center" style={{ color: INK_COLOR }}>
           Explore how data points form patterns
         </h3>
 
         {/* Dataset selector */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 justify-center">
           {(Object.keys(DATASETS) as DatasetKey[]).map((key) => (
             <button
               key={key}
-              onClick={() => setDatasetKey(key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              onClick={() => { playClick(); setDatasetKey(key); }}
+              className={`px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground transition-all ${
                 datasetKey === key
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]"
+                  : "bg-background hover:bg-accent-yellow/40"
               }`}
             >
               {DATASETS[key].label}
@@ -610,11 +619,12 @@ function ScatterPlotExplorer() {
                   <circle
                     cx={toSvgX(pt.x)}
                     cy={toSvgY(pt.y)}
-                    r={hoveredIdx === i ? 7 : 5}
-                    fill={hoveredIdx === i ? "#6366f1" : "#3b82f6"}
-                    stroke="white"
-                    strokeWidth={1.5}
-                    className="cursor-pointer transition-all"
+                    r={hoveredIdx === i ? 8 : 6}
+                    fill={hoveredIdx === i ? "#ff6b6b" : "#6bb6ff"}
+                    stroke={INK_COLOR}
+                    strokeWidth={1.8}
+                    className={hoveredIdx === i ? "cursor-pointer transition-all pulse-glow" : "cursor-pointer transition-all"}
+                    style={{ color: hoveredIdx === i ? "#ff6b6b" : "#6bb6ff", filter: "drop-shadow(1.5px 1.5px 0 #2b2a35)" }}
                     onMouseEnter={() => setHoveredIdx(i)}
                     onMouseLeave={() => setHoveredIdx(null)}
                   />

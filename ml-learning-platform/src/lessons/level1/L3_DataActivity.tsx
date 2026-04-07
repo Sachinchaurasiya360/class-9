@@ -18,6 +18,17 @@ import {
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
+import { playClick, playPop, playSuccess, playError } from "../../utils/sounds";
+
+/* Sketchy palette */
+const INK = "#2b2a35";
+const CORAL = "#ff6b6b";
+const MINT = "#4ecdc4";
+const YELLOW = "#ffd93d";
+const LAVENDER = "#b18cf2";
+const SKY = "#6bb6ff";
+const PEACH = "#ffb88c";
+const PAPER = "#fffdf5";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -29,6 +40,7 @@ interface DataCard {
   label: string;
   value: string;
   type: "Number" | "Category";
+  color: string;
 }
 
 interface TableRow {
@@ -45,22 +57,23 @@ interface SortItem {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Data All Around Us                                        */
+/*  Tab 1 – Data All Around Us                                         */
 /* ------------------------------------------------------------------ */
 
 const DATA_CARDS: DataCard[] = [
-  { id: 0, icon: <Thermometer className="w-6 h-6" />, label: "Temperature", value: "28\u00b0C", type: "Number" },
-  { id: 1, icon: <Clock className="w-6 h-6" />, label: "Time", value: "3:45 PM", type: "Number" },
-  { id: 2, icon: <User className="w-6 h-6" />, label: "Hair Color", value: "Brown", type: "Category" },
-  { id: 3, icon: <Apple className="w-6 h-6" />, label: "Apples in basket", value: "7", type: "Number" },
-  { id: 4, icon: <Circle className="w-6 h-6" />, label: "Traffic Light", value: "Red", type: "Category" },
-  { id: 5, icon: <Ruler className="w-6 h-6" />, label: "Height", value: "152 cm", type: "Number" },
+  { id: 0, icon: <Thermometer className="w-6 h-6" />, label: "Temperature", value: "28°C", type: "Number", color: CORAL },
+  { id: 1, icon: <Clock className="w-6 h-6" />, label: "Time", value: "3:45 PM", type: "Number", color: SKY },
+  { id: 2, icon: <User className="w-6 h-6" />, label: "Hair Color", value: "Brown", type: "Category", color: LAVENDER },
+  { id: 3, icon: <Apple className="w-6 h-6" />, label: "Apples in basket", value: "7", type: "Number", color: MINT },
+  { id: 4, icon: <Circle className="w-6 h-6" />, label: "Traffic Light", value: "Red", type: "Category", color: PEACH },
+  { id: 5, icon: <Ruler className="w-6 h-6" />, label: "Height", value: "152 cm", type: "Number", color: YELLOW },
 ];
 
 function Tab1DataAroundUs() {
   const [flipped, setFlipped] = useState<Set<number>>(new Set());
 
   const handleFlip = useCallback((id: number) => {
+    playPop();
     setFlipped((prev) => {
       const next = new Set(prev);
       next.add(id);
@@ -77,14 +90,15 @@ function Tab1DataAroundUs() {
 
   return (
     <div className="space-y-5">
-      {/* Counter */}
       <div className="text-center">
-        <span className="inline-block bg-slate-100 text-slate-700 text-sm font-semibold px-4 py-1.5 rounded-full">
-          Data discovered: {flipped.size} / {DATA_CARDS.length}
+        <span
+          className="inline-block font-hand text-sm font-bold px-4 py-1.5 rounded-full border-2"
+          style={{ borderColor: INK, background: YELLOW, boxShadow: "2px 2px 0 #2b2a35" }}
+        >
+          Discovered: {flipped.size} / {DATA_CARDS.length}
         </span>
       </div>
 
-      {/* Card grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {DATA_CARDS.map((card) => {
           const isFlipped = flipped.has(card.id);
@@ -92,32 +106,41 @@ function Tab1DataAroundUs() {
             <button
               key={card.id}
               onClick={() => !isFlipped && handleFlip(card.id)}
-              className={`relative rounded-xl border-2 p-4 text-center transition-all duration-500 min-h-[130px] flex flex-col items-center justify-center gap-2 ${
-                isFlipped
-                  ? "bg-white border-slate-200 shadow-sm cursor-default"
-                  : "bg-slate-100 border-slate-300 hover:border-indigo-400 hover:shadow-md cursor-pointer"
-              }`}
-              style={{ perspective: "600px" }}
+              className="card-sketchy p-4 min-h-[140px] flex flex-col items-center justify-center gap-2"
+              style={{
+                background: isFlipped ? PAPER : "#f4efe1",
+                cursor: isFlipped ? "default" : "pointer",
+                transition: "transform .2s",
+                borderTop: isFlipped ? `5px solid ${card.color}` : undefined,
+              }}
+              onMouseEnter={(e) => { if (!isFlipped) e.currentTarget.style.transform = "translate(-2px,-2px)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "translate(0,0)"; }}
             >
               {isFlipped ? (
-                <div className="animate-fadeIn flex flex-col items-center gap-1.5">
-                  <span className="text-slate-500">{card.icon}</span>
-                  <p className="text-xs font-medium text-slate-500">{card.label}</p>
-                  <p className="text-sm font-bold text-slate-800">{card.value}</p>
+                <div className="flex flex-col items-center gap-1.5" style={{ animation: "wobble 0.5s ease" }}>
+                  <div
+                    className="rounded-md p-1.5"
+                    style={{ background: card.color, color: PAPER, border: `2px solid ${INK}`, boxShadow: "2px 2px 0 #2b2a35" }}
+                  >
+                    {card.icon}
+                  </div>
+                  <p className="font-hand text-xs" style={{ color: INK, opacity: 0.7 }}>{card.label}</p>
+                  <p className="font-hand text-base font-bold" style={{ color: INK }}>{card.value}</p>
                   <span
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                      card.type === "Number"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-purple-100 text-purple-700"
-                    }`}
+                    className="font-hand text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                    style={{
+                      borderColor: INK,
+                      background: card.type === "Number" ? SKY : LAVENDER,
+                      color: PAPER,
+                    }}
                   >
                     {card.type}
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-2 text-slate-400">
-                  <HelpCircle className="w-8 h-8" />
-                  <span className="text-xs font-medium">Tap to reveal</span>
+                <div className="flex flex-col items-center gap-2" style={{ color: INK, opacity: 0.5 }}>
+                  <HelpCircle className="w-9 h-9" />
+                  <span className="font-hand text-xs">Tap to reveal</span>
                 </div>
               )}
             </button>
@@ -125,45 +148,44 @@ function Tab1DataAroundUs() {
         })}
       </div>
 
-      {/* Celebration */}
       {allFlipped && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center space-y-1 animate-fadeIn">
-          <PartyPopper className="w-7 h-7 text-indigo-500 mx-auto" />
-          <p className="text-sm font-bold text-indigo-800">Amazing! You found all the data!</p>
-          <p className="text-xs text-indigo-600">
+        <div
+          className="card-sketchy p-4 text-center space-y-1"
+          style={{ background: "#fffbe6", animation: "wobble 0.6s ease" }}
+        >
+          <PartyPopper className="w-7 h-7 mx-auto" style={{ color: CORAL }} />
+          <p className="font-hand text-base font-bold" style={{ color: INK }}>Amazing! You found all the data!</p>
+          <p className="font-hand text-xs" style={{ color: INK, opacity: 0.75 }}>
             Everything around you can be measured or described — that means everything is data!
           </p>
         </div>
       )}
 
-      {/* Auto-filling data table */}
       {discoveredCards.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs border-collapse rounded-lg overflow-hidden">
+        <div className="card-sketchy p-3 overflow-x-auto">
+          <table className="w-full text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-800 text-white">
-                <th className="px-3 py-2 text-left font-semibold">#</th>
-                <th className="px-3 py-2 text-left font-semibold">What</th>
-                <th className="px-3 py-2 text-left font-semibold">Value</th>
-                <th className="px-3 py-2 text-left font-semibold">Type</th>
+              <tr style={{ background: INK, color: PAPER }}>
+                <th className="px-3 py-2 text-left font-hand">#</th>
+                <th className="px-3 py-2 text-left font-hand">What</th>
+                <th className="px-3 py-2 text-left font-hand">Value</th>
+                <th className="px-3 py-2 text-left font-hand">Type</th>
               </tr>
             </thead>
             <tbody>
               {discoveredCards.map((card, i) => (
-                <tr
-                  key={card.id}
-                  className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}
-                >
-                  <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-                  <td className="px-3 py-2 font-medium text-slate-700">{card.label}</td>
-                  <td className="px-3 py-2 text-slate-800 font-semibold">{card.value}</td>
+                <tr key={card.id} style={{ background: i % 2 === 0 ? PAPER : "#f7f2e3" }}>
+                  <td className="px-3 py-2 font-hand" style={{ color: INK, opacity: 0.6 }}>{i + 1}</td>
+                  <td className="px-3 py-2 font-hand font-bold" style={{ color: INK }}>{card.label}</td>
+                  <td className="px-3 py-2 font-hand font-bold" style={{ color: card.color }}>{card.value}</td>
                   <td className="px-3 py-2">
                     <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        card.type === "Number"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-purple-100 text-purple-700"
-                      }`}
+                      className="font-hand text-[10px] font-bold px-2 py-0.5 rounded-full"
+                      style={{
+                        background: card.type === "Number" ? SKY : LAVENDER,
+                        color: PAPER,
+                        border: `1.5px solid ${INK}`,
+                      }}
                     >
                       {card.type}
                     </span>
@@ -177,15 +199,14 @@ function Tab1DataAroundUs() {
 
       <InfoBox variant="blue">
         Data is just information that has been organized so a computer can work with it.
-        Numbers, words, colors — all of it is data! Look around you right now — everything
-        you can measure or describe is data.
+        Numbers, words, colors — all of it is data!
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Build a Data Table                                        */
+/*  Tab 2 – Build a Data Table                                         */
 /* ------------------------------------------------------------------ */
 
 const NAME_OPTIONS = ["Mia", "Raj", "Zoe"];
@@ -211,12 +232,14 @@ function HeightSlider({ onConfirm }: { onConfirm: (v: number) => void }) {
         max={170}
         value={sliderVal}
         onChange={(e) => setSliderVal(Number(e.target.value))}
-        className="w-24 accent-indigo-500"
+        className="w-24"
+        style={{ accentColor: CORAL }}
       />
-      <span className="text-[11px] font-mono text-slate-600 w-8">{sliderVal}</span>
+      <span className="font-hand text-xs font-bold w-8" style={{ color: INK }}>{sliderVal}</span>
       <button
         onClick={() => onConfirm(sliderVal)}
-        className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-[11px] font-medium hover:bg-green-200 transition-colors"
+        className="btn-sketchy font-hand text-xs"
+        style={{ background: MINT, padding: "2px 8px" }}
       >
         Set
       </button>
@@ -225,24 +248,18 @@ function HeightSlider({ onConfirm }: { onConfirm: (v: number) => void }) {
 }
 
 function Tab2BuildTable() {
-  const [rows, setRows] = useState<TableRow[]>(() =>
-    INITIAL_TABLE.map((r) => ({ ...r })),
-  );
+  const [rows, setRows] = useState<TableRow[]>(() => INITIAL_TABLE.map((r) => ({ ...r })));
   const [editing, setEditing] = useState<{ row: number; field: CellField } | null>(null);
 
   const updateCell = useCallback(
     (rowIdx: number, field: CellField, value: string | number) => {
-      setRows((prev) =>
-        prev.map((r, i) =>
-          i === rowIdx ? { ...r, [field]: value } : r,
-        ),
-      );
+      playClick();
+      setRows((prev) => prev.map((r, i) => (i === rowIdx ? { ...r, [field]: value } : r)));
       setEditing(null);
     },
     [],
   );
 
-  /* Computed stats — only count rows where needed fields are filled */
   const stats = useMemo(() => {
     const filledAges = rows.filter((r) => r.age !== null).map((r) => r.age as number);
     const filledColors = rows.filter((r) => r.color !== null).map((r) => r.color as string);
@@ -250,19 +267,16 @@ function Tab2BuildTable() {
     const filledNames = rows.filter((r) => r.name !== null);
 
     const avgAge =
-      filledAges.length > 0
-        ? (filledAges.reduce((a, b) => a + b, 0) / filledAges.length).toFixed(1)
-        : "—";
+      filledAges.length > 0 ? (filledAges.reduce((a, b) => a + b, 0) / filledAges.length).toFixed(1) : "";
 
-    let mostCommonColor = "—";
+    let mostCommonColor = "";
     if (filledColors.length > 0) {
       const freq: Record<string, number> = {};
       filledColors.forEach((c) => (freq[c] = (freq[c] || 0) + 1));
       mostCommonColor = Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];
     }
 
-    const tallest =
-      filledHeights.length > 0 ? Math.max(...filledHeights) : "—";
+    const tallest = filledHeights.length > 0 ? Math.max(...filledHeights) : "";
 
     return { avgAge, mostCommonColor, tallest, totalStudents: filledNames.length };
   }, [rows]);
@@ -271,15 +285,14 @@ function Tab2BuildTable() {
     const isEditing = editing?.row === rowIdx && editing?.field === field;
     const isEmpty = value === null;
 
-    /* Pre-filled cell */
     if (!isEmpty && !isEditing) {
       return (
-        <span className="text-slate-800 font-medium text-xs">
+        <span className="font-hand text-sm font-bold" style={{ color: INK }}>
           {field === "color" ? (
             <span className="flex items-center gap-1.5">
               <span
-                className="w-3 h-3 rounded-full border border-slate-300 inline-block"
-                style={{ backgroundColor: (value as string).toLowerCase() }}
+                className="w-3.5 h-3.5 rounded-full inline-block"
+                style={{ backgroundColor: (value as string).toLowerCase(), border: `1.5px solid ${INK}` }}
               />
               {value}
             </span>
@@ -290,19 +303,18 @@ function Tab2BuildTable() {
       );
     }
 
-    /* Empty — show + button */
     if (isEmpty && !isEditing) {
       return (
         <button
-          onClick={() => setEditing({ row: rowIdx, field })}
-          className="w-full flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors"
+          onClick={() => { playClick(); setEditing({ row: rowIdx, field }); }}
+          className="w-full flex items-center justify-center"
+          style={{ color: INK, opacity: 0.4 }}
         >
           <Plus className="w-4 h-4" />
         </button>
       );
     }
 
-    /* Inline editor */
     if (isEditing) {
       switch (field) {
         case "name":
@@ -312,7 +324,8 @@ function Tab2BuildTable() {
                 <button
                   key={n}
                   onClick={() => updateCell(rowIdx, "name", n)}
-                  className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[11px] font-medium hover:bg-indigo-200 transition-colors"
+                  className="btn-sketchy font-hand"
+                  style={{ background: CORAL, padding: "2px 8px", fontSize: 11 }}
                 >
                   {n}
                 </button>
@@ -321,12 +334,18 @@ function Tab2BuildTable() {
           );
         case "age":
           return (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap">
               {[8, 9, 10, 11, 12, 13, 14, 15].map((a) => (
                 <button
                   key={a}
                   onClick={() => updateCell(rowIdx, "age", a)}
-                  className="w-6 h-6 rounded text-[11px] font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                  className="font-hand font-bold"
+                  style={{
+                    width: 26, height: 26, borderRadius: 6,
+                    background: SKY, color: PAPER,
+                    border: `2px solid ${INK}`, boxShadow: "1.5px 1.5px 0 #2b2a35",
+                    fontSize: 11,
+                  }}
                 >
                   {a}
                 </button>
@@ -340,17 +359,19 @@ function Tab2BuildTable() {
                 <button
                   key={c}
                   onClick={() => updateCell(rowIdx, "color", c)}
-                  className="w-6 h-6 rounded-full border-2 border-slate-300 hover:border-indigo-400 transition-colors"
-                  style={{ backgroundColor: c.toLowerCase() }}
+                  className="rounded-full"
+                  style={{
+                    width: 26, height: 26,
+                    backgroundColor: c.toLowerCase(),
+                    border: `2px solid ${INK}`, boxShadow: "1.5px 1.5px 0 #2b2a35",
+                  }}
                   title={c}
                 />
               ))}
             </div>
           );
         case "height":
-          return (
-            <HeightSlider onConfirm={(v) => updateCell(rowIdx, "height", v)} />
-          );
+          return <HeightSlider onConfirm={(v) => updateCell(rowIdx, "height", v)} />;
       }
     }
 
@@ -359,23 +380,22 @@ function Tab2BuildTable() {
 
   return (
     <div className="space-y-5">
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs border-collapse rounded-lg overflow-hidden">
+      <div className="card-sketchy p-3 overflow-x-auto">
+        <table className="w-full text-xs border-collapse">
           <thead>
-            <tr className="bg-slate-800 text-white">
-              <th className="px-3 py-2 text-left font-semibold">Name</th>
-              <th className="px-3 py-2 text-left font-semibold">Age</th>
-              <th className="px-3 py-2 text-left font-semibold">Favorite Color</th>
-              <th className="px-3 py-2 text-left font-semibold">Height (cm)</th>
+            <tr style={{ background: INK, color: PAPER }}>
+              <th className="px-3 py-2 text-left font-hand">Name</th>
+              <th className="px-3 py-2 text-left font-hand">Age</th>
+              <th className="px-3 py-2 text-left font-hand">Favorite Color</th>
+              <th className="px-3 py-2 text-left font-hand">Height (cm)</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row, i) => (
-              <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+              <tr key={i} style={{ background: i % 2 === 0 ? PAPER : "#f7f2e3" }}>
                 <td className="px-3 py-2.5 min-w-[90px]">{renderCell(i, "name", row.name)}</td>
-                <td className="px-3 py-2.5 min-w-[120px]">{renderCell(i, "age", row.age)}</td>
-                <td className="px-3 py-2.5 min-w-[140px]">{renderCell(i, "color", row.color)}</td>
+                <td className="px-3 py-2.5 min-w-[160px]">{renderCell(i, "age", row.age)}</td>
+                <td className="px-3 py-2.5 min-w-[180px]">{renderCell(i, "color", row.color)}</td>
                 <td className="px-3 py-2.5 min-w-[180px]">{renderCell(i, "height", row.height)}</td>
               </tr>
             ))}
@@ -383,36 +403,36 @@ function Tab2BuildTable() {
         </table>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Average Age", value: stats.avgAge },
-          { label: "Most Common Color", value: stats.mostCommonColor },
-          { label: "Tallest", value: stats.tallest === "—" ? "—" : `${stats.tallest} cm` },
-          { label: "Total Students", value: stats.totalStudents },
+          { label: "Average Age", value: stats.avgAge, color: SKY },
+          { label: "Top Color", value: stats.mostCommonColor, color: LAVENDER },
+          { label: "Tallest", value: stats.tallest === "" ? "" : `${stats.tallest} cm`, color: CORAL },
+          { label: "Students", value: stats.totalStudents, color: MINT },
         ].map((s) => (
           <div
             key={s.label}
-            className="bg-white border border-slate-200 rounded-xl p-3 text-center"
+            className="card-sketchy p-3 text-center"
+            style={{ borderTop: `5px solid ${s.color}` }}
           >
-            <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold mb-1">
+            <p className="font-hand text-[10px] font-bold uppercase tracking-wide" style={{ color: INK, opacity: 0.6 }}>
               {s.label}
             </p>
-            <p className="text-lg font-bold text-slate-800">{String(s.value)}</p>
+            <p className="font-hand text-xl font-bold mt-1" style={{ color: INK }}>{String(s.value) || "—"}</p>
           </div>
         ))}
       </div>
 
       <InfoBox variant="amber">
-        A data table organizes information into rows (one per person or thing) and columns
-        (one per measurement). This is how most datasets in the world look!
+        A data table organizes information into rows (one per person or thing) and columns (one per measurement).
+        This is how most datasets in the world look!
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Data Types Sorting Game                                   */
+/*  Tab 3 – Sorting Game                                               */
 /* ------------------------------------------------------------------ */
 
 const SORT_ITEMS: SortItem[] = [
@@ -445,9 +465,11 @@ function Tab3SortingGame() {
       if (sorted[item.id] !== undefined) return;
 
       if (chosenBin === item.correctBin) {
+        playSuccess();
         setSorted((prev) => ({ ...prev, [item.id]: chosenBin }));
         setFeedback((prev) => ({ ...prev, [item.id]: "correct" }));
       } else {
+        playError();
         setFeedback((prev) => ({ ...prev, [item.id]: "wrong" }));
         setShaking(item.id);
         setTimeout(() => {
@@ -464,6 +486,7 @@ function Tab3SortingGame() {
   );
 
   const handleReset = useCallback(() => {
+    playClick();
     setSorted({});
     setFeedback({});
     setShaking(null);
@@ -471,37 +494,38 @@ function Tab3SortingGame() {
 
   const allDone = Object.keys(sorted).length === SORT_ITEMS.length;
 
-  /* Bin contents */
   const numberBinItems = SORT_ITEMS.filter((it) => sorted[it.id] === "number");
   const categoryBinItems = SORT_ITEMS.filter((it) => sorted[it.id] === "category");
 
   return (
     <div className="space-y-5">
-      {/* Score */}
       <div className="flex items-center justify-between">
-        <span className="inline-block bg-slate-100 text-slate-700 text-sm font-semibold px-4 py-1.5 rounded-full">
-          Correct: {correctCount} / {SORT_ITEMS.length}
+        <span
+          className="inline-block font-hand text-sm font-bold px-4 py-1.5 rounded-full border-2"
+          style={{ borderColor: INK, background: YELLOW, boxShadow: "2px 2px 0 #2b2a35" }}
+        >
+          Score: {correctCount} / {SORT_ITEMS.length}
         </span>
         <button
           onClick={handleReset}
-          className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
+          className="btn-sketchy-outline font-hand text-xs"
         >
-          <RotateCcw className="w-3.5 h-3.5" />
-          Reset
+          <RotateCcw className="w-3.5 h-3.5" /> Reset
         </button>
       </div>
 
-      {/* All-done celebration */}
       {allDone && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center space-y-1 animate-fadeIn">
-          <CheckCircle2 className="w-7 h-7 text-green-500 mx-auto" />
-          <p className="text-sm font-bold text-green-800">
+        <div
+          className="card-sketchy p-4 text-center space-y-1"
+          style={{ background: "#e8fff9", animation: "wobble 0.6s ease" }}
+        >
+          <CheckCircle2 className="w-7 h-7 mx-auto" style={{ color: MINT }} />
+          <p className="font-hand text-base font-bold" style={{ color: INK }}>
             Great work! You sorted all {SORT_ITEMS.length} items!
           </p>
         </div>
       )}
 
-      {/* Card grid */}
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
         {SORT_ITEMS.map((item) => {
           const isSorted = sorted[item.id] !== undefined;
@@ -512,9 +536,10 @@ function Tab3SortingGame() {
             return (
               <div
                 key={item.id}
-                className="rounded-lg border-2 border-green-300 bg-green-50 px-3 py-2 text-center text-xs font-semibold text-green-700 flex items-center justify-center gap-1"
+                className="card-sketchy px-3 py-2 text-center font-hand text-xs font-bold flex items-center justify-center gap-1"
+                style={{ background: "#e8fff9", color: INK, borderColor: MINT }}
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
+                <CheckCircle2 className="w-3.5 h-3.5" style={{ color: MINT }} />
                 {item.label}
               </div>
             );
@@ -523,23 +548,25 @@ function Tab3SortingGame() {
           return (
             <div
               key={item.id}
-              className={`rounded-xl border-2 bg-white p-3 text-center space-y-2 transition-all duration-200 ${
-                fb === "wrong"
-                  ? "border-red-400 bg-red-50"
-                  : "border-slate-200 hover:border-indigo-300 hover:shadow-sm"
-              } ${isShaking ? "animate-shake" : ""}`}
+              className="card-sketchy p-3 text-center space-y-2"
+              style={{
+                background: fb === "wrong" ? "#ffe8e8" : PAPER,
+                animation: isShaking ? "shake-x 0.4s" : undefined,
+              }}
             >
-              <p className="text-sm font-bold text-slate-800">{item.label}</p>
+              <p className="font-hand text-base font-bold" style={{ color: INK }}>{item.label}</p>
               <div className="flex gap-1 justify-center">
                 <button
                   onClick={() => handleSort(item, "number")}
-                  className="px-2 py-1 rounded text-[10px] font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                  className="btn-sketchy font-hand"
+                  style={{ background: SKY, padding: "2px 8px", fontSize: 10 }}
                 >
                   Number
                 </button>
                 <button
                   onClick={() => handleSort(item, "category")}
-                  className="px-2 py-1 rounded text-[10px] font-semibold bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+                  className="btn-sketchy font-hand"
+                  style={{ background: LAVENDER, padding: "2px 8px", fontSize: 10 }}
                 >
                   Category
                 </button>
@@ -549,59 +576,62 @@ function Tab3SortingGame() {
         })}
       </div>
 
-      {/* Bins */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Numbers bin */}
-        <div className="rounded-xl border-2 border-blue-300 bg-blue-50/50 p-3 min-h-[100px]">
-          <p className="text-xs font-bold text-blue-700 mb-2 uppercase tracking-wide text-center">
-            Numbers
+        <div className="card-sketchy p-3 min-h-[110px]" style={{ borderTop: `5px solid ${SKY}` }}>
+          <p className="font-hand text-sm font-bold mb-2 text-center" style={{ color: SKY }}>
+            NUMBERS
           </p>
           <div className="flex flex-wrap gap-1 justify-center">
             {numberBinItems.map((it) => (
               <span
                 key={it.id}
-                className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[11px] font-semibold"
+                className="font-hand text-xs font-bold px-2 py-0.5 rounded border"
+                style={{ background: SKY, color: PAPER, borderColor: INK, boxShadow: "1.5px 1.5px 0 #2b2a35" }}
               >
                 {it.label}
               </span>
             ))}
             {numberBinItems.length === 0 && (
-              <span className="text-[11px] text-blue-300 italic">Drop numbers here</span>
+              <span className="font-hand text-xs italic" style={{ color: SKY, opacity: 0.6 }}>
+                Drop numbers here
+              </span>
             )}
           </div>
         </div>
 
-        {/* Categories bin */}
-        <div className="rounded-xl border-2 border-purple-300 bg-purple-50/50 p-3 min-h-[100px]">
-          <p className="text-xs font-bold text-purple-700 mb-2 uppercase tracking-wide text-center">
-            Categories
+        <div className="card-sketchy p-3 min-h-[110px]" style={{ borderTop: `5px solid ${LAVENDER}` }}>
+          <p className="font-hand text-sm font-bold mb-2 text-center" style={{ color: LAVENDER }}>
+            CATEGORIES
           </p>
           <div className="flex flex-wrap gap-1 justify-center">
             {categoryBinItems.map((it) => (
               <span
                 key={it.id}
-                className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-[11px] font-semibold"
+                className="font-hand text-xs font-bold px-2 py-0.5 rounded border"
+                style={{ background: LAVENDER, color: PAPER, borderColor: INK, boxShadow: "1.5px 1.5px 0 #2b2a35" }}
               >
                 {it.label}
               </span>
             ))}
             {categoryBinItems.length === 0 && (
-              <span className="text-[11px] text-purple-300 italic">Drop categories here</span>
+              <span className="font-hand text-xs italic" style={{ color: LAVENDER, opacity: 0.6 }}>
+                Drop categories here
+              </span>
             )}
           </div>
         </div>
       </div>
 
       <InfoBox variant="green">
-        Knowing whether data is a number or a category matters because computers handle them
-        differently. Numbers can be added and averaged. Categories can be counted and grouped.
+        Knowing whether data is a number or a category matters because computers handle them differently.
+        Numbers can be added and averaged. Categories can be counted and grouped.
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Quiz questions                                                     */
+/*  Quiz                                                               */
 /* ------------------------------------------------------------------ */
 
 const quizQuestions = [
@@ -611,7 +641,7 @@ const quizQuestions = [
       "Your height",
       "Your favorite song",
       "The number of clouds in the sky",
-      "None \u2014 all of these are data",
+      "None — all of these are data",
     ],
     correctIndex: 3,
     explanation:
@@ -626,24 +656,14 @@ const quizQuestions = [
   },
   {
     question: "In a data table, what does each ROW usually represent?",
-    options: [
-      "A measurement type",
-      "One item or observation",
-      "A formula",
-      "The column header",
-    ],
+    options: ["A measurement type", "One item or observation", "A formula", "The column header"],
     correctIndex: 1,
     explanation:
       "Each row represents one item (like one person, one animal, or one measurement). Each column represents a different property.",
   },
   {
     question: "Why is it useful to know if data is a number or a category?",
-    options: [
-      "It isn't useful",
-      "Computers handle them differently",
-      "Categories are always better",
-      "Numbers are always better",
-    ],
+    options: ["It isn't useful", "Computers handle them differently", "Categories are always better", "Numbers are always better"],
     correctIndex: 1,
     explanation:
       "Numbers can be added, averaged, and plotted on graphs. Categories can be counted and grouped. Knowing the type helps you choose the right analysis!",
@@ -651,7 +671,7 @@ const quizQuestions = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Main component                                                     */
+/*  Main                                                               */
 /* ------------------------------------------------------------------ */
 
 export default function L3_DataActivity() {

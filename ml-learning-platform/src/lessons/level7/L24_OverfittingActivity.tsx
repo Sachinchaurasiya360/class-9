@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback } from "react";
-import { TrendingUp, BarChart3, Shield } from "lucide-react";
+import { TrendingUp, BarChart3, Shield, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
-import { playPop, playSuccess } from "../../utils/sounds";
+import { playClick, playPop, playSuccess } from "../../utils/sounds";
 
 /* ---- helpers ---- */
 function mulberry32(seed: number): () => number {
@@ -20,7 +20,36 @@ function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
 }
 
-/* Generate noisy data from a quadratic */
+const THEMES = [
+  { name: "Coral",    node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint",     node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky",      node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+  { name: "Sunset",   node: "#ffb88c", glow: "#ffd0b3", accent: "#ff6b6b" },
+];
+
+const INK = "#2b2a35";
+
+function ThemePicker({ idx, setIdx }: { idx: number; setIdx: (i: number) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Palette className="w-4 h-4 text-foreground/60" />
+      <span className="font-hand text-sm font-bold">Theme:</span>
+      <div className="flex gap-1.5">
+        {THEMES.map((t, i) => (
+          <button
+            key={t.name}
+            onClick={() => { playClick(); setIdx(i); }}
+            title={t.name}
+            className={`w-6 h-6 rounded-full border-2 transition-transform ${idx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+            style={{ background: t.node }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface DataPoint { x: number; y: number }
 
 function generateData(seed: number, count: number): DataPoint[] {
@@ -38,9 +67,7 @@ function generateData(seed: number, count: number): DataPoint[] {
 const TRAIN_DATA = generateData(42, 15);
 const TEST_DATA = generateData(99, 10);
 
-/* Fit polynomial and evaluate */
 function fitPolynomial(data: DataPoint[], degree: number, lambda: number = 0): number[] {
-  /* Simple least-squares via normal equations (small degree, fine for demo) */
   const n = degree + 1;
   const X: number[][] = [];
   const Y: number[] = [];
@@ -51,7 +78,6 @@ function fitPolynomial(data: DataPoint[], degree: number, lambda: number = 0): n
     Y.push(p.y);
   }
 
-  /* XtX + lambda * I */
   const XtX: number[][] = Array.from({ length: n }, () => Array(n).fill(0));
   const XtY: number[] = Array(n).fill(0);
   for (let i = 0; i < data.length; i++) {
@@ -64,7 +90,6 @@ function fitPolynomial(data: DataPoint[], degree: number, lambda: number = 0): n
   }
   for (let j = 0; j < n; j++) XtX[j][j] += lambda;
 
-  /* Gaussian elimination */
   const aug: number[][] = XtX.map((row, i) => [...row, XtY[i]]);
   for (let col = 0; col < n; col++) {
     let maxRow = col;
@@ -99,14 +124,12 @@ function mse(coeffs: number[], data: DataPoint[]): number {
   return s / data.length;
 }
 
-/* SVG constants */
-const W = 460;
-const H = 280;
-const PAD = 45;
+const W = 480;
+const H = 300;
+const PAD = 46;
 function xToSvg(x: number): number { return PAD + x * (W - 2 * PAD); }
 function yToSvg(y: number): number {
-  const minY = 0.0;
-  const maxY = 1.2;
+  const minY = 0.0, maxY = 1.2;
   return PAD + (1 - (clamp(y, minY, maxY) - minY) / (maxY - minY)) * (H - 2 * PAD);
 }
 
@@ -115,82 +138,115 @@ function yToSvg(y: number): number {
 /* ------------------------------------------------------------------ */
 function FitCurveTab() {
   const [degree, setDegree] = useState(3);
+  const [themeIdx, setThemeIdx] = useState(1);
+  const theme = THEMES[themeIdx];
 
   const coeffs = useMemo(() => fitPolynomial(TRAIN_DATA, degree), [degree]);
   const trainErr = useMemo(() => mse(coeffs, TRAIN_DATA), [coeffs]);
   const testErr = useMemo(() => mse(coeffs, TEST_DATA), [coeffs]);
 
-  const curvePath = useMemo(() => {
+  const curvePathD = useMemo(() => {
     const pts: string[] = [];
     for (let i = 0; i <= 200; i++) {
       const x = i / 200;
-      const y = evalPoly(coeffs, x);
-      const sx = xToSvg(x);
-      const sy = yToSvg(y);
-      pts.push(`${i === 0 ? "M" : "L"}${sx.toFixed(1)},${sy.toFixed(1)}`);
+      pts.push(`${i === 0 ? "M" : "L"}${xToSvg(x).toFixed(1)},${yToSvg(evalPoly(coeffs, x)).toFixed(1)}`);
     }
     return pts.join(" ");
   }, [coeffs]);
 
   const fitLabel = degree <= 1 ? "Underfit" : degree <= 4 ? "Good fit" : "Overfit!";
   const fitColor = degree <= 1 ? "#f59e0b" : degree <= 4 ? "#22c55e" : "#ef4444";
+  const isOverfit = degree > 4;
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
         Drag the slider to change polynomial degree. Watch how the curve fits the training points.
       </p>
 
-      {/* Degree slider */}
-      <div className="flex items-center gap-3 justify-center">
-        <span className="text-xs text-slate-500">Degree:</span>
+      <div className="card-sketchy p-3 flex items-center gap-3 justify-center flex-wrap">
+        <span className="font-hand text-sm font-bold">Degree:</span>
         <input
           type="range" min={1} max={10} step={1}
           value={degree}
           onChange={(e) => { setDegree(Number(e.target.value)); playPop(); }}
-          className="w-48 accent-indigo-600"
+          className="w-48 accent-accent-coral"
         />
-        <span className="text-sm font-bold text-indigo-700">{degree}</span>
-        <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: fitColor + "22", color: fitColor }}>{fitLabel}</span>
+        <span className="font-hand text-base font-bold" style={{ color: theme.node }}>{degree}</span>
+        <span className="font-hand text-xs font-bold px-2 py-0.5 rounded-full border-2 border-foreground" style={{ background: fitColor + "33" }}>{fitLabel}</span>
       </div>
 
-      {/* Scatter + curve */}
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[500px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        {/* Axes */}
-        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#cbd5e1" strokeWidth={1} />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="#cbd5e1" strokeWidth={1} />
+      <div className="card-sketchy p-4 notebook-grid">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[560px] mx-auto">
+          <defs>
+            <radialGradient id="of-train" cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#94caff" />
+              <stop offset="100%" stopColor="#3b82f6" />
+            </radialGradient>
+            <radialGradient id="of-test" cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#ffb3b3" />
+              <stop offset="100%" stopColor="#ef4444" />
+            </radialGradient>
+          </defs>
 
-        {/* Fitted curve */}
-        <path d={curvePath} fill="none" stroke="#6366f1" strokeWidth={2.5} />
+          {/* Axes */}
+          <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke={INK} strokeWidth={2} />
+          <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke={INK} strokeWidth={2} />
 
-        {/* Train points */}
-        {TRAIN_DATA.map((p, i) => (
-          <circle key={`tr-${i}`} cx={xToSvg(p.x)} cy={yToSvg(p.y)} r={5} fill="#3b82f6" stroke="#fff" strokeWidth={1.5} />
-        ))}
+          {/* Fitted curve */}
+          <path
+            d={curvePathD}
+            fill="none"
+            stroke={theme.node}
+            strokeWidth={3}
+            strokeLinecap="round"
+            className={isOverfit ? "wobble" : ""}
+          />
+          <path d={curvePathD} fill="none" stroke={INK} strokeWidth={1} opacity={0.4} strokeLinecap="round" />
 
-        {/* Test points */}
-        {TEST_DATA.map((p, i) => (
-          <g key={`te-${i}`}>
-            <rect x={xToSvg(p.x) - 4} y={yToSvg(p.y) - 4} width={8} height={8} rx={1} fill="#ef4444" stroke="#fff" strokeWidth={1.5} />
+          {/* Train points */}
+          {TRAIN_DATA.map((p, i) => (
+            <circle
+              key={`tr-${i}`}
+              cx={xToSvg(p.x)} cy={yToSvg(p.y)}
+              r={6} fill="url(#of-train)" stroke={INK} strokeWidth={1.8}
+              className="pulse-glow"
+              style={{ color: "#3b82f6" }}
+            />
+          ))}
+
+          {/* Test points */}
+          {TEST_DATA.map((p, i) => (
+            <rect
+              key={`te-${i}`}
+              x={xToSvg(p.x) - 5} y={yToSvg(p.y) - 5}
+              width={10} height={10} rx={1.5}
+              fill="url(#of-test)" stroke={INK} strokeWidth={1.8}
+            />
+          ))}
+
+          {/* Legend */}
+          <g>
+            <circle cx={W - 130} cy={PAD + 6} r={5} fill="url(#of-train)" stroke={INK} strokeWidth={1.5} />
+            <text x={W - 118} y={PAD + 10} fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">Train data</text>
+            <rect x={W - 135} y={PAD + 18} width={10} height={10} rx={1.5} fill="url(#of-test)" stroke={INK} strokeWidth={1.5} />
+            <text x={W - 118} y={PAD + 27} fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">Test data</text>
           </g>
-        ))}
+        </svg>
+      </div>
 
-        {/* Legend */}
-        <circle cx={W - 120} cy={PAD + 5} r={4} fill="#3b82f6" />
-        <text x={W - 112} y={PAD + 9} className="text-[9px] fill-slate-600">Train data</text>
-        <rect x={W - 124} y={PAD + 17} width={8} height={8} rx={1} fill="#ef4444" />
-        <text x={W - 112} y={PAD + 25} className="text-[9px] fill-slate-600">Test data</text>
-      </svg>
-
-      {/* Error readout */}
-      <div className="flex gap-4 justify-center">
-        <div className="text-center">
-          <p className="text-[10px] text-slate-500 font-medium">Train Error</p>
-          <p className="text-sm font-bold text-blue-600">{trainErr.toFixed(4)}</p>
+      <div className="flex gap-4 justify-center flex-wrap">
+        <div className="card-sketchy px-4 py-2 text-center">
+          <p className="font-hand text-[11px] font-bold text-muted-foreground">Train Error</p>
+          <p className="font-hand text-base font-bold text-blue-600">{trainErr.toFixed(4)}</p>
         </div>
-        <div className="text-center">
-          <p className="text-[10px] text-slate-500 font-medium">Test Error</p>
-          <p className="text-sm font-bold text-red-600">{testErr.toFixed(4)}</p>
+        <div className={`card-sketchy px-4 py-2 text-center ${isOverfit ? "bg-accent-coral/20" : ""}`}>
+          <p className="font-hand text-[11px] font-bold text-muted-foreground">Test Error</p>
+          <p className={`font-hand text-base font-bold text-red-600 ${isOverfit ? "pulse-glow" : ""}`} style={{ color: "#ef4444" }}>{testErr.toFixed(4)}</p>
         </div>
       </div>
 
@@ -210,6 +266,7 @@ function FitCurveTab() {
 /* ------------------------------------------------------------------ */
 function ErrorCurveTab() {
   const [selectedDeg, setSelectedDeg] = useState<number | null>(null);
+  const [themeIdx, setThemeIdx] = useState(2);
 
   const errors = useMemo(() => {
     const trainE: number[] = [];
@@ -224,9 +281,8 @@ function ErrorCurveTab() {
 
   const bestDeg = errors.test.indexOf(Math.min(...errors.test)) + 1;
 
-  const UW = 460;
-  const UH = 260;
-
+  const UW = 480;
+  const UH = 280;
   const maxErr = 0.06;
 
   const handleClick = useCallback((deg: number) => {
@@ -235,81 +291,86 @@ function ErrorCurveTab() {
     if (deg === bestDeg) playSuccess();
   }, [bestDeg]);
 
-  /* Mini curve for selected degree */
-  const selectedCoeffs = useMemo(() => {
-    if (selectedDeg === null) return null;
-    return fitPolynomial(TRAIN_DATA, selectedDeg);
-  }, [selectedDeg]);
-
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
         Click on different complexity levels to see the fitted curve. Find the sweet spot where test error is lowest!
       </p>
 
-      {/* U-curve */}
-      <svg viewBox={`0 0 ${UW} ${UH}`} className="w-full max-w-[500px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        {/* Axes */}
-        <line x1={PAD} y1={UH - PAD} x2={UW - PAD} y2={UH - PAD} stroke="#cbd5e1" strokeWidth={1} />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={UH - PAD} stroke="#cbd5e1" strokeWidth={1} />
-        <text x={UW / 2} y={UH - 8} textAnchor="middle" className="text-[10px] fill-slate-500">Model Complexity (Degree)</text>
-        <text x={12} y={UH / 2} textAnchor="middle" transform={`rotate(-90,12,${UH / 2})`} className="text-[10px] fill-slate-500">Error</text>
+      <div className="card-sketchy p-4 notebook-grid">
+        <svg viewBox={`0 0 ${UW} ${UH}`} className="w-full max-w-[560px] mx-auto">
+          <line x1={PAD} y1={UH - PAD} x2={UW - PAD} y2={UH - PAD} stroke={INK} strokeWidth={2} />
+          <line x1={PAD} y1={PAD} x2={PAD} y2={UH - PAD} stroke={INK} strokeWidth={2} />
+          <text x={UW / 2} y={UH - 8} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">Model Complexity (Degree)</text>
+          <text x={14} y={UH / 2} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[11px] font-bold" transform={`rotate(-90,14,${UH / 2})`}>Error</text>
 
-        {/* Sweet spot highlight */}
-        {(() => {
-          const bx = PAD + ((bestDeg - 1) / 9) * (UW - 2 * PAD);
-          return <rect x={bx - 12} y={PAD} width={24} height={UH - 2 * PAD} fill="#22c55e" opacity={0.08} rx={4} />;
-        })()}
+          {/* Sweet spot highlight */}
+          {(() => {
+            const bx = PAD + ((bestDeg - 1) / 9) * (UW - 2 * PAD);
+            return (
+              <>
+                <rect x={bx - 14} y={PAD} width={28} height={UH - 2 * PAD} fill="#ffd93d" opacity={0.18} rx={4} />
+                <text x={bx} y={PAD - 6} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[10px] font-bold">sweet spot</text>
+              </>
+            );
+          })()}
 
-        {/* Train error line */}
-        <polyline
-          points={errors.train.map((e, i) => {
+          {/* Train error line */}
+          <polyline
+            points={errors.train.map((e, i) => {
+              const sx = PAD + (i / 9) * (UW - 2 * PAD);
+              const sy = PAD + (1 - clamp(e, 0, maxErr) / maxErr) * (UH - 2 * PAD);
+              return `${sx.toFixed(1)},${sy.toFixed(1)}`;
+            }).join(" ")}
+            fill="none" stroke="#3b82f6" strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round"
+          />
+
+          {/* Test error line */}
+          <polyline
+            points={errors.test.map((e, i) => {
+              const sx = PAD + (i / 9) * (UW - 2 * PAD);
+              const sy = PAD + (1 - clamp(e, 0, maxErr) / maxErr) * (UH - 2 * PAD);
+              return `${sx.toFixed(1)},${sy.toFixed(1)}`;
+            }).join(" ")}
+            fill="none" stroke="#ef4444" strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round"
+          />
+
+          {/* Clickable dots */}
+          {errors.test.map((e, i) => {
             const sx = PAD + (i / 9) * (UW - 2 * PAD);
-            const sy = PAD + (1 - clamp(e, 0, maxErr) / maxErr) * (UH - 2 * PAD);
-            return `${sx.toFixed(1)},${sy.toFixed(1)}`;
-          }).join(" ")}
-          fill="none" stroke="#3b82f6" strokeWidth={2.5}
-        />
+            const syTe = PAD + (1 - clamp(e, 0, maxErr) / maxErr) * (UH - 2 * PAD);
+            const syTr = PAD + (1 - clamp(errors.train[i], 0, maxErr) / maxErr) * (UH - 2 * PAD);
+            const isSelected = selectedDeg === i + 1;
+            return (
+              <g key={i} onClick={() => handleClick(i + 1)} className="cursor-pointer">
+                <circle cx={sx} cy={syTr} r={isSelected ? 8 : 5} fill="#3b82f6" stroke={INK} strokeWidth={1.8} className={isSelected ? "pulse-glow" : ""} style={isSelected ? { color: "#3b82f6" } : undefined} />
+                <circle cx={sx} cy={syTe} r={isSelected ? 8 : 5} fill="#ef4444" stroke={INK} strokeWidth={1.8} className={isSelected ? "pulse-glow" : ""} style={isSelected ? { color: "#ef4444" } : undefined} />
+                <text x={sx} y={UH - PAD + 16} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[10px] font-bold">{i + 1}</text>
+              </g>
+            );
+          })}
 
-        {/* Test error line */}
-        <polyline
-          points={errors.test.map((e, i) => {
-            const sx = PAD + (i / 9) * (UW - 2 * PAD);
-            const sy = PAD + (1 - clamp(e, 0, maxErr) / maxErr) * (UH - 2 * PAD);
-            return `${sx.toFixed(1)},${sy.toFixed(1)}`;
-          }).join(" ")}
-          fill="none" stroke="#ef4444" strokeWidth={2.5}
-        />
+          {/* Legend */}
+          <g>
+            <circle cx={UW - 110} cy={PAD + 8} r={5} fill="#3b82f6" stroke={INK} strokeWidth={1.5} />
+            <text x={UW - 100} y={PAD + 12} fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">Train error</text>
+            <circle cx={UW - 110} cy={PAD + 24} r={5} fill="#ef4444" stroke={INK} strokeWidth={1.5} />
+            <text x={UW - 100} y={PAD + 28} fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">Test error</text>
+          </g>
+        </svg>
+      </div>
 
-        {/* Clickable dots */}
-        {errors.test.map((e, i) => {
-          const sx = PAD + (i / 9) * (UW - 2 * PAD);
-          const syTe = PAD + (1 - clamp(e, 0, maxErr) / maxErr) * (UH - 2 * PAD);
-          const syTr = PAD + (1 - clamp(errors.train[i], 0, maxErr) / maxErr) * (UH - 2 * PAD);
-          const isSelected = selectedDeg === i + 1;
-          return (
-            <g key={i} onClick={() => handleClick(i + 1)} className="cursor-pointer">
-              <circle cx={sx} cy={syTr} r={isSelected ? 6 : 4} fill="#3b82f6" stroke="#fff" strokeWidth={1.5} className="transition-all duration-200 hover:r-[6]" />
-              <circle cx={sx} cy={syTe} r={isSelected ? 6 : 4} fill="#ef4444" stroke="#fff" strokeWidth={1.5} className="transition-all duration-200 hover:r-[6]" />
-              <text x={sx} y={UH - PAD + 14} textAnchor="middle" className="text-[9px] fill-slate-500">{i + 1}</text>
-            </g>
-          );
-        })}
-
-        {/* Legend */}
-        <circle cx={UW - 110} cy={PAD + 8} r={4} fill="#3b82f6" />
-        <text x={UW - 102} y={PAD + 12} className="text-[9px] fill-slate-600">Train error</text>
-        <circle cx={UW - 110} cy={PAD + 24} r={4} fill="#ef4444" />
-        <text x={UW - 102} y={PAD + 28} className="text-[9px] fill-slate-600">Test error</text>
-      </svg>
-
-      {/* Selected degree mini-view */}
-      {selectedDeg !== null && selectedCoeffs !== null && (
-        <div className="bg-white border border-slate-200 rounded-xl p-3">
-          <p className="text-xs text-slate-600 mb-1 font-medium">Degree {selectedDeg} fit
+      {selectedDeg !== null && (
+        <div className="card-sketchy p-3 animate-fadeIn">
+          <p className="font-hand text-sm font-bold mb-1">
+            Degree {selectedDeg} fit
             {selectedDeg === bestDeg && <span className="text-green-600 ml-1">(Sweet spot!)</span>}
           </p>
-          <div className="flex gap-4 text-xs">
+          <div className="flex gap-4 font-hand text-xs">
             <span>Train: <strong className="text-blue-600">{errors.train[selectedDeg - 1].toFixed(4)}</strong></span>
             <span>Test: <strong className="text-red-600">{errors.test[selectedDeg - 1].toFixed(4)}</strong></span>
           </div>
@@ -329,29 +390,26 @@ function ErrorCurveTab() {
 function RegularizationTab() {
   const degree = 8;
   const [lambdaIdx, setLambdaIdx] = useState(0);
+  const [themeIdx, setThemeIdx] = useState(3);
   const lambdaValues = [0, 0.001, 0.01, 0.05, 0.1, 0.5, 1, 3, 10];
   const lambda = lambdaValues[lambdaIdx];
+  const theme = THEMES[themeIdx];
 
   const coeffs = useMemo(() => fitPolynomial(TRAIN_DATA, degree, lambda), [lambda]);
   const trainErr = useMemo(() => mse(coeffs, TRAIN_DATA), [coeffs]);
   const testErr = useMemo(() => mse(coeffs, TEST_DATA), [coeffs]);
 
-  const curvePath = useMemo(() => {
+  const curvePathD = useMemo(() => {
     const pts: string[] = [];
     for (let i = 0; i <= 200; i++) {
       const x = i / 200;
-      const y = evalPoly(coeffs, x);
-      const sx = xToSvg(x);
-      const sy = yToSvg(y);
-      pts.push(`${i === 0 ? "M" : "L"}${sx.toFixed(1)},${sy.toFixed(1)}`);
+      pts.push(`${i === 0 ? "M" : "L"}${xToSvg(x).toFixed(1)},${yToSvg(evalPoly(coeffs, x)).toFixed(1)}`);
     }
     return pts.join(" ");
   }, [coeffs]);
 
-  /* Total weight magnitude */
-  const weightMag = useMemo(() => {
-    return coeffs.reduce((s, c) => s + c * c, 0);
-  }, [coeffs]);
+  const weightMag = useMemo(() => coeffs.reduce((s, c) => s + c * c, 0), [coeffs]);
+  const wiggly = lambda < 0.01;
 
   const handleSlider = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setLambdaIdx(Number(e.target.value));
@@ -362,52 +420,67 @@ function RegularizationTab() {
   }, []);
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
         A degree-8 polynomial overfits badly. Drag the regularization slider to smooth it out!
       </p>
 
-      {/* Lambda slider */}
-      <div className="flex items-center gap-3 justify-center">
-        <span className="text-xs text-slate-500">Regularization (lambda):</span>
+      <div className="card-sketchy p-3 flex items-center gap-3 justify-center flex-wrap">
+        <span className="font-hand text-sm font-bold">Regularization (λ):</span>
         <input
           type="range" min={0} max={lambdaValues.length - 1} step={1}
           value={lambdaIdx}
           onChange={handleSlider}
-          className="w-48 accent-indigo-600"
+          className="w-48 accent-accent-coral"
         />
-        <span className="text-sm font-bold text-indigo-700">{lambda}</span>
+        <span className="font-hand text-base font-bold" style={{ color: theme.node }}>{lambda}</span>
       </div>
 
-      {/* Scatter + curve */}
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[500px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#cbd5e1" strokeWidth={1} />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="#cbd5e1" strokeWidth={1} />
+      <div className="card-sketchy p-4 notebook-grid">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[560px] mx-auto">
+          <defs>
+            <radialGradient id="reg-train" cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#94caff" />
+              <stop offset="100%" stopColor="#3b82f6" />
+            </radialGradient>
+            <radialGradient id="reg-test" cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#ffb3b3" />
+              <stop offset="100%" stopColor="#ef4444" />
+            </radialGradient>
+          </defs>
 
-        <path d={curvePath} fill="none" stroke="#6366f1" strokeWidth={2.5} />
+          <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke={INK} strokeWidth={2} />
+          <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke={INK} strokeWidth={2} />
 
-        {TRAIN_DATA.map((p, i) => (
-          <circle key={i} cx={xToSvg(p.x)} cy={yToSvg(p.y)} r={5} fill="#3b82f6" stroke="#fff" strokeWidth={1.5} />
-        ))}
+          <path d={curvePathD} fill="none" stroke={theme.node} strokeWidth={3} strokeLinecap="round" className={wiggly ? "wobble" : ""} />
+          <path d={curvePathD} fill="none" stroke={INK} strokeWidth={1} opacity={0.4} strokeLinecap="round" />
 
-        {TEST_DATA.map((p, i) => (
-          <rect key={i} x={xToSvg(p.x) - 4} y={yToSvg(p.y) - 4} width={8} height={8} rx={1} fill="#ef4444" stroke="#fff" strokeWidth={1.5} />
-        ))}
-      </svg>
+          {TRAIN_DATA.map((p, i) => (
+            <circle key={i} cx={xToSvg(p.x)} cy={yToSvg(p.y)} r={6} fill="url(#reg-train)" stroke={INK} strokeWidth={1.8} />
+          ))}
 
-      {/* Stats */}
-      <div className="flex gap-4 justify-center flex-wrap">
-        <div className="text-center">
-          <p className="text-[10px] text-slate-500 font-medium">Train Error</p>
-          <p className="text-sm font-bold text-blue-600">{trainErr.toFixed(4)}</p>
+          {TEST_DATA.map((p, i) => (
+            <rect key={i} x={xToSvg(p.x) - 5} y={yToSvg(p.y) - 5} width={10} height={10} rx={1.5} fill="url(#reg-test)" stroke={INK} strokeWidth={1.8} />
+          ))}
+        </svg>
+      </div>
+
+      <div className="flex gap-3 justify-center flex-wrap">
+        <div className="card-sketchy px-3 py-2 text-center">
+          <p className="font-hand text-[11px] font-bold text-muted-foreground">Train Error</p>
+          <p className="font-hand text-base font-bold text-blue-600">{trainErr.toFixed(4)}</p>
         </div>
-        <div className="text-center">
-          <p className="text-[10px] text-slate-500 font-medium">Test Error</p>
-          <p className="text-sm font-bold text-red-600">{testErr.toFixed(4)}</p>
+        <div className="card-sketchy px-3 py-2 text-center">
+          <p className="font-hand text-[11px] font-bold text-muted-foreground">Test Error</p>
+          <p className="font-hand text-base font-bold text-red-600">{testErr.toFixed(4)}</p>
         </div>
-        <div className="text-center">
-          <p className="text-[10px] text-slate-500 font-medium">Weight Penalty</p>
-          <p className="text-sm font-bold text-amber-600">{weightMag.toFixed(2)}</p>
+        <div className="card-sketchy px-3 py-2 text-center">
+          <p className="font-hand text-[11px] font-bold text-muted-foreground">Weight Penalty</p>
+          <p className="font-hand text-base font-bold" style={{ color: "#f59e0b" }}>{weightMag.toFixed(2)}</p>
         </div>
       </div>
 
@@ -483,7 +556,7 @@ export default function L24_OverfittingActivity() {
       lessonNumber={3}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: SGD vs Batch — different ways to feed data during training!"
+      nextLessonHint="Next: SGD vs Batch  different ways to feed data during training!"
       story={
         <StorySection
           paragraphs={[

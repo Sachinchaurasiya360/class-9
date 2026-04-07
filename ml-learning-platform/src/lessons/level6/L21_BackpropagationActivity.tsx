@@ -24,7 +24,7 @@ const sigmoidDeriv = (x: number) => { const s = sigmoid(x); return s * (1 - s); 
 const INK = "#2b2a35";
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Error Flows Backward                                       */
+/*  Tab 1  Error Flows Backward                                       */
 /* ------------------------------------------------------------------ */
 
 function ErrorFlowsTab() {
@@ -210,7 +210,7 @@ function ErrorFlowsTab() {
 
           {/* ---------- Hidden nodes ---------- */}
           {hYs.map((y, i) => (
-            <g key={`h-${i}`}>
+            <g key={`h-${i}`} className={showUpdated ? "wobble" : ""}>
               <circle cx={hX} cy={y} r={24} fill="url(#bp-h)" stroke={INK} strokeWidth={2.5} className="pulse-glow" style={{ color: "#b18cf2" }} />
               <text x={hX} y={y + 5} textAnchor="middle" className="text-[12px] font-bold" fill="#fff" fontFamily="Kalam">
                 {(i === 0 ? h0 : h1).toFixed(2)}
@@ -259,6 +259,19 @@ function ErrorFlowsTab() {
           <text x={inX} y={32} textAnchor="middle" className="text-[12px] font-bold" fill={INK} fontFamily="Kalam">INPUT</text>
           <text x={hX} y={32} textAnchor="middle" className="text-[12px] font-bold" fill="#b18cf2" fontFamily="Kalam">HIDDEN</text>
           <text x={oX} y={32} textAnchor="middle" className="text-[12px] font-bold" fill={INK} fontFamily="Kalam">OUTPUT</text>
+
+          {/* Convergence sparks on update phase */}
+          {showUpdated && Array.from({ length: 8 }).map((_, k) => {
+            const a = (k / 8) * Math.PI * 2;
+            return (
+              <line key={`sp-${k}`}
+                x1={oX} y1={oY}
+                x2={oX + Math.cos(a) * 52} y2={oY + Math.sin(a) * 52}
+                stroke="#ffd93d" strokeWidth={2.5} strokeLinecap="round"
+                className="spark" style={{ animationDelay: `${k * 0.05}s` }}
+              />
+            );
+          })}
 
           {/* Backflow caption */}
           {showGrad && (
@@ -310,7 +323,7 @@ function ErrorFlowsTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Chain Rule Visualized                                      */
+/*  Tab 2  Chain Rule Visualized                                      */
 /* ------------------------------------------------------------------ */
 
 function ChainRuleTab() {
@@ -434,7 +447,7 @@ function ChainRuleTab() {
 
       <InfoBox variant="amber" title="The Chain Rule">
         <span className="font-hand text-base">
-          🔗 The chain rule lets us compute how each weight affects the final output by multiplying gradients along the path. This is the math behind backprop! Try sliding w1 and w2 — when both flip sign, the gradient flips too.
+          🔗 The chain rule lets us compute how each weight affects the final output by multiplying gradients along the path. This is the math behind backprop! Try sliding w1 and w2  when both flip sign, the gradient flips too.
         </span>
       </InfoBox>
     </div>
@@ -442,7 +455,7 @@ function ChainRuleTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Watch It Learn                                             */
+/*  Tab 3  Watch It Learn                                             */
 /* ------------------------------------------------------------------ */
 
 function WatchItLearnTab() {
@@ -611,7 +624,7 @@ function WatchItLearnTab() {
               stroke="#4ecdc4" strokeWidth={2.5} strokeDasharray="5 4"
             />
 
-            {/* Prediction line — animated */}
+            {/* Prediction line  animated */}
             <line
               x1={toSX(xMin)} y1={toSY(Math.max(yMin, Math.min(yMax, lineY0)))}
               x2={toSX(xMax)} y2={toSY(Math.max(yMin, Math.min(yMax, lineY1)))}

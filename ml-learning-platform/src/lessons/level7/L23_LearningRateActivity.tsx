@@ -1,13 +1,43 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { SlidersHorizontal, Zap, TrendingDown } from "lucide-react";
+import { SlidersHorizontal, Zap, TrendingDown, Palette, Play, RotateCcw } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
-import { playClick, playPop, playSuccess } from "../../utils/sounds";
+import { playClick, playPop, playSuccess, playError } from "../../utils/sounds";
 
 /* ---- helpers ---- */
 function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
+}
+
+const THEMES = [
+  { name: "Coral",    node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint",     node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky",      node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+  { name: "Sunset",   node: "#ffb88c", glow: "#ffd0b3", accent: "#ff6b6b" },
+];
+
+const INK = "#2b2a35";
+
+function ThemePicker({ idx, setIdx }: { idx: number; setIdx: (i: number) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Palette className="w-4 h-4 text-foreground/60" />
+      <span className="font-hand text-sm font-bold">Theme:</span>
+      <div className="flex gap-1.5">
+        {THEMES.map((t, i) => (
+          <button
+            key={t.name}
+            onClick={() => { playClick(); setIdx(i); }}
+            title={t.name}
+            className={`w-6 h-6 rounded-full border-2 transition-transform ${idx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+            style={{ background: t.node }}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 /* Smooth loss curve with one minimum near x=0.55 */
@@ -33,19 +63,19 @@ function bumpyGrad(x: number): number {
 }
 
 /* SVG mapping */
-const W = 460;
-const H = 240;
-const PAD = 40;
+const W = 480;
+const H = 260;
+const PAD = 44;
 function xToSvg(x: number): number { return PAD + x * (W - 2 * PAD); }
 function yToSvg(y: number, minY: number, maxY: number): number {
   return PAD + (1 - (y - minY) / (maxY - minY)) * (H - 2 * PAD);
 }
 
-function buildPath(fn: (x: number) => number, minY: number, maxY: number): string {
+function buildPath(fn: (x: number) => number, minY: number, maxY: number, w = W): string {
   const pts: string[] = [];
-  for (let i = 0; i <= 100; i++) {
-    const x = i / 100;
-    const sx = xToSvg(x);
+  for (let i = 0; i <= 120; i++) {
+    const x = i / 120;
+    const sx = PAD + x * (w - 2 * PAD);
     const sy = yToSvg(fn(x), minY, maxY);
     pts.push(`${i === 0 ? "M" : "L"}${sx.toFixed(1)},${sy.toFixed(1)}`);
   }
@@ -59,16 +89,20 @@ function LRTuningTab() {
   const [lrIdx, setLrIdx] = useState(3);
   const lrValues = [0.001, 0.005, 0.01, 0.05, 0.1, 0.3, 0.5, 1.0];
   const lr = lrValues[lrIdx];
+  const [themeIdx, setThemeIdx] = useState(1);
+  const theme = THEMES[themeIdx];
 
   const [ballX, setBallX] = useState(0.05);
   const [losses, setLosses] = useState<number[]>([lossFn(0.05)]);
   const [running, setRunning] = useState(false);
+  const [diverged, setDiverged] = useState(false);
   const animRef = useRef<number | null>(null);
 
   const handleRun = useCallback(() => {
     playClick();
     setBallX(0.05);
     setLosses([lossFn(0.05)]);
+    setDiverged(false);
     setRunning(true);
     let cx = 0.05;
     let step = 0;
@@ -88,7 +122,10 @@ function LRTuningTab() {
         animRef.current = requestAnimationFrame(tick);
       } else {
         setRunning(false);
-        if (loss < 0.7) playSuccess();
+        if (cx <= 0 || cx >= 1 || loss >= 5) {
+          setDiverged(true);
+          playError();
+        } else if (loss < 0.7) playSuccess();
       }
     };
     animRef.current = requestAnimationFrame(tick);
@@ -101,66 +138,100 @@ function LRTuningTab() {
   const minY = 0.2;
   const maxY = 2.0;
   const lossLabel = lr < 0.01 ? "Too small!" : lr > 0.4 ? "Too large!" : "Good range";
-  const lossColor = lr < 0.01 ? "text-amber-600" : lr > 0.4 ? "text-red-600" : "text-green-600";
+  const labelColor = lr < 0.01 ? "#f59e0b" : lr > 0.4 ? "#ef4444" : "#22c55e";
 
-  /* Loss chart */
-  const LCH = 80;
+  const LCH = 90;
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
         Adjust the learning rate slider, then click <strong>Run</strong> to watch the ball descend.
       </p>
 
       {/* LR slider */}
-      <div className="flex items-center gap-3 justify-center">
-        <span className="text-xs text-slate-500">LR:</span>
+      <div className="card-sketchy p-3 flex items-center gap-3 justify-center flex-wrap">
+        <span className="font-hand text-sm font-bold">LR:</span>
         <input
           type="range"
           min={0} max={lrValues.length - 1} step={1}
           value={lrIdx}
           onChange={(e) => { setLrIdx(Number(e.target.value)); playPop(); }}
-          className="w-48 accent-indigo-600"
+          className="w-48 accent-accent-coral"
           disabled={running}
         />
-        <span className={`text-sm font-bold ${lossColor}`}>{lr}</span>
-        <span className={`text-xs font-medium ${lossColor}`}>{lossLabel}</span>
+        <span className="font-hand text-base font-bold" style={{ color: labelColor }}>{lr}</span>
+        <span className="font-hand text-xs font-bold px-2 py-0.5 rounded-full border-2 border-foreground" style={{ background: labelColor + "33" }}>{lossLabel}</span>
       </div>
 
       {/* Curve */}
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[500px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        <path d={buildPath(lossFn, minY, maxY)} fill="none" stroke="#6366f1" strokeWidth={2.5} />
-        <circle
-          cx={xToSvg(ballX)} cy={yToSvg(lossFn(ballX), minY, maxY)}
-          r={7} fill="#f59e0b" stroke="#b45309" strokeWidth={2}
-          className="transition-all duration-75"
-        />
-        <text x={W - PAD} y={PAD - 6} textAnchor="end" className="text-[10px] fill-slate-600 font-medium">
-          Loss: {lossFn(ballX).toFixed(3)}
-        </text>
-      </svg>
+      <div className="card-sketchy p-4 notebook-grid">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[560px] mx-auto">
+          <defs>
+            <radialGradient id="lr-ball" cx="35%" cy="30%">
+              <stop offset="0%" stopColor={theme.glow} />
+              <stop offset="100%" stopColor={theme.node} />
+            </radialGradient>
+            <linearGradient id="lr-fill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor={theme.node} stopOpacity="0.18" />
+              <stop offset="100%" stopColor={theme.node} stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+
+          <path d={`${buildPath(lossFn, minY, maxY)} L${(W - PAD).toFixed(1)},${(H - PAD).toFixed(1)} L${PAD.toFixed(1)},${(H - PAD).toFixed(1)} Z`} fill="url(#lr-fill)" />
+          <path d={buildPath(lossFn, minY, maxY)} fill="none" stroke={INK} strokeWidth={2.8} strokeLinecap="round" />
+          <path d={buildPath(lossFn, minY, maxY)} fill="none" stroke={theme.node} strokeWidth={1.2} strokeDasharray="2 4" opacity={0.5} className="wobble" />
+
+          {/* Min marker */}
+          <circle cx={xToSvg(0.55)} cy={yToSvg(lossFn(0.55), minY, maxY)} r={9} fill="none" stroke={theme.accent} strokeWidth={2} strokeDasharray="3 2" />
+
+          {/* Ball with diverged ring */}
+          {diverged && (
+            <circle cx={xToSvg(ballX)} cy={yToSvg(lossFn(ballX), minY, maxY)} r={14} fill="none" stroke="#ef4444" strokeWidth={3} className="fire-ring" />
+          )}
+          <circle
+            cx={xToSvg(ballX)} cy={yToSvg(lossFn(ballX), minY, maxY)}
+            r={11} fill="url(#lr-ball)" stroke={INK} strokeWidth={2.5}
+            className="pulse-glow"
+            style={{ color: theme.node }}
+          />
+
+          <text x={W - PAD} y={PAD - 10} textAnchor="end" fill={INK} fontFamily="Kalam" className="text-[12px] font-bold">
+            Loss: {lossFn(ballX).toFixed(3)}
+          </text>
+          <text x={PAD} y={PAD - 10} fill={INK} fontFamily="Kalam" className="text-[12px] font-bold">
+            LR: {lr}
+          </text>
+        </svg>
+      </div>
 
       {/* Loss over steps */}
       {losses.length > 1 && (
-        <svg viewBox={`0 0 ${W} ${LCH}`} className="w-full max-w-[500px] mx-auto bg-white rounded-xl border border-slate-200">
-          <text x={W / 2} y={12} textAnchor="middle" className="text-[9px] fill-slate-500">Loss over steps</text>
-          <polyline
-            points={losses.map((l, i) => {
-              const sx = PAD + (i / Math.max(losses.length - 1, 1)) * (W - 2 * PAD);
-              const sy = 20 + (1 - (clamp(l, minY, maxY) - minY) / (maxY - minY)) * (LCH - 28);
-              return `${sx.toFixed(1)},${sy.toFixed(1)}`;
-            }).join(" ")}
-            fill="none" stroke="#6366f1" strokeWidth={1.5}
-          />
-        </svg>
+        <div className="card-sketchy p-3">
+          <svg viewBox={`0 0 ${W} ${LCH}`} className="w-full max-w-[560px] mx-auto">
+            <text x={W / 2} y={14} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">Loss over steps</text>
+            <polyline
+              points={losses.map((l, i) => {
+                const sx = PAD + (i / Math.max(losses.length - 1, 1)) * (W - 2 * PAD);
+                const sy = 22 + (1 - (clamp(l, minY, maxY) - minY) / (maxY - minY)) * (LCH - 32);
+                return `${sx.toFixed(1)},${sy.toFixed(1)}`;
+              }).join(" ")}
+              fill="none" stroke={theme.node} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+            />
+          </svg>
+        </div>
       )}
 
       <div className="flex gap-2 justify-center">
         <button
           onClick={handleRun}
           disabled={running}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40"
         >
+          <Play className="w-4 h-4 inline mr-1" />
           {running ? "Running..." : "Run"}
         </button>
       </div>
@@ -180,11 +251,14 @@ function MomentumTab() {
   const [pathNoM, setPathNoM] = useState<number[]>([0.95]);
   const [pathWithM, setPathWithM] = useState<number[]>([0.95]);
   const [running, setRunning] = useState(false);
+  const [themeIdx, setThemeIdx] = useState(2);
   const animRef = useRef<number | null>(null);
+  const theme = THEMES[themeIdx];
 
   const lr = 0.012;
   const minY = 0.3;
   const maxY = 1.8;
+  const halfW = W / 2;
 
   const handleRun = useCallback(() => {
     playClick();
@@ -237,68 +311,91 @@ function MomentumTab() {
   const lastNoM = pathNoM[pathNoM.length - 1];
   const lastWithM = pathWithM[pathWithM.length - 1];
 
+  function makeBumpyPath() {
+    const pts: string[] = [];
+    for (let i = 0; i <= 120; i++) {
+      const x = i / 120;
+      const sx = 20 + x * (halfW - 40);
+      const sy = yToSvg(bumpyLoss(x), minY, maxY);
+      pts.push(`${i === 0 ? "M" : "L"}${sx.toFixed(1)},${sy.toFixed(1)}`);
+    }
+    return pts.join(" ");
+  }
+  const bumpyD = makeBumpyPath();
+
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
         The bumpy curve has local minima. Without momentum the ball gets stuck. Increase momentum and see the difference!
       </p>
 
-      <div className="flex items-center gap-3 justify-center">
-        <span className="text-xs text-slate-500">Momentum:</span>
+      <div className="card-sketchy p-3 flex items-center gap-3 justify-center flex-wrap">
+        <span className="font-hand text-sm font-bold">Momentum:</span>
         <input
           type="range" min={0} max={99} step={1}
           value={Math.round(momentum * 100)}
           onChange={(e) => { setMomentum(Number(e.target.value) / 100); playPop(); }}
-          className="w-48 accent-indigo-600"
+          className="w-48 accent-accent-coral"
           disabled={running}
         />
-        <span className="text-sm font-bold text-indigo-700">{momentum.toFixed(2)}</span>
+        <span className="font-hand text-base font-bold" style={{ color: theme.node }}>{momentum.toFixed(2)}</span>
       </div>
 
-      {/* Side-by-side curves */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* No momentum */}
-        <div>
-          <p className="text-xs text-center text-slate-500 mb-1 font-medium">No Momentum</p>
-          <svg viewBox={`0 0 ${W / 2} ${H}`} className="w-full bg-slate-50 rounded-lg border border-slate-200">
-            <path d={(() => {
-              const pts: string[] = [];
-              for (let i = 0; i <= 100; i++) {
-                const x = i / 100;
-                const sx = 20 + x * (W / 2 - 40);
-                const sy = yToSvg(bumpyLoss(x), minY, maxY);
-                pts.push(`${i === 0 ? "M" : "L"}${sx.toFixed(1)},${sy.toFixed(1)}`);
-              }
-              return pts.join(" ");
-            })()} fill="none" stroke="#94a3b8" strokeWidth={2} />
+        <div className="card-sketchy p-3 notebook-grid">
+          <p className="font-hand text-xs text-center font-bold mb-1">No Momentum</p>
+          <svg viewBox={`0 0 ${halfW} ${H}`} className="w-full">
+            <defs>
+              <radialGradient id="mom-stuck" cx="35%" cy="30%">
+                <stop offset="0%" stopColor="#ffb3b3" />
+                <stop offset="100%" stopColor="#ef4444" />
+              </radialGradient>
+            </defs>
+            <path d={bumpyD} fill="none" stroke={INK} strokeWidth={2.5} strokeLinecap="round" />
+            {pathNoM.length > 1 && (
+              <polyline
+                points={pathNoM.map((px) => `${(20 + px * (halfW - 40)).toFixed(1)},${yToSvg(bumpyLoss(px), minY, maxY).toFixed(1)}`).join(" ")}
+                fill="none" stroke="#ef4444" strokeWidth={1.5} opacity={0.5}
+              />
+            )}
             <circle
-              cx={20 + lastNoM * (W / 2 - 40)} cy={yToSvg(bumpyLoss(lastNoM), minY, maxY)}
-              r={6} fill="#ef4444" stroke="#b91c1c" strokeWidth={1.5}
+              cx={20 + lastNoM * (halfW - 40)} cy={yToSvg(bumpyLoss(lastNoM), minY, maxY)}
+              r={9} fill="url(#mom-stuck)" stroke={INK} strokeWidth={2}
+              className="pulse-glow" style={{ color: "#ef4444" }}
             />
           </svg>
-          <p className="text-[10px] text-center text-slate-500 mt-1">Loss: {bumpyLoss(lastNoM).toFixed(3)}</p>
+          <p className="font-hand text-[11px] text-center mt-1">Loss: <strong>{bumpyLoss(lastNoM).toFixed(3)}</strong></p>
         </div>
 
         {/* With momentum */}
-        <div>
-          <p className="text-xs text-center text-slate-500 mb-1 font-medium">With Momentum ({momentum.toFixed(2)})</p>
-          <svg viewBox={`0 0 ${W / 2} ${H}`} className="w-full bg-slate-50 rounded-lg border border-slate-200">
-            <path d={(() => {
-              const pts: string[] = [];
-              for (let i = 0; i <= 100; i++) {
-                const x = i / 100;
-                const sx = 20 + x * (W / 2 - 40);
-                const sy = yToSvg(bumpyLoss(x), minY, maxY);
-                pts.push(`${i === 0 ? "M" : "L"}${sx.toFixed(1)},${sy.toFixed(1)}`);
-              }
-              return pts.join(" ");
-            })()} fill="none" stroke="#94a3b8" strokeWidth={2} />
+        <div className="card-sketchy p-3 notebook-grid">
+          <p className="font-hand text-xs text-center font-bold mb-1">With Momentum ({momentum.toFixed(2)})</p>
+          <svg viewBox={`0 0 ${halfW} ${H}`} className="w-full">
+            <defs>
+              <radialGradient id="mom-free" cx="35%" cy="30%">
+                <stop offset="0%" stopColor={theme.glow} />
+                <stop offset="100%" stopColor={theme.node} />
+              </radialGradient>
+            </defs>
+            <path d={bumpyD} fill="none" stroke={INK} strokeWidth={2.5} strokeLinecap="round" />
+            {pathWithM.length > 1 && (
+              <polyline
+                points={pathWithM.map((px) => `${(20 + px * (halfW - 40)).toFixed(1)},${yToSvg(bumpyLoss(px), minY, maxY).toFixed(1)}`).join(" ")}
+                fill="none" stroke={theme.node} strokeWidth={1.5} opacity={0.5}
+              />
+            )}
             <circle
-              cx={20 + lastWithM * (W / 2 - 40)} cy={yToSvg(bumpyLoss(lastWithM), minY, maxY)}
-              r={6} fill="#22c55e" stroke="#15803d" strokeWidth={1.5}
+              cx={20 + lastWithM * (halfW - 40)} cy={yToSvg(bumpyLoss(lastWithM), minY, maxY)}
+              r={9} fill="url(#mom-free)" stroke={INK} strokeWidth={2}
+              className="pulse-glow" style={{ color: theme.node }}
             />
           </svg>
-          <p className="text-[10px] text-center text-slate-500 mt-1">Loss: {bumpyLoss(lastWithM).toFixed(3)}</p>
+          <p className="font-hand text-[11px] text-center mt-1">Loss: <strong>{bumpyLoss(lastWithM).toFixed(3)}</strong></p>
         </div>
       </div>
 
@@ -306,11 +403,16 @@ function MomentumTab() {
         <button
           onClick={handleRun}
           disabled={running}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40"
         >
+          <Play className="w-4 h-4 inline mr-1" />
           {running ? "Running..." : "Run Both"}
         </button>
-        <button onClick={handleReset} className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35]"
+        >
+          <RotateCcw className="w-4 h-4 inline mr-1" />
           Reset
         </button>
       </div>
@@ -344,7 +446,6 @@ function SchedulesTab() {
     return { constant, stepDecay, cosine };
   }, []);
 
-  /* Simulate loss for each schedule */
   const losses = useMemo(() => {
     const lossConst: number[] = [];
     const lossStep: number[] = [];
@@ -388,74 +489,67 @@ function SchedulesTab() {
     return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
   }, []);
 
-  const colors = ["#ef4444", "#3b82f6", "#22c55e"];
+  const colors = ["#ef4444", "#6bb6ff", "#4ecdc4"];
   const names = ["Constant", "Step Decay", "Cosine Annealing"];
   const allLR = [schedules.constant, schedules.stepDecay, schedules.cosine];
   const allLoss = [losses.constant, losses.stepDecay, losses.cosine];
 
-  const chartW = 460;
-  const chartH = 110;
+  const chartW = 480;
+  const chartH = 130;
 
   function renderChart(data: number[][], maxVal: number, title: string) {
     return (
-      <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full max-w-[500px] mx-auto bg-white rounded-xl border border-slate-200">
-        <text x={chartW / 2} y={13} textAnchor="middle" className="text-[9px] fill-slate-500 font-medium">{title}</text>
-        {data.map((d, di) => {
-          const visible = d.slice(0, step);
-          if (visible.length < 2) return null;
-          const pts = visible.map((v, j) => {
-            const sx = PAD + (j / (totalEpochs - 1)) * (chartW - 2 * PAD);
-            const sy = 22 + (1 - v / maxVal) * (chartH - 30);
-            return `${sx.toFixed(1)},${sy.toFixed(1)}`;
-          }).join(" ");
-          return <polyline key={di} points={pts} fill="none" stroke={colors[di]} strokeWidth={1.5} />;
-        })}
-        {/* Legend */}
-        {names.map((n, i) => (
-          <g key={n}>
-            <line x1={PAD + 5} y1={chartH - 10 + i * 0} x2={PAD + 20} y2={chartH - 10} stroke={colors[i]} strokeWidth={2} style={{ display: i === 0 ? "block" : "none" }} />
-          </g>
-        ))}
-      </svg>
+      <div className="card-sketchy p-3 notebook-grid">
+        <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full max-w-[560px] mx-auto">
+          <text x={chartW / 2} y={14} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">{title}</text>
+          {data.map((d, di) => {
+            const visible = d.slice(0, step);
+            if (visible.length < 2) return null;
+            const pts = visible.map((v, j) => {
+              const sx = PAD + (j / (totalEpochs - 1)) * (chartW - 2 * PAD);
+              const sy = 26 + (1 - v / maxVal) * (chartH - 40);
+              return `${sx.toFixed(1)},${sy.toFixed(1)}`;
+            }).join(" ");
+            return <polyline key={di} points={pts} fill="none" stroke={colors[di]} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />;
+          })}
+        </svg>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+    <div className="space-y-5">
+      <p className="font-hand text-sm text-center text-muted-foreground">
         Compare three learning rate schedules. Click <strong>Animate</strong> to watch them over {totalEpochs} epochs.
       </p>
 
-      {/* Legend */}
-      <div className="flex gap-4 justify-center">
+      <div className="flex gap-4 justify-center flex-wrap">
         {names.map((n, i) => (
-          <div key={n} className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full" style={{ background: colors[i] }} />
-            <span className="text-xs text-slate-600">{n}</span>
+          <div key={n} className="flex items-center gap-1.5 px-2 py-1 rounded-lg border-2 border-foreground bg-background">
+            <div className="w-3 h-3 rounded-full border border-foreground" style={{ background: colors[i] }} />
+            <span className="font-hand text-xs font-bold">{n}</span>
           </div>
         ))}
       </div>
 
-      {/* LR over epochs */}
       {renderChart(allLR, 0.55, "Learning Rate vs Epoch")}
-
-      {/* Loss over epochs */}
       {renderChart(allLoss, 2.0, "Loss vs Epoch")}
 
-      <div className="text-center text-xs text-slate-500">Epoch: {step} / {totalEpochs}</div>
+      <div className="text-center font-hand text-sm font-bold">Epoch: {step} / {totalEpochs}</div>
 
       <div className="flex gap-2 justify-center">
         <button
           onClick={handleAnimate}
           disabled={running}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40"
         >
+          <Play className="w-4 h-4 inline mr-1" />
           {running ? "Animating..." : "Animate"}
         </button>
       </div>
 
       <InfoBox variant="indigo" title="Why Schedules?">
-        <strong>Constant:</strong> same LR throughout — risky.
+        <strong>Constant:</strong> same LR throughout  risky.
         <br />
         <strong>Step Decay:</strong> big jumps early, then fine-tuning with smaller steps.
         <br />
@@ -530,12 +624,12 @@ export default function L23_LearningRateActivity() {
       lessonNumber={2}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Learn about overfitting — when your model memorizes instead of learning!"
+      nextLessonHint="Next: Learn about overfitting  when your model memorizes instead of learning!"
       story={
         <StorySection
           paragraphs={[
             "Byte showed Aru a skateboard perched at the top of a steep hill.",
-            "Byte: \"Imagine rolling this skateboard down the hill. The learning rate is how hard you push it. Too gentle — it barely moves. Too hard — it flies right past the bottom!\"",
+            "Byte: \"Imagine rolling this skateboard down the hill. The learning rate is how hard you push it. Too gentle  it barely moves. Too hard  it flies right past the bottom!\"",
             "Aru: \"What about the bumps in the road? A small push might get stuck on one.\"",
             "Byte: \"That's where momentum comes in! Momentum is like the skateboard carrying speed from before. It helps you roll right through those small bumps and find the real bottom of the valley!\"",
             "Aru: \"So I need the right push AND enough rolling speed. Got it!\"",

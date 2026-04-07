@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
-import { Activity, TrendingUp, Sliders, Play, RotateCcw } from "lucide-react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { Activity, TrendingUp, Sliders, Play, RotateCcw, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
@@ -23,17 +23,31 @@ type AFn = {
   range: [number, number];
   emoji: string;
   formula: string;
+  definition: string;
 };
 
 const activationFns: AFn[] = [
-  { name: "Step",       fn: step,      color: "#ff6b6b", glow: "#ff8a8a", range: [-0.2, 1.2], emoji: "🚦", formula: "1 if x≥0 else 0" },
-  { name: "Sigmoid",    fn: sigmoid,   color: "#6bb6ff", glow: "#94caff", range: [-0.1, 1.1], emoji: "〰️", formula: "1 / (1 + e^-x)" },
-  { name: "Tanh",       fn: tanh_,     color: "#b18cf2", glow: "#c9adf7", range: [-1.2, 1.2], emoji: "🌊", formula: "tanh(x)" },
-  { name: "ReLU",       fn: relu,      color: "#4ecdc4", glow: "#7ee0d8", range: [-1, 5.5],   emoji: "📐", formula: "max(0, x)" },
-  { name: "LeakyReLU",  fn: leakyRelu, color: "#ffb88c", glow: "#ffd0b3", range: [-1, 5.5],   emoji: "💧", formula: "x if x≥0 else 0.1x" },
+  { name: "Step",       fn: step,      color: "#ff6b6b", glow: "#ff8a8a", range: [-0.2, 1.2], emoji: "🚦", formula: "1 if x≥0 else 0",
+    definition: "The Step function is the simplest activation: it outputs 1 if the input is positive, otherwise 0. It acts like an on/off switch — perfect for yes/no decisions, but too sharp for learning since it has no smooth gradient." },
+  { name: "Sigmoid",    fn: sigmoid,   color: "#6bb6ff", glow: "#94caff", range: [-0.1, 1.1], emoji: "〰️", formula: "1 / (1 + e^-x)",
+    definition: "Sigmoid squashes any number into a smooth value between 0 and 1, shaped like an S-curve. It's great for probabilities, but for very large or very small inputs the gradient becomes tiny — a problem called the vanishing gradient." },
+  { name: "Tanh",       fn: tanh_,     color: "#b18cf2", glow: "#c9adf7", range: [-1.2, 1.2], emoji: "🌊", formula: "tanh(x)",
+    definition: "Tanh is similar to Sigmoid but outputs values between -1 and 1, centered at zero. This zero-centered output usually helps neural networks learn faster than Sigmoid." },
+  { name: "ReLU",       fn: relu,      color: "#4ecdc4", glow: "#7ee0d8", range: [-1, 5.5],   emoji: "📐", formula: "max(0, x)",
+    definition: "ReLU (Rectified Linear Unit) outputs the input directly if it's positive, otherwise zero. It's fast, simple, and the most popular activation in deep learning — though neurons can sometimes 'die' if they always output zero." },
+  { name: "LeakyReLU",  fn: leakyRelu, color: "#ffb88c", glow: "#ffd0b3", range: [-1, 5.5],   emoji: "💧", formula: "x if x≥0 else 0.1x",
+    definition: "Leaky ReLU fixes the 'dying ReLU' problem by allowing a small negative slope (like 0.1x) for negative inputs. This keeps neurons alive and learning even when their input is negative." },
 ];
 
 const INK = "#2b2a35";
+
+const THEMES = [
+  { name: "Coral",    node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint",     node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky",      node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+  { name: "Sunset",   node: "#ffb88c", glow: "#ffd0b3", accent: "#ff6b6b" },
+];
 
 /* ------------------------------------------------------------------ */
 /*  Sketchy mini-chart                                                 */
@@ -126,14 +140,28 @@ function MiniChart({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Meet the Functions                                         */
+/*  Tab 1  Meet the Functions                                         */
 /* ------------------------------------------------------------------ */
 
 function MeetFunctionsTab() {
   const [inputVal, setInputVal] = useState(0);
   const [autoSweep, setAutoSweep] = useState(false);
   const [highlightedFn, setHighlightedFn] = useState<string | null>(null);
+  const [flippedFn, setFlippedFn] = useState<string | null>(null);
   const [sweepDir, setSweepDir] = useState(1);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const [sparkKey, setSparkKey] = useState(0);
+  const theme = THEMES[themeIdx];
+  const prevSign = useRef(inputVal >= 0);
+
+  useEffect(() => {
+    const sign = inputVal >= 0;
+    if (sign !== prevSign.current) {
+      setSparkKey((k) => k + 1);
+      playPop();
+    }
+    prevSign.current = sign;
+  }, [inputVal]);
 
   // Auto sweep
   useEffect(() => {
@@ -151,8 +179,41 @@ function MeetFunctionsTab() {
 
   return (
     <div className="space-y-5">
+      {/* Theme picker */}
+      <div className="card-sketchy p-3 flex items-center justify-center gap-2">
+        <Palette className="w-4 h-4 text-foreground/60" />
+        <span className="font-hand text-sm font-bold">Theme:</span>
+        <div className="flex gap-1.5">
+          {THEMES.map((t, i) => (
+            <button
+              key={t.name}
+              onClick={() => { playClick(); setThemeIdx(i); }}
+              title={t.name}
+              className={`w-6 h-6 rounded-full border-2 transition-transform ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+              style={{ background: t.node }}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Input control */}
       <div className="card-sketchy p-4 space-y-3" style={{ background: "#fff8e7" }}>
+        {/* Spark burst on threshold cross */}
+        <div key={sparkKey} className="relative h-0">
+          <svg viewBox="0 0 100 20" className="absolute -top-2 left-1/2 -translate-x-1/2 w-24 pointer-events-none">
+            {Array.from({ length: 6 }).map((_, k) => {
+              const a = (k / 6) * Math.PI * 2;
+              return (
+                <line key={k}
+                  x1={50} y1={10}
+                  x2={50 + Math.cos(a) * 18} y2={10 + Math.sin(a) * 8}
+                  stroke={theme.accent} strokeWidth={2} strokeLinecap="round"
+                  className="spark" style={{ animationDelay: `${k * 0.04}s` }}
+                />
+              );
+            })}
+          </svg>
+        </div>
         <div className="flex items-center justify-between flex-wrap gap-3">
           <label className="font-hand text-base font-bold flex items-center gap-2">
             Input value (x):
@@ -186,34 +247,85 @@ function MeetFunctionsTab() {
         {activationFns.map((af) => {
           const out = af.fn(inputVal);
           const isHigh = highlightedFn === af.name;
+          const isFlipped = flippedFn === af.name;
           return (
             <div
               key={af.name}
               onMouseEnter={() => setHighlightedFn(af.name)}
               onMouseLeave={() => setHighlightedFn(null)}
-              className={`card-sketchy p-3 transition-transform cursor-pointer ${isHigh ? "-translate-y-1" : ""}`}
-              style={isHigh ? { boxShadow: `6px 6px 0 ${af.color}` } : undefined}
+              onClick={() => { playClick(); setFlippedFn(isFlipped ? null : af.name); }}
+              className={`cursor-pointer transition-transform ${isHigh && !isFlipped ? "-translate-y-1" : ""}`}
+              style={{ perspective: "1200px", minHeight: 290 }}
             >
-              <MiniChart af={af} inputVal={inputVal} showCursor highlighted={isHigh} />
-              <div className="mt-2 space-y-1.5">
-                <div className="flex items-center justify-between font-hand text-xs">
-                  <span className="text-muted-foreground">f({inputVal.toFixed(1)}) =</span>
-                  <span className="font-bold text-base px-2 py-0.5 rounded border-2 border-foreground" style={{ background: af.color, color: "#fff" }}>
-                    {out.toFixed(3)}
-                  </span>
+              <div
+                className="relative w-full h-full transition-transform duration-500"
+                style={{
+                  transformStyle: "preserve-3d",
+                  transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                  minHeight: 290,
+                }}
+              >
+                {/* Front */}
+                <div
+                  className="card-sketchy p-3 absolute inset-0"
+                  style={{
+                    backfaceVisibility: "hidden",
+                    WebkitBackfaceVisibility: "hidden",
+                    boxShadow: isHigh ? `6px 6px 0 ${af.color}` : undefined,
+                  }}
+                >
+                  <MiniChart af={af} inputVal={inputVal} showCursor highlighted={isHigh} />
+                  <div className="mt-2 space-y-1.5">
+                    <div className="flex items-center justify-between font-hand text-xs">
+                      <span className="text-muted-foreground">f({inputVal.toFixed(1)}) =</span>
+                      <span className="font-bold text-base px-2 py-0.5 rounded border-2 border-foreground" style={{ background: af.color, color: "#fff" }}>
+                        {out.toFixed(3)}
+                      </span>
+                    </div>
+                    {/* Output bar */}
+                    <div className="h-2 rounded-full border border-foreground/40 overflow-hidden bg-background">
+                      <div
+                        className="h-full transition-all duration-200"
+                        style={{
+                          width: `${Math.max(0, Math.min(1, (out - af.range[0]) / (af.range[1] - af.range[0]))) * 100}%`,
+                          background: af.color,
+                        }}
+                      />
+                    </div>
+                    <div className="font-hand text-[11px] text-muted-foreground text-center italic">
+                      {af.formula}
+                    </div>
+                    <div className="font-hand text-[10px] text-center text-muted-foreground/70 pt-0.5">
+                      click to flip ↻
+                    </div>
+                  </div>
                 </div>
-                {/* Output bar */}
-                <div className="h-2 rounded-full border border-foreground/40 overflow-hidden bg-background">
+
+                {/* Back */}
+                <div
+                  className="card-sketchy p-4 absolute inset-0 flex flex-col"
+                  style={{
+                    backfaceVisibility: "hidden",
+                    WebkitBackfaceVisibility: "hidden",
+                    transform: "rotateY(180deg)",
+                    background: af.glow,
+                  }}
+                >
+                  <div className="font-hand text-base font-bold flex items-center gap-2 mb-2" style={{ color: INK }}>
+                    <span className="text-xl">{af.emoji}</span> {af.name}
+                  </div>
+                  <div className="font-hand text-[13px] leading-snug flex-1" style={{ color: INK }}>
+                    {af.definition}
+                  </div>
                   <div
-                    className="h-full transition-all duration-200"
-                    style={{
-                      width: `${Math.max(0, Math.min(1, (out - af.range[0]) / (af.range[1] - af.range[0]))) * 100}%`,
-                      background: af.color,
-                    }}
-                  />
-                </div>
-                <div className="font-hand text-[11px] text-muted-foreground text-center italic">
-                  {af.formula}
+                    className="font-hand text-[11px] text-center mt-2 px-2 py-1 rounded border-2 border-foreground"
+                    style={{ background: "#fffdf5", color: INK }}
+                  >
+                    f(x) = {af.formula}
+                  </div>
+                  <div className="font-hand text-[10px] text-center mt-1 opacity-70" style={{ color: INK }}>
+                    click to flip back ↺
+                  </div>
                 </div>
               </div>
             </div>
@@ -231,7 +343,7 @@ function MeetFunctionsTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Why Not Linear?                                            */
+/*  Tab 2  Why Not Linear?                                            */
 /* ------------------------------------------------------------------ */
 
 function WhyNotLinearTab() {
@@ -382,7 +494,7 @@ function WhyNotLinearTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Activation Playground                                      */
+/*  Tab 3  Activation Playground                                      */
 /* ------------------------------------------------------------------ */
 
 type ActivationType = "sigmoid" | "relu" | "tanh" | "leakyRelu";

@@ -1,8 +1,40 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { BookOpen, Search, Wrench } from "lucide-react";
+import { BookOpen, Search, Wrench, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
+import { playClick, playPop } from "../../utils/sounds";
+
+const THEMES = [
+  { name: "Coral", node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint", node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky", node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+];
+
+const INK = "#2b2a35";
+
+function ThemePicker({ themeIdx, setThemeIdx }: { themeIdx: number; setThemeIdx: (n: number) => void }) {
+  return (
+    <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+      <div className="flex items-center gap-2">
+        <Palette className="w-4 h-4 text-foreground/60" />
+        <span className="font-hand text-sm font-bold">Theme:</span>
+        <div className="flex gap-1.5">
+          {THEMES.map((t, i) => (
+            <button
+              key={t.name}
+              onClick={() => { playClick(); setThemeIdx(i); }}
+              title={t.name}
+              className={`w-6 h-6 rounded-full border-2 transition-transform ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+              style={{ background: t.node }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Tab 1 – Follow the Recipe                                         */
@@ -20,10 +52,10 @@ const ALGORITHMS: AlgorithmDef[] = [
     data: [7, 3, 12, 5, 9],
     steps: [
       "Set first card (7) as biggest",
-      "Compare 7 with 3 — 7 is bigger, keep 7",
-      "Compare 7 with 12 — 12 is bigger, update biggest to 12",
-      "Compare 12 with 5 — 12 is bigger, keep 12",
-      "Compare 12 with 9 — 12 is bigger, keep 12",
+      "Compare 7 with 3  7 is bigger, keep 7",
+      "Compare 7 with 12  12 is bigger, update biggest to 12",
+      "Compare 12 with 5  12 is bigger, keep 12",
+      "Compare 12 with 9  12 is bigger, keep 12",
     ],
   },
   {
@@ -33,7 +65,7 @@ const ALGORITHMS: AlgorithmDef[] = [
       "Compare positions 1 and 2: 8 > 2, swap them → [2, 8, 5]",
       "Compare positions 2 and 3: 8 > 5, swap them → [2, 5, 8]",
       "Compare positions 1 and 2: 2 < 5, no swap needed → [2, 5, 8]",
-      "No more swaps needed — list is sorted!",
+      "No more swaps needed  list is sorted!",
     ],
   },
   {
@@ -68,6 +100,8 @@ function getSortState(step: number): number[] {
 }
 
 function FollowRecipeTab() {
+  const [themeIdx, setThemeIdx] = useState(0);
+  const theme = THEMES[themeIdx];
   const [algoIndex, setAlgoIndex] = useState(0);
   const [currentStep, setCurrentStep] = useState(-1);
   const [autoRunning, setAutoRunning] = useState(false);
@@ -274,22 +308,23 @@ function FollowRecipeTab() {
   // Result message
   const resultMessages = [
     `Result: The biggest number is 12! Done in 4 comparisons.`,
-    `Result: Sorted! [2, 5, 8] — done in 3 passes.`,
+    `Result: Sorted! [2, 5, 8]  done in 3 passes.`,
     `Result: 17 is ODD!`,
   ];
 
   return (
     <div className="space-y-4">
+      <ThemePicker themeIdx={themeIdx} setThemeIdx={setThemeIdx} />
       {/* Algorithm selector */}
       <div className="flex flex-wrap gap-2 justify-center">
         {ALGORITHMS.map((a, i) => (
           <button
             key={a.name}
-            onClick={() => handleSelectAlgo(i)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 border ${
+            onClick={() => { playClick(); handleSelectAlgo(i); }}
+            className={`px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground transition-all ${
               algoIndex === i
-                ? "bg-indigo-600 text-white border-indigo-600 shadow"
-                : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600"
+                ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]"
+                : "bg-background hover:bg-accent-yellow/40"
             }`}
           >
             {a.name}
@@ -298,11 +333,55 @@ function FollowRecipeTab() {
       </div>
 
       {/* Data cards */}
-      {renderDataCards()}
+      <div className="card-sketchy notebook-grid p-4">{renderDataCards()}</div>
+
+      {/* Animated pseudo-code stepper */}
+      <div className="card-sketchy p-3" style={{ background: "#fffdf5" }}>
+        <p className="font-hand text-xs font-bold uppercase tracking-wide mb-2" style={{ color: INK, opacity: 0.7 }}>
+          Algorithm Pseudo-Code
+        </p>
+        <svg viewBox="0 0 480 30" className="w-full max-w-[480px] mx-auto">
+          <defs>
+            <radialGradient id="step-grad" cx="35%" cy="30%">
+              <stop offset="0%" stopColor={theme.glow} />
+              <stop offset="100%" stopColor={theme.node} />
+            </radialGradient>
+          </defs>
+          {algo.steps.map((_, i) => {
+            const cx = 24 + i * (440 / Math.max(1, algo.steps.length));
+            const isCurrent = i === currentStep;
+            const isDone = i < currentStep;
+            return (
+              <g key={i}>
+                {i < algo.steps.length - 1 && (
+                  <line
+                    x1={cx + 10} y1={15}
+                    x2={cx + (440 / Math.max(1, algo.steps.length)) - 10} y2={15}
+                    stroke={isDone ? theme.node : "#cbd5e1"}
+                    strokeWidth={2.5}
+                    className={isCurrent || isDone ? "signal-flow" : ""}
+                    style={{ color: theme.node }}
+                  />
+                )}
+                <circle
+                  cx={cx} cy={15} r={isCurrent ? 11 : 8}
+                  fill={isCurrent || isDone ? "url(#step-grad)" : "#f3efe6"}
+                  stroke={INK} strokeWidth={2}
+                  className={isCurrent ? "pulse-glow" : ""}
+                  style={isCurrent ? { color: theme.node } : undefined}
+                />
+                <text x={cx} y={19} textAnchor="middle" fontFamily="Kalam" fontWeight="bold" fontSize={10} fill={isCurrent || isDone ? "#fff" : INK}>
+                  {i + 1}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
 
       {/* Step list */}
-      <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-1.5">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
+      <div className="card-sketchy p-3 space-y-1.5" style={{ background: "#fffdf5" }}>
+        <p className="font-hand text-xs font-bold uppercase tracking-wide mb-2" style={{ color: INK, opacity: 0.7 }}>
           Algorithm Steps
         </p>
         {algo.steps.map((step, i) => {
@@ -311,13 +390,14 @@ function FollowRecipeTab() {
           return (
             <div
               key={i}
-              className={`flex items-start gap-2 px-2 py-1.5 rounded-md text-xs transition-all duration-300 ${
+              className={`flex items-start gap-2 px-2 py-1.5 rounded-md font-hand text-xs transition-all duration-300 ${
                 isCurrent
-                  ? "bg-blue-50 border border-blue-200 text-blue-800 font-semibold"
+                  ? "border-2 border-foreground bg-accent-yellow font-bold"
                   : isCompleted
-                    ? "text-green-700"
-                    : "text-slate-400"
+                    ? "font-bold"
+                    : "opacity-50"
               }`}
+              style={isCompleted && !isCurrent ? { color: theme.node } : { color: INK }}
             >
               <span className="shrink-0 mt-0.5 w-4 text-center">
                 {isCompleted ? (
@@ -347,33 +427,31 @@ function FollowRecipeTab() {
       {/* Control buttons */}
       <div className="flex gap-2 justify-center">
         <button
-          onClick={handleStep}
+          onClick={() => { playPop(); handleStep(); }}
           disabled={isDone || autoRunning}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] hover:translate-y-px disabled:opacity-40 disabled:cursor-not-allowed transition-transform"
         >
           Step
         </button>
         <button
-          onClick={handleAutoRun}
+          onClick={() => { playClick(); handleAutoRun(); }}
           disabled={isDone && !autoRunning}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 shadow-sm ${
-            autoRunning
-              ? "bg-orange-500 text-white hover:bg-orange-600"
-              : "bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
+          className={`px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground shadow-[2px_2px_0_#2b2a35] transition-transform ${
+            autoRunning ? "bg-accent-coral text-white" : "bg-background hover:bg-accent-mint/40"
           }`}
         >
           {autoRunning ? "Stop" : "Auto-Run"}
         </button>
         <button
-          onClick={handleReset}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300"
+          onClick={() => { playClick(); handleReset(); }}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35] hover:translate-y-px transition-transform"
         >
           Reset
         </button>
       </div>
 
       <InfoBox variant="blue">
-        An algorithm is like a recipe — a step-by-step procedure that always produces the correct
+        An algorithm is like a recipe  a step-by-step procedure that always produces the correct
         result. If you follow it exactly, you get the answer every time!
       </InfoBox>
     </div>
@@ -1155,7 +1233,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "An algorithm is a finite, step-by-step procedure that takes input and produces output. It doesn't even need a computer — a cooking recipe is an algorithm!",
+      "An algorithm is a finite, step-by-step procedure that takes input and produces output. It doesn't even need a computer  a cooking recipe is an algorithm!",
   },
   {
     question:

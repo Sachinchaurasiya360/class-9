@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Layers, ToggleLeft, LayoutGrid } from "lucide-react";
+import { Layers, ToggleLeft, LayoutGrid, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
@@ -16,28 +16,35 @@ function mulberry32(seed: number): () => number {
   };
 }
 
+const INK = "#2b2a35";
+
+const THEMES = [
+  { name: "Coral", a: "#ff6b6b", b: "#4ecdc4", c: "#ffd93d", d: "#b18cf2" },
+  { name: "Sky", a: "#6bb6ff", b: "#b18cf2", c: "#ffd93d", d: "#ff6b6b" },
+  { name: "Sunset", a: "#ffb88c", b: "#ff6b6b", c: "#ffd93d", d: "#4ecdc4" },
+  { name: "Mint", a: "#4ecdc4", b: "#6bb6ff", c: "#b18cf2", d: "#ffd93d" },
+];
+
 /* ---- data generation ---- */
 interface ShapeItem {
   id: number;
   x: number;
   y: number;
   size: number;
-  color: string;
   shape: "circle" | "square" | "triangle";
   cluster: number;
 }
 
-const CLUSTER_COLORS = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b"];
 const SHAPE_TYPES: ShapeItem["shape"][] = ["circle", "square", "triangle"];
 
 function generateShapes(): ShapeItem[] {
   const rand = mulberry32(42);
   const items: ShapeItem[] = [];
   const centers = [
-    { x: 90, y: 70, color: CLUSTER_COLORS[0], shape: SHAPE_TYPES[0] },
-    { x: 350, y: 80, color: CLUSTER_COLORS[1], shape: SHAPE_TYPES[1] },
-    { x: 120, y: 260, color: CLUSTER_COLORS[2], shape: SHAPE_TYPES[2] },
-    { x: 370, y: 250, color: CLUSTER_COLORS[3], shape: SHAPE_TYPES[0] },
+    { x: 90, y: 70, shape: SHAPE_TYPES[0] },
+    { x: 350, y: 80, shape: SHAPE_TYPES[1] },
+    { x: 120, y: 260, shape: SHAPE_TYPES[2] },
+    { x: 370, y: 250, shape: SHAPE_TYPES[0] },
   ];
   let id = 0;
   for (let c = 0; c < centers.length; c++) {
@@ -46,8 +53,7 @@ function generateShapes(): ShapeItem[] {
         id: id++,
         x: centers[c].x + (rand() - 0.5) * 100,
         y: centers[c].y + (rand() - 0.5) * 80,
-        size: 10 + rand() * 8,
-        color: centers[c].color,
+        size: 11 + rand() * 7,
         shape: centers[c].shape,
         cluster: c,
       });
@@ -65,8 +71,10 @@ function GroupTab() {
   const [assignments, setAssignments] = useState<Record<number, number>>({});
   const [activeBucket, setActiveBucket] = useState<number>(0);
   const [revealed, setRevealed] = useState(false);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const theme = THEMES[themeIdx];
+  const palette = [theme.a, theme.b, theme.c, theme.d];
   const bucketLabels = ["Group A", "Group B", "Group C", "Group D"];
-  const bucketColors = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b"];
 
   const handleShapeClick = useCallback(
     (id: number) => {
@@ -95,7 +103,26 @@ function GroupTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+      {/* Theme picker */}
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <div className="flex items-center gap-2">
+          <Palette className="w-4 h-4 text-foreground/60" />
+          <span className="font-hand text-sm font-bold">Theme:</span>
+          <div className="flex gap-1.5">
+            {THEMES.map((t, i) => (
+              <button
+                key={t.name}
+                onClick={() => { playClick(); setThemeIdx(i); }}
+                title={t.name}
+                className={`w-6 h-6 rounded-full border-2 transition-transform ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+                style={{ background: t.a }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <p className="font-hand text-sm text-center text-foreground">
         Click a group button, then click shapes to assign them. Try to group similar shapes together!
       </p>
 
@@ -105,12 +132,12 @@ function GroupTab() {
           <button
             key={label}
             onClick={() => { playClick(); setActiveBucket(i); }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-300 ${
+            className={`px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground transition-all ${
               activeBucket === i
-                ? "text-white shadow"
-                : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
+                ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]"
+                : "bg-background hover:bg-accent-yellow/40"
             }`}
-            style={activeBucket === i ? { background: bucketColors[i], borderColor: bucketColors[i] } : {}}
+            style={activeBucket === i ? { background: palette[i] } : {}}
           >
             {label}
           </button>
@@ -118,62 +145,71 @@ function GroupTab() {
       </div>
 
       {/* SVG canvas */}
-      <svg viewBox="0 0 480 340" className="w-full max-w-[500px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        {ALL_SHAPES.map((s) => {
-          const fill = revealed
-            ? CLUSTER_COLORS[s.cluster]
-            : assignments[s.id] !== undefined
-              ? bucketColors[assignments[s.id]]
-              : "#94a3b8";
-          const strokeW = assignments[s.id] !== undefined ? 2 : 1;
-          const stroke = assignments[s.id] !== undefined ? "#1e293b" : "#64748b";
-          return (
-            <g key={s.id} onClick={() => handleShapeClick(s.id)} className="cursor-pointer">
-              {s.shape === "circle" && (
-                <circle cx={s.x} cy={s.y} r={s.size} fill={fill} stroke={stroke} strokeWidth={strokeW} className="transition-all duration-300 hover:opacity-80" />
-              )}
-              {s.shape === "square" && (
-                <rect x={s.x - s.size} y={s.y - s.size} width={s.size * 2} height={s.size * 2} rx={3} fill={fill} stroke={stroke} strokeWidth={strokeW} className="transition-all duration-300 hover:opacity-80" />
-              )}
-              {s.shape === "triangle" && (
-                <polygon
-                  points={`${s.x},${s.y - s.size} ${s.x - s.size},${s.y + s.size} ${s.x + s.size},${s.y + s.size}`}
-                  fill={fill} stroke={stroke} strokeWidth={strokeW} className="transition-all duration-300 hover:opacity-80"
-                />
-              )}
-              {revealed && (
-                <text x={s.x} y={s.y + 4} textAnchor="middle" className="text-[8px] fill-white font-bold pointer-events-none">
-                  {s.cluster + 1}
-                </text>
-              )}
-            </g>
-          );
-        })}
-      </svg>
+      <div className="card-sketchy p-3 notebook-grid">
+        <svg viewBox="0 0 480 340" className="w-full max-w-[520px] mx-auto">
+          <defs>
+            {palette.map((c, i) => (
+              <radialGradient key={i} id={`l15-grad-${i}`} cx="35%" cy="30%">
+                <stop offset="0%" stopColor="#fff" stopOpacity={0.85} />
+                <stop offset="100%" stopColor={c} />
+              </radialGradient>
+            ))}
+          </defs>
+          {ALL_SHAPES.map((s) => {
+            const idx = revealed ? s.cluster : assignments[s.id];
+            const fill = idx !== undefined ? `url(#l15-grad-${idx})` : "#f3efe6";
+            const isSet = assignments[s.id] !== undefined || revealed;
+            return (
+              <g key={s.id} onClick={() => handleShapeClick(s.id)} style={{ cursor: "pointer" }}
+                 className={isSet ? "pulse-glow" : ""}>
+                {s.shape === "circle" && (
+                  <circle cx={s.x} cy={s.y} r={s.size} fill={fill} stroke={INK} strokeWidth={2.5} />
+                )}
+                {s.shape === "square" && (
+                  <rect x={s.x - s.size} y={s.y - s.size} width={s.size * 2} height={s.size * 2} rx={3}
+                    fill={fill} stroke={INK} strokeWidth={2.5} />
+                )}
+                {s.shape === "triangle" && (
+                  <polygon
+                    points={`${s.x},${s.y - s.size} ${s.x - s.size},${s.y + s.size} ${s.x + s.size},${s.y + s.size}`}
+                    fill={fill} stroke={INK} strokeWidth={2.5}
+                  />
+                )}
+                {revealed && (
+                  <text x={s.x} y={s.y + 4} textAnchor="middle" fontFamily="Kalam"
+                    className="text-[10px] font-bold pointer-events-none" fill={INK}>
+                    {s.cluster + 1}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
 
       {/* Controls */}
       <div className="flex gap-2 justify-center items-center flex-wrap">
         <button
           onClick={handleReveal}
           disabled={assigned < 10}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="btn-sketchy text-sm disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Reveal Clusters
         </button>
-        <button onClick={handleReset} className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button onClick={handleReset} className="btn-sketchy-outline text-sm">
           Reset
         </button>
       </div>
 
       {revealed && (
-        <div className="text-center text-sm font-medium text-slate-700 bg-green-50 border border-green-200 rounded-lg py-2 px-4">
-          You matched <span className="font-bold text-green-700">{correct}</span> out of{" "}
+        <div className="card-sketchy p-3 text-center font-hand text-sm" style={{ background: "#e6fff8" }}>
+          You matched <span className="font-bold">{correct}</span> out of{" "}
           <span className="font-bold">{assigned}</span> shapes correctly!
         </div>
       )}
 
       <InfoBox variant="blue" title="No Labels Needed">
-        In unsupervised learning, the algorithm finds natural groupings in data without being told what the groups are. You just did the same thing — grouping by visual similarity!
+        In unsupervised learning, the algorithm finds natural groupings in data without being told what the groups are. You just did the same thing  grouping by visual similarity!
       </InfoBox>
     </div>
   );
@@ -185,6 +221,9 @@ function GroupTab() {
 function CompareTab() {
   const [mode, setMode] = useState<"supervised" | "unsupervised">("supervised");
   const [animStep, setAnimStep] = useState(0);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const theme = THEMES[themeIdx];
+  const colors = [theme.a, theme.b, theme.c];
 
   const rand = useMemo(() => mulberry32(99), []);
   const dots = useMemo(() => {
@@ -201,7 +240,7 @@ function CompareTab() {
   }, [rand]);
 
   const labels = ["Cat", "Dog", "Bird"];
-  const colors = ["#3b82f6", "#ef4444", "#22c55e"];
+  const centers = [{ x: 100, y: 100 }, { x: 300, y: 110 }, { x: 200, y: 240 }];
 
   const handleAnimate = useCallback(() => {
     playClick();
@@ -210,14 +249,28 @@ function CompareTab() {
 
   return (
     <div className="space-y-4">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <div className="flex items-center gap-2">
+          <Palette className="w-4 h-4 text-foreground/60" />
+          <span className="font-hand text-sm font-bold">Theme:</span>
+          <div className="flex gap-1.5">
+            {THEMES.map((t, i) => (
+              <button key={t.name} onClick={() => { playClick(); setThemeIdx(i); }}
+                className={`w-6 h-6 rounded-full border-2 ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+                style={{ background: t.a }} />
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Toggle */}
       <div className="flex gap-2 justify-center">
         {(["supervised", "unsupervised"] as const).map((m) => (
           <button
             key={m}
             onClick={() => { playClick(); setMode(m); setAnimStep(0); }}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all duration-300 capitalize ${
-              mode === m ? "bg-indigo-600 text-white border-indigo-600 shadow" : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"
+            className={`px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground capitalize transition-all ${
+              mode === m ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]" : "bg-background hover:bg-accent-yellow/40"
             }`}
           >
             {m}
@@ -226,45 +279,59 @@ function CompareTab() {
       </div>
 
       {/* SVG */}
-      <svg viewBox="0 0 440 300" className="w-full max-w-[480px] mx-auto">
-        <text x={220} y={18} textAnchor="middle" className="text-[13px] fill-slate-700 font-semibold">
-          {mode === "supervised" ? "Labeled Data (Supervised)" : "Unlabeled Data (Unsupervised)"}
-        </text>
-        {dots.map((d, i) => {
-          const showColor = mode === "supervised" || animStep >= 2;
-          const fill = showColor ? colors[d.cluster] : "#94a3b8";
-          return (
-            <g key={i}>
-              <circle cx={d.x} cy={d.y + 20} r={8} fill={fill} stroke="#fff" strokeWidth={1.5} className="transition-all duration-500" />
-              {mode === "supervised" && (
-                <text x={d.x} y={d.y + 40} textAnchor="middle" className="text-[7px] fill-slate-500 font-medium">
-                  {labels[d.cluster]}
-                </text>
-              )}
-              {mode === "unsupervised" && animStep >= 3 && (
-                <text x={d.x} y={d.y + 40} textAnchor="middle" className="text-[7px] fill-slate-500 font-medium">
-                  G{d.cluster + 1}
-                </text>
-              )}
-            </g>
-          );
-        })}
-        {/* Cluster circles for unsupervised animation */}
-        {mode === "unsupervised" && animStep >= 1 && (
-          <>
-            <circle cx={100} cy={100} r={55} fill="none" stroke="#3b82f6" strokeWidth={1.5} strokeDasharray="4 3" className="transition-all duration-500" opacity={0.5} />
-            <circle cx={300} cy={110} r={55} fill="none" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="4 3" className="transition-all duration-500" opacity={0.5} />
-            <circle cx={200} cy={240} r={55} fill="none" stroke="#22c55e" strokeWidth={1.5} strokeDasharray="4 3" className="transition-all duration-500" opacity={0.5} />
-          </>
-        )}
-      </svg>
+      <div className="card-sketchy p-3 notebook-grid">
+        <svg viewBox="0 0 440 300" className="w-full max-w-[480px] mx-auto">
+          <defs>
+            {colors.map((c, i) => (
+              <radialGradient key={i} id={`l15c-${i}`} cx="35%" cy="30%">
+                <stop offset="0%" stopColor="#fff" stopOpacity={0.85} />
+                <stop offset="100%" stopColor={c} />
+              </radialGradient>
+            ))}
+          </defs>
+          <text x={220} y={20} textAnchor="middle" fontFamily="Kalam" fill={INK}
+            className="text-[14px] font-bold">
+            {mode === "supervised" ? "Labeled Data (Supervised)" : "Unlabeled Data (Unsupervised)"}
+          </text>
+
+          {/* Cluster halos for unsupervised animation - drawn first with signal-flow */}
+          {mode === "unsupervised" && animStep >= 1 && centers.map((c, i) => (
+            <circle key={`halo-${i}`} cx={c.x} cy={c.y + 20} r={56} fill="none"
+              stroke={colors[i]} strokeWidth={2.5} className="signal-flow"
+              opacity={0.7} />
+          ))}
+
+          {dots.map((d, i) => {
+            const showColor = mode === "supervised" || animStep >= 2;
+            const fill = showColor ? `url(#l15c-${d.cluster})` : "#cbd5e1";
+            return (
+              <g key={i}>
+                <circle cx={d.x} cy={d.y + 20} r={9} fill={fill} stroke={INK} strokeWidth={2}
+                  className={showColor ? "pulse-glow" : ""} />
+                {mode === "supervised" && (
+                  <text x={d.x} y={d.y + 44} textAnchor="middle" fontFamily="Kalam" fill={INK}
+                    className="text-[10px] font-bold">
+                    {labels[d.cluster]}
+                  </text>
+                )}
+                {mode === "unsupervised" && animStep >= 3 && (
+                  <text x={d.x} y={d.y + 44} textAnchor="middle" fontFamily="Kalam" fill={INK}
+                    className="text-[10px] font-bold">
+                    G{d.cluster + 1}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
 
       {mode === "unsupervised" && (
         <div className="flex justify-center">
           <button
             onClick={handleAnimate}
             disabled={animStep >= 3}
-            className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+            className="btn-sketchy text-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {animStep === 0 ? "Find Groups" : animStep === 1 ? "Color Groups" : animStep === 2 ? "Label Groups" : "Done!"}
           </button>
@@ -298,6 +365,7 @@ const EXAMPLES: ExampleCard[] = [
 
 function ExamplesTab() {
   const [selected, setSelected] = useState<number | null>(null);
+  const palette = ["#ff6b6b", "#4ecdc4", "#ffd93d"];
 
   const miniViz = useCallback((idx: number) => {
     const r = mulberry32(idx * 77 + 10);
@@ -309,11 +377,10 @@ function ExamplesTab() {
         pts.push({ x: cx + (r() - 0.5) * 40, y: cy + (r() - 0.5) * 30, c });
       }
     }
-    const colors = ["#3b82f6", "#ef4444", "#22c55e"];
     return (
       <svg viewBox="0 0 200 100" className="w-full max-w-[200px]">
         {pts.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={5} fill={colors[p.c]} opacity={0.8} />
+          <circle key={i} cx={p.x} cy={p.y} r={5} fill={palette[p.c]} stroke={INK} strokeWidth={1.5} />
         ))}
       </svg>
     );
@@ -321,7 +388,7 @@ function ExamplesTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">Click a card to learn how unsupervised learning is used in the real world.</p>
+      <p className="font-hand text-sm text-center text-foreground">Click a card to learn how unsupervised learning is used in the real world.</p>
       <div className="grid grid-cols-2 gap-3">
         {EXAMPLES.map((ex, i) => {
           const isOpen = selected === i;
@@ -329,15 +396,13 @@ function ExamplesTab() {
             <div
               key={ex.title}
               onClick={() => { playPop(); setSelected(isOpen ? null : i); }}
-              className={`rounded-xl border p-3 cursor-pointer transition-all duration-300 ${
-                isOpen ? "bg-indigo-50 border-indigo-300 shadow-md" : "bg-white border-slate-200 hover:border-indigo-200 hover:shadow-sm"
-              }`}
+              className={`card-sketchy p-3 cursor-pointer transition-all ${isOpen ? "bg-accent-yellow/30" : "hover:bg-accent-mint/20"}`}
             >
-              <h4 className="text-sm font-bold text-slate-800">{ex.title}</h4>
-              <p className="text-xs text-slate-500 mt-0.5">{ex.desc}</p>
+              <h4 className="font-hand text-base font-bold text-foreground">{ex.title}</h4>
+              <p className="font-hand text-xs text-muted-foreground mt-0.5">{ex.desc}</p>
               {isOpen && (
                 <div className="mt-2 space-y-2">
-                  <p className="text-xs text-slate-700 leading-relaxed">{ex.detail}</p>
+                  <p className="font-hand text-xs text-foreground leading-relaxed">{ex.detail}</p>
                   <div className="flex justify-center">{miniViz(i)}</div>
                 </div>
               )}
@@ -347,7 +412,7 @@ function ExamplesTab() {
       </div>
 
       <InfoBox variant="green" title="Everywhere!">
-        Unsupervised learning is used wherever we have data but no labels — from healthcare to social media. It helps find hidden structure we did not even know existed.
+        Unsupervised learning is used wherever we have data but no labels  from healthcare to social media. It helps find hidden structure we did not even know existed.
       </InfoBox>
     </div>
   );
@@ -373,7 +438,7 @@ const quizQuestions = [
     question: "Which is a real-world use of unsupervised learning?",
     options: ["Predicting tomorrow's weather", "Grouping customers by behavior", "Translating English to French", "Recognizing a stop sign"],
     correctIndex: 1,
-    explanation: "Customer segmentation groups people by purchasing behavior without pre-defined labels — a classic unsupervised task.",
+    explanation: "Customer segmentation groups people by purchasing behavior without pre-defined labels  a classic unsupervised task.",
   },
   {
     question: "In unsupervised learning, who decides the group names?",
@@ -418,15 +483,15 @@ export default function L15_UnsupervisedLearningActivity() {
       lessonNumber={1}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Learn K-Means — the most popular clustering algorithm!"
+      nextLessonHint="Next: Learn K-Means  the most popular clustering algorithm!"
       story={
         <StorySection
           paragraphs={[
-            "Aru dumped a big box of mixed buttons onto the kitchen table. There were red ones, blue ones, big ones, tiny ones — all jumbled up.",
+            "Aru dumped a big box of mixed buttons onto the kitchen table. There were red ones, blue ones, big ones, tiny ones  all jumbled up.",
             "Aru: \"Byte, can you sort these for me? I don't even know what the categories should be!\"",
-            "Byte: \"I have no labels for these, but I can see some look similar — same color, same size. I can GROUP them without anyone telling me the categories. That's unsupervised learning!\"",
+            "Byte: \"I have no labels for these, but I can see some look similar  same color, same size. I can GROUP them without anyone telling me the categories. That's unsupervised learning!\"",
             "Aru: \"So you just... figure out the groups yourself?\"",
-            "Byte: \"Exactly! I look at how similar things are and put alike items together. No teacher needed — just patterns in the data.\"",
+            "Byte: \"Exactly! I look at how similar things are and put alike items together. No teacher needed  just patterns in the data.\"",
           ]}
           conceptTitle="Key Concept"
           conceptSummary="Unsupervised learning finds hidden patterns in data that has no labels. Instead of being told the answer, the algorithm discovers natural groups and structures all on its own."

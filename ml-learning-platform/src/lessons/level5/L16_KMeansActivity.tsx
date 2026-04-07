@@ -1,9 +1,8 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { MousePointer, Play, Columns } from "lucide-react";
+import { MousePointer, Play, Columns, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
-import SVGGrid from "../../components/SVGGrid";
 import { playClick, playPop, playSuccess } from "../../utils/sounds";
 
 /* ---- helpers ---- */
@@ -25,7 +24,14 @@ function gaussNoise(rand: () => number, std: number): number {
 
 interface Pt { x: number; y: number }
 
-const COLORS = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b"];
+const INK = "#2b2a35";
+
+const THEMES = [
+  { name: "Coral", colors: ["#ff6b6b", "#4ecdc4", "#ffd93d", "#b18cf2"] },
+  { name: "Sky", colors: ["#6bb6ff", "#b18cf2", "#ffd93d", "#ff6b6b"] },
+  { name: "Sunset", colors: ["#ffb88c", "#ff6b6b", "#ffd93d", "#4ecdc4"] },
+  { name: "Mint", colors: ["#4ecdc4", "#6bb6ff", "#b18cf2", "#ffd93d"] },
+];
 
 function generateData(seed: number): Pt[] {
   const rand = mulberry32(seed);
@@ -71,6 +77,54 @@ function totalInertia(pts: Pt[], labels: number[], centroids: Pt[]): number {
   return pts.reduce((sum, p, i) => sum + dist(p, centroids[labels[i]]) ** 2, 0);
 }
 
+/* ---- shared SVG plot helpers ---- */
+const VB_W = 460;
+const VB_H = 360;
+const PAD_L = 40;
+const PAD_R = 16;
+const PAD_T = 16;
+const PAD_B = 36;
+const PLOT_W = VB_W - PAD_L - PAD_R;
+const PLOT_H = VB_H - PAD_T - PAD_B;
+const toSx = (x: number) => PAD_L + (x / 10) * PLOT_W;
+const toSy = (y: number) => PAD_T + (1 - y / 10) * PLOT_H;
+
+function PlotFrame({ children, label }: { children: React.ReactNode; label?: string }) {
+  return (
+    <div className="card-sketchy p-3 notebook-grid">
+      <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full max-w-[560px] mx-auto">
+        <rect x={PAD_L} y={PAD_T} width={PLOT_W} height={PLOT_H}
+          fill="none" stroke={INK} strokeWidth={2} rx={6} />
+        <text x={PAD_L + PLOT_W / 2} y={VB_H - 8} textAnchor="middle"
+          fontFamily="Kalam" fill={INK} className="text-[12px] font-bold">Feature 1</text>
+        <text x={14} y={PAD_T + PLOT_H / 2} textAnchor="middle"
+          transform={`rotate(-90, 14, ${PAD_T + PLOT_H / 2})`}
+          fontFamily="Kalam" fill={INK} className="text-[12px] font-bold">Feature 2</text>
+        {label && (
+          <text x={PAD_L + 8} y={PAD_T + 16} fontFamily="Kalam" fill={INK} className="text-[11px] font-bold">{label}</text>
+        )}
+        {children}
+      </svg>
+    </div>
+  );
+}
+
+function ThemeBar({ themeIdx, setThemeIdx }: { themeIdx: number; setThemeIdx: (i: number) => void }) {
+  return (
+    <div className="card-sketchy p-3 flex items-center justify-center gap-3">
+      <Palette className="w-4 h-4 text-foreground/60" />
+      <span className="font-hand text-sm font-bold">Theme:</span>
+      <div className="flex gap-1.5">
+        {THEMES.map((t, i) => (
+          <button key={t.name} onClick={() => { playClick(); setThemeIdx(i); }}
+            className={`w-6 h-6 rounded-full border-2 ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+            style={{ background: t.colors[0] }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Tab 1 -- Step Through K-Means                                     */
 /* ------------------------------------------------------------------ */
@@ -80,6 +134,9 @@ function StepTab() {
   const [labels, setLabels] = useState<number[]>([]);
   const [phase, setPhase] = useState<"place" | "assign" | "update">("place");
   const [iteration, setIteration] = useState(0);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const COLORS = THEMES[themeIdx].colors;
+  const [converged, setConverged] = useState(false);
 
   const handlePlaceCentroid = useCallback(
     (x: number, y: number) => {
@@ -108,16 +165,14 @@ function StepTab() {
     const newC = updateCentroids(DATA, labels, k);
     setCentroids(newC);
     setIteration((n) => n + 1);
-    // Check convergence
     const newLabels = assignClusters(DATA, newC);
-    const converged = newLabels.every((l, i) => l === labels[i]);
+    const conv = newLabels.every((l, i) => l === labels[i]);
     setLabels(newLabels);
-    if (converged) {
+    if (conv) {
       playSuccess();
-      setPhase("assign"); // stays at assign but user can see it converged
-    } else {
-      setPhase("assign");
+      setConverged(true);
     }
+    setPhase("assign");
   }, [phase, labels, k]);
 
   const handleReset = useCallback(() => {
@@ -126,98 +181,118 @@ function StepTab() {
     setLabels([]);
     setPhase("place");
     setIteration(0);
+    setConverged(false);
   }, []);
 
   return (
     <div className="space-y-4">
+      <ThemeBar themeIdx={themeIdx} setThemeIdx={setThemeIdx} />
+
       {/* K selector */}
-      <div className="flex items-center gap-3 justify-center">
-        <span className="text-xs font-medium text-slate-600">K =</span>
+      <div className="flex items-center gap-3 justify-center flex-wrap">
+        <span className="font-hand text-sm font-bold text-foreground">K =</span>
         {[2, 3, 4].map((v) => (
           <button
             key={v}
             onClick={() => { playClick(); setK(v); handleReset(); }}
-            className={`w-8 h-8 rounded-full text-sm font-bold border transition-all duration-300 ${
-              k === v ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"
+            className={`w-9 h-9 rounded-full font-hand text-sm font-bold border-2 border-foreground transition-all ${
+              k === v ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]" : "bg-background hover:bg-accent-yellow/40"
             }`}
           >
             {v}
           </button>
         ))}
-        <span className="text-xs text-slate-500 ml-2">Iteration: {iteration}</span>
+        <span className="font-hand text-sm text-foreground ml-2">Iter: <b>{iteration}</b></span>
       </div>
 
       {phase === "place" && (
-        <p className="text-center text-xs text-slate-500">
+        <p className="text-center font-hand text-xs text-muted-foreground">
           Click on the chart to place {k - centroids.length} more centroid{k - centroids.length !== 1 ? "s" : ""}.
         </p>
       )}
 
-      {/* Chart */}
-      <SVGGrid xMin={0} xMax={10} yMin={0} yMax={10} xLabel="Feature 1" yLabel="Feature 2">
-        {({ toSvgX, toSvgY }) => (
-          <>
-            {/* Click target (invisible rect) */}
-            <rect
-              x={toSvgX(0)} y={toSvgY(10)} width={toSvgX(10) - toSvgX(0)} height={toSvgY(0) - toSvgY(10)}
-              fill="transparent"
-              className="cursor-crosshair"
-              onClick={(e) => {
-                const svg = (e.target as SVGRectElement).ownerSVGElement!;
-                const pt = svg.createSVGPoint();
-                pt.x = e.clientX; pt.y = e.clientY;
-                const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
-                const xRange = 10;
-                const yRange = 10;
-                const plotX = (svgPt.x - toSvgX(0)) / (toSvgX(10) - toSvgX(0)) * xRange;
-                const plotY = yRange - (svgPt.y - toSvgY(10)) / (toSvgY(0) - toSvgY(10)) * yRange;
-                handlePlaceCentroid(plotX, plotY);
-              }}
-            />
-            {/* Lines from points to centroids */}
-            {labels.length > 0 && centroids.length > 0 && DATA.map((p, i) => (
-              <line
-                key={`line-${i}`}
-                x1={toSvgX(p.x)} y1={toSvgY(p.y)}
-                x2={toSvgX(centroids[labels[i]].x)} y2={toSvgY(centroids[labels[i]].y)}
-                stroke={COLORS[labels[i]]} strokeWidth={0.5} opacity={0.3}
-              />
-            ))}
-            {/* Data points */}
-            {DATA.map((p, i) => (
-              <circle
-                key={i}
-                cx={toSvgX(p.x)} cy={toSvgY(p.y)} r={5}
-                fill={labels.length > 0 ? COLORS[labels[i]] : "#94a3b8"}
-                stroke="#fff" strokeWidth={1}
-                className="transition-all duration-500"
-              />
-            ))}
-            {/* Centroids */}
-            {centroids.map((c, i) => (
-              <g key={`c-${i}`}>
-                <circle cx={toSvgX(c.x)} cy={toSvgY(c.y)} r={10} fill={COLORS[i]} stroke="#1e293b" strokeWidth={2} className="transition-all duration-500" />
-                <text x={toSvgX(c.x)} y={toSvgY(c.y) + 4} textAnchor="middle" className="text-[9px] fill-white font-bold pointer-events-none">
-                  C{i + 1}
-                </text>
+      <PlotFrame label={converged ? "Converged!" : phase}>
+        <defs>
+          {COLORS.map((c, i) => (
+            <radialGradient key={i} id={`l16s-${i}`} cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#fff" stopOpacity={0.9} />
+              <stop offset="100%" stopColor={c} />
+            </radialGradient>
+          ))}
+        </defs>
+        {/* Click target */}
+        <rect
+          x={PAD_L} y={PAD_T} width={PLOT_W} height={PLOT_H}
+          fill="transparent" className="cursor-crosshair"
+          onClick={(e) => {
+            const svg = (e.target as SVGRectElement).ownerSVGElement!;
+            const pt = svg.createSVGPoint();
+            pt.x = e.clientX; pt.y = e.clientY;
+            const sp = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+            const px = ((sp.x - PAD_L) / PLOT_W) * 10;
+            const py = (1 - (sp.y - PAD_T) / PLOT_H) * 10;
+            handlePlaceCentroid(px, py);
+          }}
+        />
+        {/* Lines from points to centroids */}
+        {labels.length > 0 && centroids.length > 0 && DATA.map((p, i) => (
+          <line
+            key={`line-${i}`}
+            x1={toSx(p.x)} y1={toSy(p.y)}
+            x2={toSx(centroids[labels[i]].x)} y2={toSy(centroids[labels[i]].y)}
+            stroke={COLORS[labels[i]]} strokeWidth={1.5} opacity={0.4}
+          />
+        ))}
+        {/* Data points */}
+        {DATA.map((p, i) => (
+          <circle
+            key={i}
+            cx={toSx(p.x)} cy={toSy(p.y)} r={6}
+            fill={labels.length > 0 ? `url(#l16s-${labels[i]})` : "#cbd5e1"}
+            stroke={INK} strokeWidth={1.8}
+            style={{ transition: "all 0.5s" }}
+          />
+        ))}
+        {/* Centroids */}
+        {centroids.map((c, i) => (
+          <g key={`c-${i}`} style={{ transition: "all 0.6s" }}>
+            <circle cx={toSx(c.x)} cy={toSy(c.y)} r={14}
+              fill={`url(#l16s-${i})`} stroke={INK} strokeWidth={2.5}
+              className="pulse-glow" style={{ color: COLORS[i] }} />
+            <text x={toSx(c.x)} y={toSy(c.y) + 5} textAnchor="middle"
+              fontFamily="Kalam" fill={INK} className="text-[11px] font-bold pointer-events-none">
+              C{i + 1}
+            </text>
+            {converged && (
+              <g>
+                {Array.from({ length: 8 }).map((_, k) => {
+                  const angle = (k / 8) * Math.PI * 2;
+                  return (
+                    <line key={k}
+                      x1={toSx(c.x)} y1={toSy(c.y)}
+                      x2={toSx(c.x) + Math.cos(angle) * 30}
+                      y2={toSy(c.y) + Math.sin(angle) * 30}
+                      stroke={COLORS[i]} strokeWidth={2.5} strokeLinecap="round"
+                      className="spark" style={{ animationDelay: `${k * 0.05}s` }} />
+                  );
+                })}
               </g>
-            ))}
-          </>
-        )}
-      </SVGGrid>
+            )}
+          </g>
+        ))}
+      </PlotFrame>
 
       {/* Step buttons */}
       <div className="flex gap-2 justify-center flex-wrap">
         <button onClick={handleAssign} disabled={phase !== "assign"}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm">
+          className="btn-sketchy text-sm disabled:opacity-40 disabled:cursor-not-allowed">
           Assign Points
         </button>
         <button onClick={handleUpdate} disabled={phase !== "update"}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm">
+          className="btn-sketchy text-sm disabled:opacity-40 disabled:cursor-not-allowed">
           Update Centroids
         </button>
-        <button onClick={handleReset}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button onClick={handleReset} className="btn-sketchy-outline text-sm">
           Reset
         </button>
       </div>
@@ -240,22 +315,23 @@ function ConvergeTab() {
   const [trail, setTrail] = useState<Pt[][]>([[], [], []]);
   const [inertiaHistory, setInertiaHistory] = useState<number[]>([]);
   const [iteration, setIteration] = useState(0);
+  const [converged, setConverged] = useState(false);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const COLORS = THEMES[themeIdx].colors;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const step = useCallback(() => {
     setCentroids((prev) => {
-      const newLabels = assignClusters(DATA, prev);
-      const newC = updateCentroids(DATA, newLabels, 3);
+      const oldLabels = assignClusters(DATA, prev);
+      const newC = updateCentroids(DATA, oldLabels, 3);
+      const newLabels = assignClusters(DATA, newC);
       const inertia = totalInertia(DATA, newLabels, newC);
       setLabels(newLabels);
       setTrail((t) => t.map((arr, i) => [...arr, prev[i]]));
       setInertiaHistory((h) => [...h, inertia]);
       setIteration((n) => n + 1);
-      const converged = newLabels.every((l, i) => {
-        const oldLabels = assignClusters(DATA, prev);
-        return l === oldLabels[i];
-      });
-      if (converged) setPlaying(false);
+      const conv = newLabels.every((l, i) => l === oldLabels[i]);
+      if (conv) { setPlaying(false); setConverged(true); playSuccess(); }
       return newC;
     });
   }, []);
@@ -268,6 +344,7 @@ function ConvergeTab() {
 
   const handleReset = useCallback(() => {
     setPlaying(false);
+    setConverged(false);
     const init: Pt[] = [{ x: 1, y: 9 }, { x: 9, y: 1 }, { x: 5, y: 5 }];
     setCentroids(init);
     setLabels(assignClusters(DATA, init));
@@ -277,60 +354,86 @@ function ConvergeTab() {
   }, []);
 
   // Inertia chart dimensions
-  const chartW = 400;
-  const chartH = 80;
+  const chartW = 440;
+  const chartH = 100;
   const maxInertia = inertiaHistory.length > 0 ? Math.max(...inertiaHistory) : 100;
 
   return (
     <div className="space-y-4">
-      <SVGGrid xMin={0} xMax={10} yMin={0} yMax={10} xLabel="Feature 1" yLabel="Feature 2">
-        {({ toSvgX, toSvgY }) => (
-          <>
-            {/* Trails */}
-            {trail.map((arr, ci) =>
-              arr.map((p, pi) => (
-                <circle key={`trail-${ci}-${pi}`} cx={toSvgX(p.x)} cy={toSvgY(p.y)} r={3}
-                  fill={COLORS[ci]} opacity={0.25} />
-              )),
-            )}
-            {/* Lines */}
-            {DATA.map((p, i) => (
-              <line key={`l-${i}`}
-                x1={toSvgX(p.x)} y1={toSvgY(p.y)}
-                x2={toSvgX(centroids[labels[i]].x)} y2={toSvgY(centroids[labels[i]].y)}
-                stroke={COLORS[labels[i]]} strokeWidth={0.5} opacity={0.25} />
-            ))}
-            {/* Points */}
-            {DATA.map((p, i) => (
-              <circle key={i} cx={toSvgX(p.x)} cy={toSvgY(p.y)} r={5}
-                fill={COLORS[labels[i]]} stroke="#fff" strokeWidth={1} className="transition-all duration-300" />
-            ))}
-            {/* Centroids */}
-            {centroids.map((c, i) => (
-              <circle key={`c-${i}`} cx={toSvgX(c.x)} cy={toSvgY(c.y)} r={9}
-                fill={COLORS[i]} stroke="#1e293b" strokeWidth={2} className="transition-all duration-300" />
-            ))}
-          </>
+      <ThemeBar themeIdx={themeIdx} setThemeIdx={setThemeIdx} />
+
+      <PlotFrame label={converged ? "Converged!" : `Iteration ${iteration}`}>
+        <defs>
+          {COLORS.map((c, i) => (
+            <radialGradient key={i} id={`l16c-${i}`} cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#fff" stopOpacity={0.9} />
+              <stop offset="100%" stopColor={c} />
+            </radialGradient>
+          ))}
+        </defs>
+        {/* Trails */}
+        {trail.map((arr, ci) =>
+          arr.map((p, pi) => (
+            <circle key={`tr-${ci}-${pi}`} cx={toSx(p.x)} cy={toSy(p.y)} r={3}
+              fill={COLORS[ci]} opacity={0.3} stroke={INK} strokeWidth={0.5} />
+          )),
         )}
-      </SVGGrid>
+        {/* Lines */}
+        {DATA.map((p, i) => (
+          <line key={`l-${i}`}
+            x1={toSx(p.x)} y1={toSy(p.y)}
+            x2={toSx(centroids[labels[i]].x)} y2={toSy(centroids[labels[i]].y)}
+            stroke={COLORS[labels[i]]} strokeWidth={1} opacity={0.3} />
+        ))}
+        {/* Points */}
+        {DATA.map((p, i) => (
+          <circle key={i} cx={toSx(p.x)} cy={toSy(p.y)} r={6}
+            fill={`url(#l16c-${labels[i]})`} stroke={INK} strokeWidth={1.8}
+            style={{ transition: "all 0.4s" }} />
+        ))}
+        {/* Centroids with pulse-glow */}
+        {centroids.map((c, i) => (
+          <g key={`c-${i}`} style={{ transition: "all 0.5s" }}>
+            <circle cx={toSx(c.x)} cy={toSy(c.y)} r={13}
+              fill={`url(#l16c-${i})`} stroke={INK} strokeWidth={2.5}
+              className="pulse-glow" style={{ color: COLORS[i] }} />
+            {converged && (
+              <g>
+                {Array.from({ length: 8 }).map((_, k) => {
+                  const angle = (k / 8) * Math.PI * 2;
+                  return (
+                    <line key={k}
+                      x1={toSx(c.x)} y1={toSy(c.y)}
+                      x2={toSx(c.x) + Math.cos(angle) * 28}
+                      y2={toSy(c.y) + Math.sin(angle) * 28}
+                      stroke={COLORS[i]} strokeWidth={2.5} strokeLinecap="round"
+                      className="spark" style={{ animationDelay: `${k * 0.05}s` }} />
+                  );
+                })}
+              </g>
+            )}
+          </g>
+        ))}
+      </PlotFrame>
 
       {/* Inertia mini-chart */}
       {inertiaHistory.length > 0 && (
-        <div className="flex justify-center">
-          <svg viewBox={`0 0 ${chartW} ${chartH + 20}`} className="w-full max-w-[420px]">
-            <text x={chartW / 2} y={12} textAnchor="middle" className="text-[10px] fill-slate-500 font-medium">Inertia (total distance)</text>
+        <div className="card-sketchy p-3">
+          <svg viewBox={`0 0 ${chartW} ${chartH + 24}`} className="w-full max-w-[480px] mx-auto">
+            <text x={chartW / 2} y={14} textAnchor="middle" fontFamily="Kalam" fill={INK}
+              className="text-[11px] font-bold">Inertia (lower = tighter)</text>
             {inertiaHistory.map((val, i) => {
               const bx = 30 + (i / Math.max(inertiaHistory.length - 1, 1)) * (chartW - 50);
-              const by = 20 + (1 - val / maxInertia) * chartH;
+              const by = 24 + (1 - val / maxInertia) * chartH;
               return (
                 <g key={i}>
                   {i > 0 && (
                     <line
                       x1={30 + ((i - 1) / Math.max(inertiaHistory.length - 1, 1)) * (chartW - 50)}
-                      y1={20 + (1 - inertiaHistory[i - 1] / maxInertia) * chartH}
-                      x2={bx} y2={by} stroke="#6366f1" strokeWidth={1.5} />
+                      y1={24 + (1 - inertiaHistory[i - 1] / maxInertia) * chartH}
+                      x2={bx} y2={by} stroke={COLORS[0]} strokeWidth={2.5} />
                   )}
-                  <circle cx={bx} cy={by} r={3} fill="#6366f1" />
+                  <circle cx={bx} cy={by} r={4} fill={COLORS[0]} stroke={INK} strokeWidth={1.5} />
                 </g>
               );
             })}
@@ -340,27 +443,23 @@ function ConvergeTab() {
 
       {/* Controls */}
       <div className="flex gap-2 items-center justify-center flex-wrap">
-        <button
-          onClick={() => { playClick(); setPlaying((p) => !p); }}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-all duration-300 shadow-sm">
+        <button onClick={() => { playClick(); setPlaying((p) => !p); }} className="btn-sketchy text-sm">
           {playing ? "Pause" : "Play"}
         </button>
-        <button onClick={() => { playClick(); if (!playing) step(); }}
-          disabled={playing}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm">
+        <button onClick={() => { playClick(); if (!playing) step(); }} disabled={playing}
+          className="btn-sketchy text-sm disabled:opacity-40 disabled:cursor-not-allowed">
           Step
         </button>
-        <button onClick={handleReset}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button onClick={handleReset} className="btn-sketchy-outline text-sm">
           Reset
         </button>
         <div className="flex items-center gap-1.5 ml-2">
-          <span className="text-[10px] text-slate-500">Speed:</span>
+          <span className="font-hand text-xs text-foreground font-bold">Speed:</span>
           <input type="range" min={100} max={1200} step={100} value={1300 - speed}
             onChange={(e) => setSpeed(1300 - Number(e.target.value))}
-            className="w-20 accent-indigo-600" />
+            className="w-24 accent-accent-coral" />
         </div>
-        <span className="text-xs text-slate-500">Iter: {iteration}</span>
+        <span className="font-hand text-xs text-foreground">Iter: {iteration}</span>
       </div>
 
       <InfoBox variant="amber" title="Convergence">
@@ -377,6 +476,8 @@ function DiffKTab() {
   const ks = [2, 3, 4];
   const [results, setResults] = useState<{ centroids: Pt[]; labels: number[] }[]>([]);
   const [running, setRunning] = useState(false);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const COLORS = THEMES[themeIdx].colors;
 
   const runAll = useCallback(() => {
     playClick();
@@ -403,11 +504,11 @@ function DiffKTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600 text-center">Compare K=2, K=3, and K=4 on the same dataset. Which K looks best?</p>
+      <ThemeBar themeIdx={themeIdx} setThemeIdx={setThemeIdx} />
+      <p className="font-hand text-sm text-center text-foreground">Compare K=2, K=3, and K=4 on the same dataset. Which K looks best?</p>
 
       <div className="flex justify-center">
-        <button onClick={runAll} disabled={running}
-          className="px-5 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm">
+        <button onClick={runAll} disabled={running} className="btn-sketchy text-sm disabled:opacity-40 disabled:cursor-not-allowed">
           {results.length > 0 ? "Run Again" : "Run K-Means"}
         </button>
       </div>
@@ -417,32 +518,39 @@ function DiffKTab() {
           {ks.map((kVal, ki) => {
             const r = results[ki];
             return (
-              <div key={kVal} className="border border-slate-200 rounded-lg p-2 bg-white">
-                <p className="text-xs font-bold text-center text-slate-700 mb-1">K = {kVal}</p>
+              <div key={kVal} className="card-sketchy p-2 notebook-grid">
+                <p className="font-hand text-xs font-bold text-center text-foreground mb-1">K = {kVal}</p>
                 <svg viewBox="0 0 160 160" className="w-full">
-                  <rect x={10} y={10} width={140} height={140} fill="#f8fafc" rx={4} stroke="#e2e8f0" />
+                  <defs>
+                    {COLORS.map((c, i) => (
+                      <radialGradient key={i} id={`l16d-${kVal}-${i}`} cx="35%" cy="30%">
+                        <stop offset="0%" stopColor="#fff" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor={c} />
+                      </radialGradient>
+                    ))}
+                  </defs>
+                  <rect x={6} y={6} width={148} height={148} fill="none" stroke={INK} strokeWidth={2} rx={4} />
                   {DATA.map((p, i) => {
-                    const sx = 10 + (p.x / 10) * 140;
-                    const sy = 10 + (1 - p.y / 10) * 140;
+                    const sx = 6 + (p.x / 10) * 148;
+                    const sy = 6 + (1 - p.y / 10) * 148;
                     return (
                       <circle key={i} cx={sx} cy={sy} r={4}
-                        fill={COLORS[r.labels[i] % COLORS.length]} stroke="#fff" strokeWidth={0.5}
-                        className="transition-all duration-500" />
+                        fill={`url(#l16d-${kVal}-${r.labels[i] % COLORS.length})`}
+                        stroke={INK} strokeWidth={1} />
                     );
                   })}
                   {r.centroids.map((c, ci) => {
-                    const sx = 10 + (c.x / 10) * 140;
-                    const sy = 10 + (1 - c.y / 10) * 140;
+                    const sx = 6 + (c.x / 10) * 148;
+                    const sy = 6 + (1 - c.y / 10) * 148;
                     return (
-                      <g key={`c-${ci}`}>
-                        <circle cx={sx} cy={sy} r={7} fill={COLORS[ci % COLORS.length]} stroke="#1e293b" strokeWidth={1.5} />
-                        <line x1={sx - 4} y1={sy} x2={sx + 4} y2={sy} stroke="#fff" strokeWidth={1.5} />
-                        <line x1={sx} y1={sy - 4} x2={sx} y2={sy + 4} stroke="#fff" strokeWidth={1.5} />
-                      </g>
+                      <circle key={`c-${ci}`} cx={sx} cy={sy} r={8}
+                        fill={`url(#l16d-${kVal}-${ci % COLORS.length})`}
+                        stroke={INK} strokeWidth={2}
+                        className="pulse-glow" style={{ color: COLORS[ci % COLORS.length] }} />
                     );
                   })}
                 </svg>
-                <p className="text-[10px] text-center text-slate-500 mt-1">
+                <p className="font-hand text-[10px] text-center text-muted-foreground mt-1">
                   Inertia: {totalInertia(DATA, r.labels, r.centroids).toFixed(1)}
                 </p>
               </div>
@@ -484,7 +592,7 @@ const quizQuestions = [
     question: "When does K-Means stop?",
     options: ["After exactly 10 iterations", "When inertia reaches zero", "When assignments stop changing", "When all points are in one cluster"],
     correctIndex: 2,
-    explanation: "K-Means converges when the assign step produces the same clusters as the previous iteration — nothing changes anymore.",
+    explanation: "K-Means converges when the assign step produces the same clusters as the previous iteration  nothing changes anymore.",
   },
   {
     question: "Why is K-Means called K-'Means'?",
@@ -536,8 +644,8 @@ export default function L16_KMeansActivity() {
             "Aru had 30 colorful marbles scattered across the floor. Some were close together, others far apart.",
             "Aru: \"Byte, I want to sort these into groups. But how do I know which go together?\"",
             "Byte: \"Let me show you how I'd sort them into groups. I pick K center points, assign each marble to the nearest center, then move the centers to the middle of their groups. Repeat until stable!\"",
-            "Aru: \"That's like magic — the centers just... find the right spots?\"",
-            "Byte: \"It's not magic — it's math! Each step makes the groups a little tighter. That's K-Means clustering.\"",
+            "Aru: \"That's like magic  the centers just... find the right spots?\"",
+            "Byte: \"It's not magic  it's math! Each step makes the groups a little tighter. That's K-Means clustering.\"",
           ]}
           conceptTitle="Key Concept"
           conceptSummary="K-Means clustering works in two alternating steps: (1) assign each point to the nearest centroid, and (2) move each centroid to the mean of its assigned points. Repeat until the assignments stop changing."

@@ -1,9 +1,24 @@
-import { useState, useMemo, useCallback } from "react";
-import { ScanLine, Wrench, Layers } from "lucide-react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { ScanLine, Wrench, Layers, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
 import { playClick, playPop, playSuccess } from "../../utils/sounds";
+
+/* ------------------------------------------------------------------ */
+/*  Sketchy palette                                                    */
+/* ------------------------------------------------------------------ */
+const INK = "#2b2a35";
+const PAPER = "#fffdf5";
+const CREAM = "#fff8e7";
+
+const THEMES = [
+  { name: "Coral",    node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint",     node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky",      node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+  { name: "Sunset",   node: "#ffb88c", glow: "#ffd0b3", accent: "#ff6b6b" },
+];
 
 /* ---- helpers ---- */
 function mulberry32(seed: number): () => number {
@@ -27,7 +42,7 @@ function grayHex(v: number): string {
 }
 
 function txtCol(v: number): string {
-  return clamp(v) > 128 ? "#000" : "#fff";
+  return clamp(v) > 128 ? INK : "#fff";
 }
 
 /* ---- test image ---- */
@@ -36,7 +51,6 @@ const TEST_IMAGE: number[] = (() => {
   const img: number[] = [];
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
-      // Vertical edge in the middle
       if (c <= 3) img.push(Math.floor(40 + rand() * 30));
       else img.push(Math.floor(180 + rand() * 50));
     }
@@ -74,12 +88,65 @@ function applyConv(image: number[], kernel: number[], size: number): number[] {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Theme toolbar                                                      */
+/* ------------------------------------------------------------------ */
+function ThemeBar({ themeIdx, setThemeIdx, speed, setSpeed, autoFire, setAutoFire }: {
+  themeIdx: number;
+  setThemeIdx: (i: number) => void;
+  speed: number;
+  setSpeed: (v: number) => void;
+  autoFire?: boolean;
+  setAutoFire?: (b: boolean) => void;
+}) {
+  return (
+    <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+      <div className="flex items-center gap-2">
+        <Palette className="w-4 h-4 text-foreground/60" />
+        <span className="font-hand text-sm font-bold">Theme:</span>
+        <div className="flex gap-1.5">
+          {THEMES.map((t, i) => (
+            <button
+              key={t.name}
+              onClick={() => { playClick(); setThemeIdx(i); }}
+              title={t.name}
+              className={`w-6 h-6 rounded-full border-2 transition-transform ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+              style={{ background: t.node }}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="font-hand text-sm font-bold">Speed:</span>
+        <input
+          type="range" min={0.4} max={2.5} step={0.1} value={speed}
+          onChange={(e) => setSpeed(parseFloat(e.target.value))}
+          className="w-24 accent-accent-coral"
+        />
+      </div>
+      {setAutoFire && (
+        <button
+          onClick={() => { playClick(); setAutoFire(!autoFire); }}
+          className={`px-3 py-1 rounded-lg font-hand text-sm font-bold border-2 border-foreground transition-all ${autoFire ? "bg-accent-coral text-white shadow-[2px_2px_0_#2b2a35]" : "bg-background"}`}
+        >
+          {autoFire ? "■ Stop" : "▶ Auto"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Tab 1 -- Apply a Filter (step-by-step)                             */
 /* ------------------------------------------------------------------ */
 function ApplyFilterTab() {
   const [preset, setPreset] = useState(0);
-  const [step, setStep] = useState(-1); // -1 = not started
+  const [step, setStep] = useState(-1);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const [speed, setSpeed] = useState(1.2);
+  const [autoFire, setAutoFire] = useState(false);
+  const [sparkKey, setSparkKey] = useState(0);
 
+  const theme = THEMES[themeIdx];
   const kernel = PRESETS[preset].kernel;
   const outputSize = 6;
   const totalSteps = outputSize * outputSize;
@@ -88,6 +155,25 @@ function ApplyFilterTab() {
 
   const currentRow = step >= 0 ? Math.floor(step / outputSize) : -1;
   const currentCol = step >= 0 ? step % outputSize : -1;
+
+  // Auto-run loop
+  useEffect(() => {
+    if (!autoFire) return;
+    const id = setInterval(() => {
+      setStep((s) => {
+        const next = s + 1;
+        if (next >= totalSteps) { setAutoFire(false); playSuccess(); return totalSteps - 1; }
+        playPop();
+        return next;
+      });
+    }, Math.max(180, speed * 350));
+    return () => clearInterval(id);
+  }, [autoFire, speed, totalSteps]);
+
+  // Spark when finishing a row
+  useEffect(() => {
+    if (step > 0 && (step + 1) % outputSize === 0) setSparkKey((k) => k + 1);
+  }, [step]);
 
   const handleStep = useCallback(() => {
     playPop();
@@ -103,6 +189,7 @@ function ApplyFilterTab() {
   const handleReset = useCallback(() => {
     playClick();
     setStep(-1);
+    setAutoFire(false);
   }, []);
 
   const handlePreset = useCallback((idx: number) => {
@@ -116,130 +203,160 @@ function ApplyFilterTab() {
   const gridW = cellSz * 8 + gapSz * 9;
   const outGridW = cellSz * 6 + gapSz * 7;
 
-  // Compute products for current step
-  const products = useMemo(() => {
-    if (step < 0) return null;
-    const prods: { val: number; weight: number; product: number }[] = [];
-    for (let kr = 0; kr < 3; kr++) {
-      for (let kc = 0; kc < 3; kc++) {
-        const imgVal = TEST_IMAGE[(currentRow + kr) * 8 + (currentCol + kc)];
-        const w = kernel[kr * 3 + kc];
-        prods.push({ val: imgVal, weight: w, product: imgVal * w });
-      }
-    }
-    return prods;
-  }, [step, currentRow, currentCol, kernel]);
-
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Pick a filter preset, then click "Step" to watch the 3x3 kernel slide across the image.
-      </p>
+      <div className="card-sketchy p-3" style={{ background: CREAM }}>
+        <p className="font-hand text-base text-foreground text-center">
+          🔍 Pick a filter, then click <b>Step</b> (or hit ▶ Auto) to watch the 3×3 kernel slide across the image.
+        </p>
+      </div>
+
+      <ThemeBar themeIdx={themeIdx} setThemeIdx={setThemeIdx} speed={speed} setSpeed={setSpeed} autoFire={autoFire} setAutoFire={setAutoFire} />
 
       {/* Preset buttons */}
       <div className="flex gap-2 justify-center flex-wrap">
         {PRESETS.map((p, i) => (
           <button key={p.name} onClick={() => handlePreset(i)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${preset === i ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"}`}>
+            className={`px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground transition-all ${preset === i ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]" : "bg-background hover:bg-accent-yellow/40"}`}>
             {p.name}
           </button>
         ))}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 items-start justify-center">
-        {/* Input grid */}
-        <div>
-          <p className="text-xs font-semibold text-slate-500 mb-1 text-center">Input (8x8)</p>
-          <svg viewBox={`0 0 ${gridW} ${gridW}`} className="w-full max-w-[260px] bg-slate-100 rounded">
-            {TEST_IMAGE.map((val, idx) => {
-              const row = Math.floor(idx / 8);
-              const col = idx % 8;
-              const x = gapSz + col * (cellSz + gapSz);
-              const y = gapSz + row * (cellSz + gapSz);
-              const inWindow = step >= 0 && row >= currentRow && row < currentRow + 3 && col >= currentCol && col < currentCol + 3;
-              return (
-                <g key={idx}>
-                  <rect x={x} y={y} width={cellSz} height={cellSz} fill={grayHex(val)} rx={2}
-                    stroke={inWindow ? "#f59e0b" : "none"} strokeWidth={inWindow ? 3 : 0} />
-                  <text x={x + cellSz / 2} y={y + cellSz / 2 + 4} textAnchor="middle" fill={txtCol(val)}
-                    className="text-[8px] font-mono pointer-events-none">{val}</text>
-                </g>
-              );
-            })}
-            {/* Highlight window */}
-            {step >= 0 && (
-              <rect
-                x={gapSz + currentCol * (cellSz + gapSz) - 2}
-                y={gapSz + currentRow * (cellSz + gapSz) - 2}
-                width={cellSz * 3 + gapSz * 2 + 4}
-                height={cellSz * 3 + gapSz * 2 + 4}
-                fill="none" stroke="#f59e0b" strokeWidth={3} rx={4} strokeDasharray="6 3"
-              />
-            )}
-          </svg>
-        </div>
-
-        {/* Kernel display */}
-        <div>
-          <p className="text-xs font-semibold text-slate-500 mb-1 text-center">Kernel (3x3)</p>
-          <svg viewBox="0 0 130 130" className="w-full max-w-[110px] bg-amber-50 rounded border border-amber-200">
-            {kernel.map((w, idx) => {
-              const row = Math.floor(idx / 3);
-              const col = idx % 3;
-              return (
-                <g key={idx}>
-                  <rect x={5 + col * 40} y={5 + row * 40} width={38} height={38} fill={w > 0 ? "#dbeafe" : w < 0 ? "#fee2e2" : "#f1f5f9"} rx={3} stroke="#94a3b8" strokeWidth={0.5} />
-                  <text x={5 + col * 40 + 19} y={5 + row * 40 + 23} textAnchor="middle" className="text-[10px] font-mono font-bold fill-slate-700">
-                    {Number.isInteger(w) ? w : w.toFixed(2)}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-          {products && (
-            <div className="mt-2 bg-white border border-slate-200 rounded p-2 text-center">
-              <p className="text-[10px] text-slate-500 font-semibold">Sum = {clamp(output[step])}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Output grid */}
-        <div>
-          <p className="text-xs font-semibold text-slate-500 mb-1 text-center">Output (6x6)</p>
-          <svg viewBox={`0 0 ${outGridW} ${outGridW}`} className="w-full max-w-[200px] bg-slate-100 rounded">
-            {Array.from({ length: 36 }, (_, idx) => {
-              const row = Math.floor(idx / 6);
-              const col = idx % 6;
-              const x = gapSz + col * (cellSz + gapSz);
-              const y = gapSz + row * (cellSz + gapSz);
-              const filled = idx <= step;
-              const val = filled ? clamp(output[idx]) : 0;
-              const isCurrent = idx === step;
-              return (
-                <g key={idx}>
-                  <rect x={x} y={y} width={cellSz} height={cellSz}
-                    fill={filled ? grayHex(val) : "#e2e8f0"} rx={2}
-                    stroke={isCurrent ? "#22c55e" : "none"} strokeWidth={isCurrent ? 3 : 0} />
-                  {filled && (
+      <div className="card-sketchy p-4 notebook-grid">
+        <div className="flex flex-col lg:flex-row gap-4 items-start justify-center">
+          {/* Input grid */}
+          <div>
+            <p className="font-hand text-xs uppercase tracking-wider font-bold text-muted-foreground mb-1 text-center">Input (8×8)</p>
+            <svg viewBox={`0 0 ${gridW} ${gridW}`} className="w-full max-w-[260px] rounded-lg" style={{ background: INK }}>
+              <defs>
+                <radialGradient id="conv-glow" cx="50%" cy="50%">
+                  <stop offset="0%" stopColor={theme.glow} stopOpacity={0.7} />
+                  <stop offset="100%" stopColor={theme.node} stopOpacity={0} />
+                </radialGradient>
+              </defs>
+              {TEST_IMAGE.map((val, idx) => {
+                const row = Math.floor(idx / 8);
+                const col = idx % 8;
+                const x = gapSz + col * (cellSz + gapSz);
+                const y = gapSz + row * (cellSz + gapSz);
+                const inWindow = step >= 0 && row >= currentRow && row < currentRow + 3 && col >= currentCol && col < currentCol + 3;
+                return (
+                  <g key={idx}>
+                    <rect x={x} y={y} width={cellSz} height={cellSz} fill={grayHex(val)} rx={3} />
+                    {inWindow && <rect x={x} y={y} width={cellSz} height={cellSz} fill="url(#conv-glow)" rx={3} />}
                     <text x={x + cellSz / 2} y={y + cellSz / 2 + 4} textAnchor="middle" fill={txtCol(val)}
-                      className="text-[8px] font-mono pointer-events-none">{val}</text>
-                  )}
+                      fontFamily="Kalam" className="text-[9px] font-bold pointer-events-none">{val}</text>
+                  </g>
+                );
+              })}
+              {/* Sliding window */}
+              {step >= 0 && (
+                <rect
+                  x={gapSz + currentCol * (cellSz + gapSz) - 2}
+                  y={gapSz + currentRow * (cellSz + gapSz) - 2}
+                  width={cellSz * 3 + gapSz * 2 + 4}
+                  height={cellSz * 3 + gapSz * 2 + 4}
+                  fill="none" stroke={theme.accent} strokeWidth={3} rx={5}
+                  className="signal-flow"
+                  style={{ animationDuration: `${speed}s` }}
+                />
+              )}
+            </svg>
+          </div>
+
+          {/* Kernel + arrow */}
+          <div className="flex flex-col items-center gap-2">
+            <p className="font-hand text-xs uppercase tracking-wider font-bold text-muted-foreground text-center">Kernel (3×3)</p>
+            <svg viewBox="0 0 130 130" className="w-[120px] card-sketchy" style={{ background: CREAM }}>
+              {kernel.map((w, idx) => {
+                const row = Math.floor(idx / 3);
+                const col = idx % 3;
+                const fill = w > 0 ? theme.glow : w < 0 ? "#ffd0d0" : "#f3efe6";
+                return (
+                  <g key={idx}>
+                    <rect x={5 + col * 40} y={5 + row * 40} width={38} height={38} fill={fill} rx={4} stroke={INK} strokeWidth={1.5} />
+                    <text x={5 + col * 40 + 19} y={5 + row * 40 + 25} textAnchor="middle" fontFamily="Kalam" className="text-[12px] font-bold" fill={INK}>
+                      {Number.isInteger(w) ? w : w.toFixed(2)}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+            {step >= 0 && (
+              <div className="card-sketchy px-2 py-1" style={{ background: PAPER }}>
+                <p className="font-hand text-[11px] font-bold" style={{ color: theme.node }}>
+                  Σ = <span className="marker-highlight-yellow">{clamp(output[step])}</span>
+                </p>
+              </div>
+            )}
+            <div className="text-2xl font-hand text-foreground/40 hidden lg:block">→</div>
+          </div>
+
+          {/* Output grid */}
+          <div>
+            <p className="font-hand text-xs uppercase tracking-wider font-bold text-muted-foreground mb-1 text-center">Output (6×6)</p>
+            <svg viewBox={`0 0 ${outGridW} ${outGridW}`} className="w-full max-w-[200px] rounded-lg" style={{ background: INK }}>
+              <defs>
+                <radialGradient id="out-fire" cx="50%" cy="50%">
+                  <stop offset="0%" stopColor="#fff3a0" />
+                  <stop offset="60%" stopColor={theme.accent} />
+                  <stop offset="100%" stopColor={theme.node} />
+                </radialGradient>
+              </defs>
+              {Array.from({ length: 36 }, (_, idx) => {
+                const row = Math.floor(idx / 6);
+                const col = idx % 6;
+                const x = gapSz + col * (cellSz + gapSz);
+                const y = gapSz + row * (cellSz + gapSz);
+                const filled = idx <= step;
+                const val = filled ? clamp(output[idx]) : 0;
+                const isCurrent = idx === step;
+                return (
+                  <g key={idx}>
+                    <rect x={x} y={y} width={cellSz} height={cellSz}
+                      fill={isCurrent ? "url(#out-fire)" : filled ? grayHex(val) : "#3a3848"} rx={3}
+                      stroke={isCurrent ? theme.accent : "none"} strokeWidth={isCurrent ? 2.5 : 0}
+                      className={isCurrent ? "pulse-glow" : ""}
+                      style={isCurrent ? { color: theme.accent } : undefined} />
+                    {filled && (
+                      <text x={x + cellSz / 2} y={y + cellSz / 2 + 4} textAnchor="middle" fill={txtCol(val)}
+                        fontFamily="Kalam" className="text-[9px] font-bold pointer-events-none">{val}</text>
+                    )}
+                  </g>
+                );
+              })}
+              {/* Row-finished sparks */}
+              {step >= 0 && (step + 1) % outputSize === 0 && (
+                <g key={sparkKey}>
+                  {Array.from({ length: 6 }).map((_, i) => {
+                    const angle = (i / 6) * Math.PI * 2;
+                    const cx = gapSz + currentCol * (cellSz + gapSz) + cellSz / 2;
+                    const cy = gapSz + currentRow * (cellSz + gapSz) + cellSz / 2;
+                    return (
+                      <line key={i} x1={cx} y1={cy} x2={cx + Math.cos(angle) * 28} y2={cy + Math.sin(angle) * 28}
+                        stroke={theme.accent} strokeWidth={2} strokeLinecap="round" className="spark"
+                        style={{ animationDelay: `${i * 0.04}s` }} />
+                    );
+                  })}
                 </g>
-              );
-            })}
-          </svg>
+              )}
+            </svg>
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-2 justify-center flex-wrap">
         <button onClick={handleStep} disabled={step >= totalSteps - 1}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40 disabled:cursor-not-allowed transition-all">
           Step ({step + 1}/{totalSteps})
         </button>
-        <button onClick={handleAutoRun} className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm">
+        <button onClick={handleAutoRun}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-mint text-white shadow-[2px_2px_0_#2b2a35] transition-all">
           Run All
         </button>
-        <button onClick={handleReset} className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all">
+        <button onClick={handleReset}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35] transition-all">
           Reset
         </button>
       </div>
@@ -256,6 +373,9 @@ function ApplyFilterTab() {
 /* ------------------------------------------------------------------ */
 function BuildFilterTab() {
   const [kernel, setKernel] = useState<number[]>([0, 0, 0, 0, 1, 0, 0, 0, 0]);
+  const [themeIdx, setThemeIdx] = useState(1);
+  const [speed, setSpeed] = useState(1.2);
+  const theme = THEMES[themeIdx];
 
   const output = useMemo(() => applyConv(TEST_IMAGE, kernel, 8), [kernel]);
 
@@ -263,7 +383,7 @@ function BuildFilterTab() {
     playPop();
     setKernel((prev) => {
       const next = [...prev];
-      next[idx] = Math.max(-2, Math.min(2, next[idx] + delta));
+      next[idx] = Math.max(-2, Math.min(2, Math.round((next[idx] + delta) * 10) / 10));
       return next;
     });
   }, []);
@@ -280,58 +400,66 @@ function BuildFilterTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Edit the 3x3 kernel values to create your own filter. Click +/- buttons to change each weight.
-      </p>
+      <div className="card-sketchy p-3" style={{ background: CREAM }}>
+        <p className="font-hand text-base text-foreground text-center">
+          🛠️ Edit the 3×3 kernel and watch the output transform live.
+        </p>
+      </div>
+
+      <ThemeBar themeIdx={themeIdx} setThemeIdx={setThemeIdx} speed={speed} setSpeed={setSpeed} />
 
       <div className="flex gap-2 justify-center flex-wrap">
         {PRESETS.map((p, i) => (
           <button key={p.name} onClick={() => handleLoadPreset(i)}
-            className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 transition-all">
-            {p.name}
+            className="px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground bg-background hover:bg-accent-yellow/40 shadow-[2px_2px_0_#2b2a35] transition-all">
+            Load {p.name}
           </button>
         ))}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-6 items-center justify-center">
-        {/* Kernel editor */}
-        <div>
-          <p className="text-xs font-semibold text-slate-500 mb-1 text-center">Your Kernel</p>
-          <div className="grid grid-cols-3 gap-1">
-            {kernel.map((w, idx) => (
-              <div key={idx} className="flex flex-col items-center bg-amber-50 border border-amber-200 rounded-lg p-1 w-16">
-                <button onClick={() => handleKernelChange(idx, 1)} className="text-xs font-bold text-slate-500 hover:text-indigo-600">+</button>
-                <span className={`text-sm font-mono font-bold ${w > 0 ? "text-blue-600" : w < 0 ? "text-red-600" : "text-slate-400"}`}>
-                  {Number.isInteger(w) ? w : w.toFixed(1)}
-                </span>
-                <button onClick={() => handleKernelChange(idx, -1)} className="text-xs font-bold text-slate-500 hover:text-red-600">-</button>
-              </div>
-            ))}
+      <div className="card-sketchy p-4 notebook-grid">
+        <div className="flex flex-col sm:flex-row gap-6 items-center justify-center">
+          {/* Kernel editor */}
+          <div>
+            <p className="font-hand text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2 text-center">Your Kernel</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {kernel.map((w, idx) => {
+                const fill = w > 0 ? theme.glow : w < 0 ? "#ffd0d0" : "#f3efe6";
+                return (
+                  <div key={idx} className="card-sketchy flex flex-col items-center w-16 py-1" style={{ background: fill }}>
+                    <button onClick={() => handleKernelChange(idx, 0.5)} className="font-hand text-base font-bold text-foreground hover:scale-125 transition-transform">+</button>
+                    <span className="font-hand text-sm font-bold" style={{ color: INK }}>
+                      {Number.isInteger(w) ? w : w.toFixed(1)}
+                    </span>
+                    <button onClick={() => handleKernelChange(idx, -0.5)} className="font-hand text-base font-bold text-foreground hover:scale-125 transition-transform">−</button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        {/* Arrow */}
-        <div className="text-2xl text-slate-300 font-bold hidden sm:block">&rarr;</div>
+          <div className="text-3xl font-hand text-foreground/40 hidden sm:block signal-flow" style={{ animationDuration: `${speed}s` }}>→</div>
 
-        {/* Output */}
-        <div>
-          <p className="text-xs font-semibold text-slate-500 mb-1 text-center">Output (6x6)</p>
-          <svg viewBox={`0 0 ${outGridW} ${outGridW}`} className="w-full max-w-[200px] bg-slate-100 rounded">
-            {output.map((val, idx) => {
-              const row = Math.floor(idx / 6);
-              const col = idx % 6;
-              const x = gapSz + col * (cellSz + gapSz);
-              const y = gapSz + row * (cellSz + gapSz);
-              const clamped = clamp(val);
-              return (
-                <g key={idx}>
-                  <rect x={x} y={y} width={cellSz} height={cellSz} fill={grayHex(clamped)} rx={2} />
-                  <text x={x + cellSz / 2} y={y + cellSz / 2 + 4} textAnchor="middle" fill={txtCol(clamped)}
-                    className="text-[7px] font-mono pointer-events-none">{clamped}</text>
-                </g>
-              );
-            })}
-          </svg>
+          {/* Output */}
+          <div>
+            <p className="font-hand text-xs uppercase tracking-wider font-bold text-muted-foreground mb-1 text-center">Output (6×6)</p>
+            <svg viewBox={`0 0 ${outGridW} ${outGridW}`} className="w-full max-w-[200px] rounded-lg" style={{ background: INK }}>
+              {output.map((val, idx) => {
+                const row = Math.floor(idx / 6);
+                const col = idx % 6;
+                const x = gapSz + col * (cellSz + gapSz);
+                const y = gapSz + row * (cellSz + gapSz);
+                const clamped = clamp(val);
+                return (
+                  <g key={idx}>
+                    <rect x={x} y={y} width={cellSz} height={cellSz} fill={grayHex(clamped)} rx={3} />
+                    <text x={x + cellSz / 2} y={y + cellSz / 2 + 4} textAnchor="middle" fill={txtCol(clamped)}
+                      fontFamily="Kalam" className="text-[8px] font-bold pointer-events-none">{clamped}</text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -348,10 +476,14 @@ function BuildFilterTab() {
 /*  Tab 3 -- Multiple Filters                                          */
 /* ------------------------------------------------------------------ */
 function MultiFilterTab() {
+  const [themeIdx, setThemeIdx] = useState(0);
+  const [speed, setSpeed] = useState(1.2);
+  const theme = THEMES[themeIdx];
+
   const filters = useMemo(() => [
-    { name: "Blur", kernel: [1, 1, 1, 1, 1, 1, 1, 1, 1].map((v) => v / 9), color: "#3b82f6" },
-    { name: "Edge Detect", kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1], color: "#ef4444" },
-    { name: "Sharpen", kernel: [0, -1, 0, -1, 5, -1, 0, -1, 0], color: "#22c55e" },
+    { name: "Blur", kernel: [1, 1, 1, 1, 1, 1, 1, 1, 1].map((v) => v / 9), color: "#6bb6ff" },
+    { name: "Edge Detect", kernel: [-1, -1, -1, -1, 8, -1, -1, -1, -1], color: "#ff6b6b" },
+    { name: "Sharpen", kernel: [0, -1, 0, -1, 5, -1, 0, -1, 0], color: "#4ecdc4" },
   ], []);
 
   const outputs = useMemo(() => filters.map((f) => applyConv(TEST_IMAGE, f.kernel, 8)), [filters]);
@@ -363,61 +495,60 @@ function MultiFilterTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        The same image processed by three different filters simultaneously. Each one extracts different features!
-      </p>
-
-      {/* Input */}
-      <div className="flex justify-center">
-        <div>
-          <p className="text-xs font-semibold text-slate-500 mb-1 text-center">Input (8x8)</p>
-          <svg viewBox={`0 0 ${inGridW} ${inGridW}`} className="w-full max-w-[180px] bg-slate-100 rounded mx-auto">
-            {TEST_IMAGE.map((val, idx) => {
-              const row = Math.floor(idx / 8);
-              const col = idx % 8;
-              const x = gapSz + col * (cellSz + gapSz);
-              const y = gapSz + row * (cellSz + gapSz);
-              return (
-                <rect key={idx} x={x} y={y} width={cellSz} height={cellSz} fill={grayHex(val)} rx={2} />
-              );
-            })}
-          </svg>
-        </div>
+      <div className="card-sketchy p-3" style={{ background: CREAM }}>
+        <p className="font-hand text-base text-foreground text-center">
+          🎛️ One image, three filters — each one extracts different features.
+        </p>
       </div>
 
-      {/* Arrow */}
-      <p className="text-center text-slate-300 text-lg font-bold">&darr; Apply 3 filters &darr;</p>
+      <ThemeBar themeIdx={themeIdx} setThemeIdx={setThemeIdx} speed={speed} setSpeed={setSpeed} />
 
-      {/* Outputs side by side */}
-      <div className="flex gap-3 justify-center flex-wrap">
+      {/* Input */}
+      <div className="card-sketchy p-4 notebook-grid flex flex-col items-center gap-2">
+        <p className="font-hand text-xs uppercase tracking-wider font-bold text-muted-foreground">Input (8×8)</p>
+        <svg viewBox={`0 0 ${inGridW} ${inGridW}`} className="w-full max-w-[180px] rounded-lg" style={{ background: INK }}>
+          {TEST_IMAGE.map((val, idx) => {
+            const row = Math.floor(idx / 8);
+            const col = idx % 8;
+            const x = gapSz + col * (cellSz + gapSz);
+            const y = gapSz + row * (cellSz + gapSz);
+            return <rect key={idx} x={x} y={y} width={cellSz} height={cellSz} fill={grayHex(val)} rx={2} />;
+          })}
+        </svg>
+
+        {/* Splitting arrows with signal-flow */}
+        <svg viewBox="0 0 300 50" className="w-full max-w-[300px] mt-1">
+          {[60, 150, 240].map((tx, i) => (
+            <line key={i} x1={150} y1={5} x2={tx} y2={45} stroke={theme.node} strokeWidth={2.5}
+              strokeLinecap="round" className="signal-flow"
+              style={{ animationDuration: `${speed}s`, color: theme.node, animationDelay: `${i * 0.15}s` }} />
+          ))}
+        </svg>
+      </div>
+
+      {/* Outputs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {filters.map((f, fi) => (
-          <div key={f.name}>
-            <p className="text-xs font-bold mb-1 text-center" style={{ color: f.color }}>{f.name}</p>
-            <svg viewBox={`0 0 ${outGridW} ${outGridW}`} className="w-full max-w-[150px] bg-slate-100 rounded border-2" style={{ borderColor: f.color }}>
+          <div key={f.name} className="card-sketchy p-3 flex flex-col items-center" style={{ background: PAPER }}>
+            <p className="font-hand text-sm font-bold mb-2" style={{ color: f.color }}>{f.name}</p>
+            <svg viewBox={`0 0 ${outGridW} ${outGridW}`} className="w-full max-w-[150px] rounded-lg border-2"
+              style={{ background: INK, borderColor: f.color }}>
               {outputs[fi].map((val, idx) => {
                 const row = Math.floor(idx / 6);
                 const col = idx % 6;
                 const x = gapSz + col * (cellSz + gapSz);
                 const y = gapSz + row * (cellSz + gapSz);
-                const clamped = clamp(val);
-                return (
-                  <rect key={idx} x={x} y={y} width={cellSz} height={cellSz} fill={grayHex(clamped)} rx={2} />
-                );
+                return <rect key={idx} x={x} y={y} width={cellSz} height={cellSz} fill={grayHex(clamp(val))} rx={2} />;
               })}
             </svg>
-            {/* Kernel mini view */}
-            <div className="mt-1 flex justify-center">
-              <svg viewBox="0 0 54 54" className="w-12 h-12">
-                {f.kernel.map((w, ki) => {
-                  const r = Math.floor(ki / 3);
-                  const c = ki % 3;
-                  return (
-                    <rect key={ki} x={c * 18} y={r * 18} width={17} height={17} rx={2}
-                      fill={w > 0 ? "#dbeafe" : w < 0 ? "#fee2e2" : "#f1f5f9"} stroke="#94a3b8" strokeWidth={0.5} />
-                  );
-                })}
-              </svg>
-            </div>
+            <svg viewBox="0 0 60 60" className="w-14 h-14 mt-2">
+              {f.kernel.map((w, ki) => {
+                const r = Math.floor(ki / 3);
+                const c = ki % 3;
+                const fill = w > 0 ? f.color + "55" : w < 0 ? "#ffd0d0" : "#f3efe6";
+                return <rect key={ki} x={2 + c * 19} y={2 + r * 19} width={18} height={18} rx={2} fill={fill} stroke={INK} strokeWidth={1} />;
+              })}
+            </svg>
           </div>
         ))}
       </div>

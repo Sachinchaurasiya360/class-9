@@ -5,6 +5,7 @@ import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
 import { playClick, playPop, playSuccess, playError } from "../../utils/sounds";
 
+const INK = "#2b2a35";
 /* ------------------------------------------------------------------ */
 /*  Seeded PRNG                                                        */
 /* ------------------------------------------------------------------ */
@@ -31,7 +32,7 @@ interface ShapeItem {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Label the Data                                             */
+/*  Tab 1  Label the Data                                             */
 /* ------------------------------------------------------------------ */
 
 const LABELS = ["Cat", "Dog", "Bird"];
@@ -101,8 +102,58 @@ function LabelTheData() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Click a label, then click shapes to assign it</h3>
+      {/* Hero: labeled examples flow into a model node */}
+      <div className="card-sketchy notebook-grid p-4">
+        <svg viewBox="0 0 560 200" className="w-full max-w-[600px] mx-auto">
+          <defs>
+            <radialGradient id="l11-model" cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#c9adf7" />
+              <stop offset="100%" stopColor="#b18cf2" />
+            </radialGradient>
+            <marker id="l11-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+              <path d="M0,0 L10,4 L0,8 Z" fill={INK} />
+            </marker>
+          </defs>
+
+          {/* Three labeled examples */}
+          {[
+            { y: 40, label: "Cat", color: "#ff6b6b" },
+            { y: 100, label: "Dog", color: "#6bb6ff" },
+            { y: 160, label: "Bird", color: "#4ecdc4" },
+          ].map((ex, i) => (
+            <g key={i}>
+              <rect x={30} y={ex.y - 22} width={120} height={44} rx={10}
+                fill={ex.color} stroke={INK} strokeWidth={2.5}
+                className="pulse-glow"
+                style={{ color: ex.color, animationDelay: `${i * 0.3}s` }} />
+              <text x={90} y={ex.y + 5} textAnchor="middle" fill="#fff" fontFamily="Kalam" className="text-[14px] font-bold">
+                {ex.label}
+              </text>
+              <line x1={150} y1={ex.y} x2={360} y2={100}
+                stroke={ex.color} strokeWidth={2.5} strokeLinecap="round"
+                className="signal-flow"
+                style={{ color: ex.color }}
+                markerEnd="url(#l11-arrow)" />
+              <circle r={4} fill="#ffd93d" stroke={INK} strokeWidth={1}>
+                <animateMotion dur="1.6s" repeatCount="indefinite"
+                  path={`M150,${ex.y} L360,100`} />
+              </circle>
+            </g>
+          ))}
+
+          {/* Model node */}
+          <circle cx={420} cy={100} r={50} fill="url(#l11-model)" stroke={INK} strokeWidth={2.5}
+            className="pulse-glow" style={{ color: "#b18cf2" }} />
+          <circle cx={420} cy={100} r={50} fill="none" stroke="#b18cf2" strokeWidth={2}
+            strokeDasharray="3 4" className="wobble" opacity={0.6} />
+          <text x={420} y={97} textAnchor="middle" fill="#fff" fontFamily="Kalam" className="text-[14px] font-bold">Model</text>
+          <text x={420} y={114} textAnchor="middle" fill="#fff" fontFamily="Kalam" className="text-[10px]">learning</text>
+        </svg>
+        <p className="font-hand text-center text-xs text-muted-foreground mt-1">Labeled examples flow in → the model learns the pattern.</p>
+      </div>
+
+      <div className="card-sketchy p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Click a label, then click shapes to assign it</h3>
 
         {/* Label palette */}
         <div className="flex justify-center gap-3">
@@ -130,7 +181,7 @@ function LabelTheData() {
           />
         </div>
         <p className="text-xs text-center text-slate-500">
-          {labeled}/{items.length} labeled {labeled === items.length && " — Dataset ready!"}
+          {labeled}/{items.length} labeled {labeled === items.length && "  Dataset ready!"}
         </p>
 
         {/* Grid of shapes */}
@@ -177,21 +228,21 @@ function LabelTheData() {
               : "bg-amber-100 text-amber-700"
           }`}>
             {items.every((it) => assignments[it.id] === it.correctLabel)
-              ? "Perfect! All labels are correct — your dataset is ready for training!"
+              ? "Perfect! All labels are correct  your dataset is ready for training!"
               : `Some labels are wrong. Hint: circles = Cat, triangles = Bird, squares = Dog. Try again!`}
           </div>
         )}
       </div>
 
       <InfoBox variant="blue" title="What is Labeling?">
-        In supervised learning, every data point needs a <strong>label</strong> — the correct answer. Humans label thousands of examples so the computer can learn from them. This labeled collection is called a <strong>training dataset</strong>.
+        In supervised learning, every data point needs a <strong>label</strong>  the correct answer. Humans label thousands of examples so the computer can learn from them. This labeled collection is called a <strong>training dataset</strong>.
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Train vs Test Split                                        */
+/*  Tab 2  Train vs Test Split                                        */
 /* ------------------------------------------------------------------ */
 
 function TrainTestSplit() {
@@ -211,12 +262,12 @@ function TrainTestSplit() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Drag the slider to choose how much data to use for training vs testing</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Drag the slider to choose how much data to use for training vs testing</h3>
 
         {/* Slider */}
         <div className="flex items-center gap-3 max-w-md mx-auto">
-          <span className="text-xs font-medium text-indigo-600 w-20 text-right">Train {splitPct}%</span>
+          <span className="font-hand text-xs font-bold text-foreground w-24 text-right">Train {splitPct}%</span>
           <input
             type="range"
             min={40}
@@ -224,59 +275,68 @@ function TrainTestSplit() {
             step={10}
             value={splitPct}
             onChange={(e) => { playClick(); setSplitPct(Number(e.target.value)); }}
-            className="flex-1 accent-indigo-500"
+            className="flex-1 accent-accent-coral"
           />
-          <span className="text-xs font-medium text-amber-600 w-20">Test {100 - splitPct}%</span>
+          <span className="font-hand text-xs font-bold text-foreground w-24">Test {100 - splitPct}%</span>
         </div>
 
         {/* SVG visualization */}
         <svg viewBox="0 0 500 260" className="w-full max-w-[560px] mx-auto">
-          {/* Background zones */}
-          <rect x={20} y={10} width={460 * splitPct / 100} height={240} fill="#eef2ff" rx={8} />
-          <rect x={20 + 460 * splitPct / 100} y={10} width={460 * (100 - splitPct) / 100} height={240} fill="#fef3c7" rx={8} />
+          <defs>
+            <radialGradient id="ttbin-train" cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#7ee0d8" />
+              <stop offset="100%" stopColor="#4ecdc4" />
+            </radialGradient>
+            <radialGradient id="ttbin-test" cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#ffd0b3" />
+              <stop offset="100%" stopColor="#ffb88c" />
+            </radialGradient>
+          </defs>
 
-          {/* Divider line */}
-          <line
-            x1={20 + 460 * splitPct / 100}
-            y1={10}
-            x2={20 + 460 * splitPct / 100}
-            y2={250}
-            stroke="#6366f1"
-            strokeWidth={2}
-            strokeDasharray="6 3"
-          />
+          {/* Train bin */}
+          <rect x={20} y={10} width={460 * splitPct / 100 - 8} height={230} rx={14}
+            fill="url(#ttbin-train)" opacity={0.35} stroke={INK} strokeWidth={2.5} />
+          {/* Test bin */}
+          <rect x={20 + 460 * splitPct / 100 + 8} y={10} width={460 * (100 - splitPct) / 100 - 8} height={230} rx={14}
+            fill="url(#ttbin-test)" opacity={0.35} stroke={INK} strokeWidth={2.5} />
 
           {/* Zone labels */}
-          <text x={20 + (460 * splitPct / 100) / 2} y={255} textAnchor="middle" className="text-[11px] fill-indigo-600 font-semibold">
+          <text x={20 + (460 * splitPct / 100) / 2} y={258} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[12px] font-bold">
             Training ({trainCount})
           </text>
-          <text x={20 + 460 * splitPct / 100 + (460 * (100 - splitPct) / 100) / 2} y={255} textAnchor="middle" className="text-[11px] fill-amber-600 font-semibold">
+          <text x={20 + 460 * splitPct / 100 + (460 * (100 - splitPct) / 100) / 2} y={258} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[12px] font-bold">
             Testing ({dots.length - trainCount})
           </text>
 
-          {/* Dots */}
+          {/* Dots with signal-flow stroke */}
           {dots.map((d, i) => {
             const isTrain = i < trainCount;
+            const fill = isTrain ? "#4ecdc4" : "#ffb88c";
             return (
-              <circle
-                key={d.id}
-                cx={d.x}
-                cy={d.y}
-                r={8}
-                fill={d.color}
-                opacity={isTrain ? 1 : 0.4}
-                stroke={isTrain ? "#334155" : "#94a3b8"}
-                strokeWidth={isTrain ? 1.5 : 1}
-                style={{ transition: "opacity 0.3s, stroke 0.3s" }}
-              />
+              <g key={d.id}>
+                <circle
+                  cx={d.x} cy={d.y} r={9}
+                  fill={fill}
+                  stroke={INK} strokeWidth={2}
+                  className="pulse-glow"
+                  style={{ color: fill, animationDelay: `${i * 0.05}s` }}
+                />
+              </g>
             );
           })}
+          {/* signal-flow divider */}
+          <line
+            x1={20 + 460 * splitPct / 100} y1={10}
+            x2={20 + 460 * splitPct / 100} y2={240}
+            stroke={INK} strokeWidth={2.5}
+            className="signal-flow"
+          />
         </svg>
 
         {/* Stats */}
-        <div className="flex justify-center gap-6 text-xs text-slate-600">
-          <span>Training samples: <span className="font-bold text-indigo-700">{trainCount}</span></span>
-          <span>Testing samples: <span className="font-bold text-amber-700">{dots.length - trainCount}</span></span>
+        <div className="flex justify-center gap-6 font-hand text-xs text-foreground">
+          <span>Training samples: <span className="font-bold" style={{ color: "#4ecdc4" }}>{trainCount}</span></span>
+          <span>Testing samples: <span className="font-bold" style={{ color: "#ffb88c" }}>{dots.length - trainCount}</span></span>
         </div>
       </div>
 
@@ -288,7 +348,7 @@ function TrainTestSplit() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Supervised vs Unsupervised                                 */
+/*  Tab 3  Supervised vs Unsupervised                                 */
 /* ------------------------------------------------------------------ */
 
 function SupervisedVsUnsupervised() {
@@ -317,8 +377,8 @@ function SupervisedVsUnsupervised() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Toggle labels to see the difference between supervised and unsupervised views</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Toggle labels to see the difference between supervised and unsupervised views</h3>
 
         <div className="flex justify-center">
           <button
@@ -386,7 +446,7 @@ function SupervisedVsUnsupervised() {
                 </g>
               ))}
               <text x={190} y={250} textAnchor="middle" className="text-[10px] fill-slate-500 italic">
-                {showLabels ? "Labels revealed — can you see the clusters?" : "No labels — the algorithm must find groups on its own"}
+                {showLabels ? "Labels revealed  can you see the clusters?" : "No labels  the algorithm must find groups on its own"}
               </text>
             </svg>
           </div>
@@ -394,7 +454,7 @@ function SupervisedVsUnsupervised() {
       </div>
 
       <InfoBox variant="green" title="Supervised vs Unsupervised">
-        <strong>Supervised learning</strong> uses labeled data — the algorithm knows the correct answers during training. <strong>Unsupervised learning</strong> works with unlabeled data — the algorithm must discover hidden patterns and groupings by itself!
+        <strong>Supervised learning</strong> uses labeled data  the algorithm knows the correct answers during training. <strong>Unsupervised learning</strong> works with unlabeled data  the algorithm must discover hidden patterns and groupings by itself!
       </InfoBox>
     </div>
   );
@@ -415,7 +475,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "Supervised learning means the training data comes with labels — the correct answers. The algorithm learns by comparing its predictions to these known answers.",
+      "Supervised learning means the training data comes with labels  the correct answers. The algorithm learns by comparing its predictions to these known answers.",
   },
   {
     question: "Why do we split data into training and testing sets?",
@@ -497,12 +557,12 @@ export default function L11_SupervisedLearningActivity() {
           paragraphs={[
             "Aru was curious about how Byte could recognize fruits so quickly.",
             "Aru: How do you know that's an apple and not a tomato? They're both round and red!",
-            "Byte: Someone showed me hundreds of pictures WITH labels — 'this is an apple', 'this is a banana', 'this is a tomato'. I learned the subtle differences from those labeled examples.",
+            "Byte: Someone showed me hundreds of pictures WITH labels  'this is an apple', 'this is a banana', 'this is a tomato'. I learned the subtle differences from those labeled examples.",
             "Aru: So someone had to tell you the right answer every time?",
-            "Byte: Exactly! That's called supervised learning — learning from labeled examples. It's like having a teacher who marks every answer so you know what you got right and wrong.",
+            "Byte: Exactly! That's called supervised learning  learning from labeled examples. It's like having a teacher who marks every answer so you know what you got right and wrong.",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="Supervised learning is when an algorithm learns from labeled data — examples where the correct answer is already known. The algorithm studies these examples and learns to predict the right answer for new, unseen data."
+          conceptSummary="Supervised learning is when an algorithm learns from labeled data  examples where the correct answer is already known. The algorithm studies these examples and learns to predict the right answer for new, unseen data."
         />
       }
     />

@@ -1,8 +1,44 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { TrendingUp, SlidersHorizontal, Trophy, RefreshCw, Eye } from "lucide-react";
+import { TrendingUp, SlidersHorizontal, Trophy, RefreshCw, Eye, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
+import { playClick, playPop } from "../../utils/sounds";
+
+/* ------------------------------------------------------------------ */
+/*  Theme palette (matches sketchy notebook)                           */
+/* ------------------------------------------------------------------ */
+
+const THEMES = [
+  { name: "Coral", node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint", node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky", node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+];
+
+const INK = "#2b2a35";
+
+function ThemePicker({ themeIdx, setThemeIdx }: { themeIdx: number; setThemeIdx: (n: number) => void }) {
+  return (
+    <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+      <div className="flex items-center gap-2">
+        <Palette className="w-4 h-4 text-foreground/60" />
+        <span className="font-hand text-sm font-bold">Theme:</span>
+        <div className="flex gap-1.5">
+          {THEMES.map((t, i) => (
+            <button
+              key={t.name}
+              onClick={() => { playClick(); setThemeIdx(i); }}
+              title={t.name}
+              className={`w-6 h-6 rounded-full border-2 transition-transform ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+              style={{ background: t.node }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Seeded PRNG                                                        */
@@ -117,7 +153,7 @@ function PlotAxes({ width, height }: { width: number; height: number }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Drag the Line                                              */
+/*  Tab 1  Drag the Line                                              */
 /* ------------------------------------------------------------------ */
 
 function DragTheLine() {
@@ -125,6 +161,9 @@ function DragTheLine() {
   const svgH = 360;
   const plotW = svgW - PLOT_MARGIN.left - PLOT_MARGIN.right;
   const plotH = svgH - PLOT_MARGIN.top - PLOT_MARGIN.bottom;
+
+  const [themeIdx, setThemeIdx] = useState(0);
+  const theme = THEMES[themeIdx];
 
   const points = useMemo(() => generatePoints(42), []);
   const bestFit = useMemo(() => computeBestFit(points), [points]);
@@ -180,18 +219,26 @@ function DragTheLine() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Adjust the line to fit the data points</h3>
+      <ThemePicker themeIdx={themeIdx} setThemeIdx={setThemeIdx} />
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-base font-bold" style={{ color: INK }}>Adjust the line to fit the data points</h3>
 
         {/* SVG Scatter Plot */}
         <div className="overflow-x-auto flex justify-center">
           <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} className="max-w-full">
+            <defs>
+              <radialGradient id="bl-pt-grad" cx="35%" cy="30%">
+                <stop offset="0%" stopColor={theme.glow} />
+                <stop offset="100%" stopColor={theme.node} />
+              </radialGradient>
+            </defs>
             <PlotAxes width={svgW} height={svgH} />
 
             {/* Residual lines */}
             {points.map((p, i) => {
               const predicted = slope * p.x + intercept;
               const mag = Math.abs(p.y - predicted);
+              const big = mag >= 2;
               return (
                 <line
                   key={`r${i}`}
@@ -200,9 +247,11 @@ function DragTheLine() {
                   x2={toSvgX(p.x, plotW)}
                   y2={toSvgY(predicted, plotH)}
                   stroke={residualColor(mag)}
-                  strokeWidth={1.5}
+                  strokeWidth={big ? 2.5 : 1.5}
                   strokeDasharray="4 3"
-                  opacity={0.8}
+                  opacity={0.85}
+                  className={big ? "pulse-glow" : ""}
+                  style={big ? { color: residualColor(mag) } : undefined}
                 />
               );
             })}
@@ -213,26 +262,29 @@ function DragTheLine() {
               y1={toSvgY(lineY0, plotH)}
               x2={toSvgX(10, plotW)}
               y2={toSvgY(lineY10, plotH)}
-              stroke="#6366f1"
-              strokeWidth={2.5}
+              stroke={theme.node}
+              strokeWidth={3.5}
+              strokeLinecap="round"
+              className="pulse-glow"
+              style={{ color: theme.node }}
             />
 
             {/* Data points */}
             {points.map((p, i) => (
-              <circle key={`p${i}`} cx={toSvgX(p.x, plotW)} cy={toSvgY(p.y, plotH)} r={5} className="fill-indigo-500 stroke-white" strokeWidth={1.5} />
+              <circle key={`p${i}`} cx={toSvgX(p.x, plotW)} cy={toSvgY(p.y, plotH)} r={6} fill="url(#bl-pt-grad)" stroke={INK} strokeWidth={1.8} />
             ))}
           </svg>
         </div>
 
         {/* Stats display */}
-        <div className="flex flex-wrap justify-center gap-4 text-sm">
-          <span className="bg-indigo-50 text-indigo-700 font-semibold px-3 py-1 rounded-lg">
+        <div className="flex flex-wrap justify-center gap-3 text-sm">
+          <span className="font-hand font-bold px-3 py-1 rounded-lg border-2 border-foreground shadow-[2px_2px_0_#2b2a35]" style={{ background: theme.glow, color: INK }}>
             Slope: {slope.toFixed(1)}
           </span>
-          <span className="bg-indigo-50 text-indigo-700 font-semibold px-3 py-1 rounded-lg">
+          <span className="font-hand font-bold px-3 py-1 rounded-lg border-2 border-foreground shadow-[2px_2px_0_#2b2a35]" style={{ background: theme.glow, color: INK }}>
             Intercept: {intercept.toFixed(1)}
           </span>
-          <span className="bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-lg">
+          <span className="font-hand font-bold px-3 py-1 rounded-lg border-2 border-foreground shadow-[2px_2px_0_#2b2a35] bg-accent-yellow" style={{ color: INK }}>
             Total Error: {totalError.toFixed(2)}
           </span>
         </div>
@@ -276,8 +328,9 @@ function DragTheLine() {
         {/* Show Best Fit button */}
         <div className="flex justify-center">
           <button
-            onClick={animateToBestFit}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            onClick={() => { playPop(); animateToBestFit(); }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-hand font-bold border-2 border-foreground shadow-[2px_2px_0_#2b2a35] bg-accent-yellow hover:translate-y-px transition-transform"
+            style={{ color: INK }}
           >
             <Eye className="w-4 h-4" />
             Show Best Fit
@@ -286,7 +339,7 @@ function DragTheLine() {
       </div>
 
       <InfoBox variant="blue">
-        The best line is the one where the total error — the sum of all distances from points to the line — is as
+        The best line is the one where the total error  the sum of all distances from points to the line  is as
         small as possible. Can you beat the computer? Adjust the slope and intercept to minimize the error!
       </InfoBox>
     </div>
@@ -294,7 +347,7 @@ function DragTheLine() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — What Do Slope and Intercept Mean?                          */
+/*  Tab 2  What Do Slope and Intercept Mean?                          */
 /* ------------------------------------------------------------------ */
 
 function SlopeInterceptExplorer() {
@@ -325,7 +378,7 @@ function SlopeInterceptExplorer() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
         <h3 className="text-sm font-semibold text-slate-700">Explore how slope and intercept change the line</h3>
 
         {/* SVG Plot */}
@@ -499,8 +552,8 @@ function SlopeInterceptExplorer() {
           ].map((preset) => (
             <button
               key={preset.label}
-              onClick={() => applyPreset(preset.s, preset.i)}
-              className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors"
+              onClick={() => { playClick(); applyPreset(preset.s, preset.i); }}
+              className="px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground bg-background hover:bg-accent-yellow/40 shadow-[2px_2px_0_#2b2a35] transition-all"
             >
               {preset.label}
             </button>
@@ -509,7 +562,7 @@ function SlopeInterceptExplorer() {
       </div>
 
       <InfoBox variant="amber">
-        The slope tells you how steep the line is — positive means uphill, negative means downhill, zero means flat.
+        The slope tells you how steep the line is  positive means uphill, negative means downhill, zero means flat.
         The intercept is where the line crosses the Y axis (the starting point when X is 0).
       </InfoBox>
     </div>
@@ -517,7 +570,7 @@ function SlopeInterceptExplorer() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Error Showdown                                             */
+/*  Tab 3  Error Showdown                                             */
 /* ------------------------------------------------------------------ */
 
 function ErrorShowdown() {
@@ -617,7 +670,7 @@ function ErrorShowdown() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
         <h3 className="text-sm font-semibold text-slate-700">Can you match the computer's best fit?</h3>
 
         {/* Side-by-side plots */}
@@ -701,8 +754,8 @@ function ErrorShowdown() {
         {/* New Data button */}
         <div className="flex justify-center">
           <button
-            onClick={newData}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            onClick={() => { playClick(); newData(); }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-hand font-bold border-2 border-foreground shadow-[2px_2px_0_#2b2a35] bg-accent-yellow hover:translate-y-px transition-transform"
           >
             <RefreshCw className="w-4 h-4" />
             New Data
@@ -711,7 +764,7 @@ function ErrorShowdown() {
       </div>
 
       <InfoBox variant="green">
-        Machine learning does exactly this — it adjusts the line (or curve) over and over until the error is as small
+        Machine learning does exactly this  it adjusts the line (or curve) over and over until the error is as small
         as possible. You just did machine learning with your hands!
       </InfoBox>
     </div>
@@ -809,7 +862,7 @@ export default function L8_BestLineActivity() {
       lessonNumber={2}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="You manually adjusted a line to fit data. But how would a computer do this automatically? It needs a set of steps — an algorithm!"
+      nextLessonHint="You manually adjusted a line to fit data. But how would a computer do this automatically? It needs a set of steps  an algorithm!"
       story={
         <StorySection
           paragraphs={[

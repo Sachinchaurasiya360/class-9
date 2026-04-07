@@ -5,6 +5,8 @@ import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
 import { playClick, playPop } from "../../utils/sounds";
 
+const INK = "#2b2a35";
+
 /* ------------------------------------------------------------------ */
 /*  Seeded PRNG                                                        */
 /* ------------------------------------------------------------------ */
@@ -20,7 +22,7 @@ function mulberry32(seed: number): () => number {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Build a Decision Tree                                     */
+/*  Tab 1  Build a Decision Tree                                     */
 /* ------------------------------------------------------------------ */
 
 interface DataRow {
@@ -121,8 +123,8 @@ function BuildADecisionTree() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Build a decision tree by choosing which feature to split on</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Build a decision tree by choosing which feature to split on</h3>
 
         {/* Data table */}
         <div className="overflow-x-auto">
@@ -169,29 +171,52 @@ function BuildADecisionTree() {
         {tree && (
           <div className="space-y-3">
             <svg viewBox="0 0 500 220" className="w-full max-w-[500px] mx-auto">
+              <defs>
+                <radialGradient id="dt-root" cx="35%" cy="30%">
+                  <stop offset="0%" stopColor="#c9adf7" />
+                  <stop offset="100%" stopColor="#b18cf2" />
+                </radialGradient>
+                <radialGradient id="dt-play" cx="35%" cy="30%">
+                  <stop offset="0%" stopColor="#7ee0d8" />
+                  <stop offset="100%" stopColor="#4ecdc4" />
+                </radialGradient>
+                <radialGradient id="dt-stay" cx="35%" cy="30%">
+                  <stop offset="0%" stopColor="#ff8a8a" />
+                  <stop offset="100%" stopColor="#ff6b6b" />
+                </radialGradient>
+              </defs>
               {/* Root node */}
-              <rect x={190} y={10} width={120} height={36} rx={8} fill="#6366f1" />
-              <text x={250} y={33} textAnchor="middle" className="text-[11px] fill-white font-bold">{tree.feature}?</text>
+              <rect x={190} y={10} width={120} height={40} rx={12}
+                fill="url(#dt-root)" stroke={INK} strokeWidth={2.5}
+                className="pulse-glow" style={{ color: "#b18cf2" }} />
+              <text x={250} y={35} textAnchor="middle" fill="#fff" fontFamily="Kalam" className="text-[13px] font-bold">{tree.feature}?</text>
 
               {/* Branches */}
               {tree.children?.map((child, i) => {
                 const count = tree.children?.length ?? 1;
                 const spacing = 400 / (count + 1);
                 const cx = 50 + spacing * (i + 1);
+                const isPlay = child.label?.startsWith("Play");
 
                 return (
                   <g key={i}>
-                    {/* Edge */}
-                    <line x1={250} y1={46} x2={cx} y2={100} stroke="#94a3b8" strokeWidth={2} />
+                    {/* Edge with signal-flow */}
+                    <line x1={250} y1={50} x2={cx} y2={100}
+                      stroke={isPlay ? "#4ecdc4" : "#ff6b6b"} strokeWidth={2.5} strokeLinecap="round"
+                      className="signal-flow"
+                      style={{ color: isPlay ? "#4ecdc4" : "#ff6b6b" }} />
                     {/* Edge label */}
                     <text x={(250 + cx) / 2 + (i === 0 ? -15 : i === count - 1 ? 15 : 0)}
-                      y={70} textAnchor="middle" className="text-[10px] fill-slate-500 font-medium">
+                      y={75} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">
                       {child.value}
                     </text>
                     {/* Leaf node */}
-                    <rect x={cx - 55} y={100} width={110} height={36} rx={8}
-                      fill={child.label?.startsWith("Play") ? "#22c55e" : "#ef4444"} />
-                    <text x={cx} y={123} textAnchor="middle" className="text-[10px] fill-white font-bold">
+                    <rect x={cx - 55} y={100} width={110} height={40} rx={12}
+                      fill={isPlay ? "url(#dt-play)" : "url(#dt-stay)"}
+                      stroke={INK} strokeWidth={2.5}
+                      className="pulse-glow"
+                      style={{ color: isPlay ? "#4ecdc4" : "#ff6b6b" }} />
+                    <text x={cx} y={125} textAnchor="middle" fill="#fff" fontFamily="Kalam" className="text-[11px] font-bold">
                       {child.label}
                     </text>
                   </g>
@@ -228,7 +253,7 @@ function BuildADecisionTree() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Tree Visualization                                         */
+/*  Tab 2  Tree Visualization                                         */
 /* ------------------------------------------------------------------ */
 
 interface AnimalTreeNode {
@@ -353,8 +378,8 @@ function TreeVisualization() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Click on question nodes to expand or collapse the tree</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Click on question nodes to expand or collapse the tree</h3>
 
         <div className="flex justify-center gap-3">
           <button onClick={expandAll}
@@ -386,7 +411,7 @@ function TreeVisualization() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Depth vs Accuracy                                         */
+/*  Tab 3  Depth vs Accuracy                                         */
 /* ------------------------------------------------------------------ */
 
 function DepthVsAccuracy() {
@@ -435,17 +460,17 @@ function DepthVsAccuracy() {
   }, [depth]);
 
   const descriptions: Record<number, string> = {
-    1: "Underfitting: Only one split — too simple to capture the pattern well.",
+    1: "Underfitting: Only one split  too simple to capture the pattern well.",
     2: "Getting better: A few splits start to separate the classes nicely.",
     3: "Good fit: The tree captures the main pattern without being too complex.",
-    4: "Getting complex: More boundaries than needed — starting to overfit.",
+    4: "Getting complex: More boundaries than needed  starting to overfit.",
     5: "Overfitting: Too many splits! The tree memorizes noise instead of learning the real pattern.",
   };
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Adjust tree depth and see how the decision boundary changes</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Adjust tree depth and see how the decision boundary changes</h3>
 
         {/* Depth slider */}
         <div className="flex items-center gap-3 max-w-xs mx-auto">
@@ -526,7 +551,7 @@ function DepthVsAccuracy() {
       </div>
 
       <InfoBox variant="amber" title="Underfitting vs Overfitting">
-        A <strong>shallow tree</strong> (low depth) might be too simple — it underfits, missing important patterns. A <strong>deep tree</strong> (high depth) can memorize noise — it overfits. The sweet spot is a tree that captures the real pattern without being overly complex.
+        A <strong>shallow tree</strong> (low depth) might be too simple  it underfits, missing important patterns. A <strong>deep tree</strong> (high depth) can memorize noise  it overfits. The sweet spot is a tree that captures the real pattern without being overly complex.
       </InfoBox>
     </div>
   );
@@ -557,18 +582,18 @@ const quizQuestions = [
       "An unused feature",
     ],
     correctIndex: 2,
-    explanation: "Leaf nodes are the endpoints of the tree — they contain the final prediction or classification, with no further questions to ask.",
+    explanation: "Leaf nodes are the endpoints of the tree  they contain the final prediction or classification, with no further questions to ask.",
   },
   {
     question: "What happens when a decision tree is too deep?",
     options: [
       "It becomes faster",
       "It underfits the data",
-      "It overfits — memorizing noise instead of learning patterns",
+      "It overfits  memorizing noise instead of learning patterns",
       "It stops working completely",
     ],
     correctIndex: 2,
-    explanation: "An overly deep tree creates too many specific rules that fit the training data perfectly but fail on new data — this is overfitting.",
+    explanation: "An overly deep tree creates too many specific rules that fit the training data perfectly but fail on new data  this is overfitting.",
   },
   {
     question: "How does a decision tree choose which feature to split on?",
@@ -579,7 +604,7 @@ const quizQuestions = [
       "It uses all features at once",
     ],
     correctIndex: 2,
-    explanation: "The algorithm evaluates each feature and picks the one that creates the most pure/separated groups — this gives the most informative split.",
+    explanation: "The algorithm evaluates each feature and picks the one that creates the most pure/separated groups  this gives the most informative split.",
   },
   {
     question: "What is 'underfitting'?",

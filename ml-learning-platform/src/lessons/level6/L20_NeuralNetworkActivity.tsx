@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { Network, Layers, Target, Play, RotateCcw, Shuffle, Palette, Zap } from "lucide-react";
+import { Network, Layers, Target, Play, RotateCcw, Shuffle, Palette, Zap, Plus, Minus, Sliders } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
@@ -70,33 +70,100 @@ function forwardPass(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Network Architecture                                       */
+/*  Tab 1  Network Architecture                                       */
 /* ------------------------------------------------------------------ */
+
+const MIN_INPUTS = 1, MAX_INPUTS = 4;
+const MIN_HIDDEN = 1, MAX_HIDDEN = 8;
 
 function ArchitectureTab() {
   const [hiddenCount, setHiddenCount] = useState(4);
   const [seed, setSeed] = useState(42);
   const [themeIdx, setThemeIdx] = useState(0);
   const [signalSpeed, setSignalSpeed] = useState(1.4);
-  const [inputs, setInputs] = useState([0.6, 0.4]);
+  const [inputs, setInputs] = useState<number[]>([0.6, 0.4]);
   const [showWeights, setShowWeights] = useState(false);
   const [autoPulse, setAutoPulse] = useState(true);
+  const [showLab, setShowLab] = useState(false);
+
+  // Editable weights/biases live in state so users can tweak them
+  const [storedNet, setStoredNet] = useState(() => initWeights(mulberry32(42), 2, 4));
+  const [netShape, setNetShape] = useState({ seed: 42, i: 2, h: 4 });
 
   const theme = THEMES[themeIdx];
-  const rng = useMemo(() => mulberry32(seed), [seed]);
-  const net = useMemo(() => initWeights(rng, 2, hiddenCount), [rng, hiddenCount]);
-  const result = useMemo(() => forwardPass(inputs, net.wH, net.bH, net.wO, net.bO), [net, inputs]);
+  const inputCount = inputs.length;
+
+  // If seed or shape changed, regenerate weights synchronously during render
+  // (so the very next render has wH/bH/wO sized to match inputs/hiddenCount)
+  let net = storedNet;
+  if (netShape.seed !== seed || netShape.i !== inputCount || netShape.h !== hiddenCount) {
+    net = initWeights(mulberry32(seed), inputCount, hiddenCount);
+    setStoredNet(net);
+    setNetShape({ seed, i: inputCount, h: hiddenCount });
+  }
+  const setNet = setStoredNet;
+
+  const result = useMemo(
+    () => forwardPass(inputs, net.wH, net.bH, net.wO, net.bO),
+    [net, inputs],
+  );
 
   const handleRandomize = useCallback(() => {
     playPop();
     setSeed((s) => s + 1);
   }, []);
 
+  const addInput = () => {
+    if (inputCount >= MAX_INPUTS) return;
+    playPop();
+    setInputs((arr) => [...arr, 0.5]);
+  };
+  const removeInput = () => {
+    if (inputCount <= MIN_INPUTS) return;
+    playPop();
+    setInputs((arr) => arr.slice(0, -1));
+  };
+  const addHidden = () => {
+    if (hiddenCount >= MAX_HIDDEN) return;
+    playPop();
+    setHiddenCount((c) => c + 1);
+  };
+  const removeHidden = () => {
+    if (hiddenCount <= MIN_HIDDEN) return;
+    playPop();
+    setHiddenCount((c) => c - 1);
+  };
+
+  const updateWH = (j: number, i: number, v: number) => {
+    setNet((n) => {
+      const wH = n.wH.map((row) => row.slice());
+      wH[j][i] = v;
+      return { ...n, wH };
+    });
+  };
+  const updateBH = (j: number, v: number) => {
+    setNet((n) => {
+      const bH = n.bH.slice();
+      bH[j] = v;
+      return { ...n, bH };
+    });
+  };
+  const updateWO = (j: number, v: number) => {
+    setNet((n) => {
+      const wO = n.wO.slice();
+      wO[j] = v;
+      return { ...n, wO };
+    });
+  };
+  const updateBO = (v: number) => setNet((n) => ({ ...n, bO: v }));
+
   const W = 540, H = 280;
   const inputX = 70, hiddenX = 270, outputX = 470;
-  const inputYs = [110, 170];
+  const inputYs = Array.from({ length: inputCount }, (_, i) =>
+    inputCount === 1 ? H / 2 : 60 + (i * (H - 120)) / (inputCount - 1),
+  );
   const hiddenYs = Array.from({ length: hiddenCount }, (_, i) =>
-    50 + (i * (H - 100)) / Math.max(hiddenCount - 1, 1),
+    hiddenCount === 1 ? H / 2 : 40 + (i * (H - 80)) / (hiddenCount - 1),
   );
   const outputY = H / 2;
 
@@ -143,17 +210,52 @@ function ArchitectureTab() {
         </label>
       </div>
 
-      {/* ---------- Hidden count ---------- */}
-      <div className="card-sketchy p-4" style={{ background: "#fff8e7" }}>
-        <label className="font-hand text-base font-bold flex justify-between items-center mb-2">
-          <span>Hidden neurons:</span>
-          <span className="px-3 py-0.5 rounded border-2 border-foreground bg-accent-yellow">{hiddenCount}</span>
-        </label>
-        <input
-          type="range" min={1} max={6} step={1} value={hiddenCount}
-          onChange={(e) => { playPop(); setHiddenCount(parseInt(e.target.value)); }}
-          className="w-full" style={{ accentColor: theme.hidden }}
-        />
+      {/* ---------- Add / Remove neurons ---------- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="card-sketchy p-3 flex items-center justify-between" style={{ background: "#fff8e7" }}>
+          <span className="font-hand text-sm font-bold">Input neurons</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={removeInput}
+              disabled={inputCount <= MIN_INPUTS}
+              className="w-8 h-8 rounded-lg border-2 border-foreground bg-background hover:bg-accent-coral hover:text-white font-bold disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+              title="Remove input"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            <span className="px-3 py-1 rounded border-2 border-foreground bg-accent-yellow font-hand font-bold min-w-[2.2rem] text-center">{inputCount}</span>
+            <button
+              onClick={addInput}
+              disabled={inputCount >= MAX_INPUTS}
+              className="w-8 h-8 rounded-lg border-2 border-foreground bg-background hover:bg-accent-mint font-bold disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+              title="Add input"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <div className="card-sketchy p-3 flex items-center justify-between" style={{ background: "#fff8e7" }}>
+          <span className="font-hand text-sm font-bold">Hidden neurons</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={removeHidden}
+              disabled={hiddenCount <= MIN_HIDDEN}
+              className="w-8 h-8 rounded-lg border-2 border-foreground bg-background hover:bg-accent-coral hover:text-white font-bold disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+              title="Remove hidden neuron"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            <span className="px-3 py-1 rounded border-2 border-foreground bg-accent-yellow font-hand font-bold min-w-[2.2rem] text-center">{hiddenCount}</span>
+            <button
+              onClick={addHidden}
+              disabled={hiddenCount >= MAX_HIDDEN}
+              className="w-8 h-8 rounded-lg border-2 border-foreground bg-background hover:bg-accent-mint font-bold disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
+              title="Add hidden neuron"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ---------- The network ---------- */}
@@ -284,11 +386,28 @@ function ArchitectureTab() {
 
           {/* ---------- Output node ---------- */}
           <g>
+            {result.output >= 0.5 && (
+              <>
+                <circle cx={outputX} cy={outputY} r={32} fill="none" stroke={theme.accent} strokeWidth={3} className="fire-ring" />
+                <circle cx={outputX} cy={outputY} r={32} fill="none" stroke={theme.out} strokeWidth={2} className="fire-ring" style={{ animationDelay: "0.4s" }} />
+              </>
+            )}
             <circle cx={outputX} cy={outputY} r={32} fill="none" stroke={theme.out} strokeWidth={2.5} opacity={0.4} className="pulse-glow" style={{ color: theme.out }} />
             <circle cx={outputX} cy={outputY} r={28} fill="url(#nn-out-grad)" stroke={INK} strokeWidth={2.5} />
             <text x={outputX} y={outputY + 6} textAnchor="middle" className="text-[14px] font-bold" fill={INK} fontFamily="Kalam">
               {result.output.toFixed(3)}
             </text>
+            {result.output >= 0.5 && Array.from({ length: 6 }).map((_, k) => {
+              const a = (k / 6) * Math.PI * 2;
+              return (
+                <line key={k}
+                  x1={outputX} y1={outputY}
+                  x2={outputX + Math.cos(a) * 48} y2={outputY + Math.sin(a) * 48}
+                  stroke={theme.accent} strokeWidth={2.2} strokeLinecap="round"
+                  className="spark" style={{ animationDelay: `${k * 0.05}s` }}
+                />
+              );
+            })}
           </g>
 
           {/* ---------- Layer labels ---------- */}
@@ -299,7 +418,7 @@ function ArchitectureTab() {
       </div>
 
       {/* ---------- Input sliders ---------- */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {inputs.map((v, i) => (
           <div key={i} className="card-sketchy p-3 space-y-1.5">
             <label className="font-hand text-sm font-bold flex justify-between">
@@ -320,16 +439,97 @@ function ArchitectureTab() {
         ))}
       </div>
 
-      <div className="flex gap-3 justify-center">
+      <div className="flex gap-3 justify-center flex-wrap">
         <button onClick={handleRandomize} className="btn-sketchy text-sm">
           <Shuffle className="w-4 h-4" />
           Randomize Weights
         </button>
+        <button
+          onClick={() => { playClick(); setShowLab((v) => !v); }}
+          className="btn-sketchy text-sm"
+          style={showLab ? { background: theme.hidden, color: "#fff" } : undefined}
+        >
+          <Sliders className="w-4 h-4" />
+          {showLab ? "Hide" : "Open"} Experiment Lab
+        </button>
       </div>
+
+      {/* ---------- Experiment Lab: tweak every weight & bias ---------- */}
+      {showLab && (
+        <div className="card-sketchy p-4 space-y-4" style={{ background: "#fffdf5" }}>
+          <div className="font-hand text-base font-bold flex items-center gap-2">
+            <Sliders className="w-4 h-4" /> Experiment Lab — tweak weights & biases
+          </div>
+
+          {/* Hidden neuron weights */}
+          <div className="space-y-3">
+            {net.wH.map((row, j) => (
+              <div key={`hlab-${j}`} className="border-2 border-foreground/30 rounded-lg p-3" style={{ background: "#fff8e7" }}>
+                <div className="font-hand text-sm font-bold mb-2 flex items-center justify-between">
+                  <span style={{ color: theme.hidden }}>Hidden h{j + 1}</span>
+                  <span className="text-xs text-muted-foreground">activation: {result.hidden[j].toFixed(3)}</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {row.map((w, i) => (
+                    <label key={`whlab-${j}-${i}`} className="font-hand text-xs flex items-center gap-2">
+                      <span className="w-14">w(x{i + 1}→h{j + 1})</span>
+                      <input
+                        type="range" min={-3} max={3} step={0.05} value={w}
+                        onChange={(e) => updateWH(j, i, parseFloat(e.target.value))}
+                        className="flex-1" style={{ accentColor: theme.hidden }}
+                      />
+                      <span className="w-10 text-right font-bold">{w.toFixed(2)}</span>
+                    </label>
+                  ))}
+                  <label className="font-hand text-xs flex items-center gap-2">
+                    <span className="w-14">bias b{j + 1}</span>
+                    <input
+                      type="range" min={-3} max={3} step={0.05} value={net.bH[j]}
+                      onChange={(e) => updateBH(j, parseFloat(e.target.value))}
+                      className="flex-1" style={{ accentColor: theme.accent }}
+                    />
+                    <span className="w-10 text-right font-bold">{net.bH[j].toFixed(2)}</span>
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Output weights */}
+          <div className="border-2 border-foreground/30 rounded-lg p-3" style={{ background: "#f0fdf4" }}>
+            <div className="font-hand text-sm font-bold mb-2 flex items-center justify-between">
+              <span style={{ color: theme.out }}>Output</span>
+              <span className="text-xs text-muted-foreground">value: {result.output.toFixed(3)}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {net.wO.map((w, j) => (
+                <label key={`wolab-${j}`} className="font-hand text-xs flex items-center gap-2">
+                  <span className="w-14">w(h{j + 1}→o)</span>
+                  <input
+                    type="range" min={-3} max={3} step={0.05} value={w}
+                    onChange={(e) => updateWO(j, parseFloat(e.target.value))}
+                    className="flex-1" style={{ accentColor: theme.out }}
+                  />
+                  <span className="w-10 text-right font-bold">{w.toFixed(2)}</span>
+                </label>
+              ))}
+              <label className="font-hand text-xs flex items-center gap-2">
+                <span className="w-14">bias bo</span>
+                <input
+                  type="range" min={-3} max={3} step={0.05} value={net.bO}
+                  onChange={(e) => updateBO(parseFloat(e.target.value))}
+                  className="flex-1" style={{ accentColor: theme.accent }}
+                />
+                <span className="w-10 text-right font-bold">{net.bO.toFixed(2)}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
 
       <InfoBox variant="blue">
         <span className="font-hand text-base">
-          🌐 Each line is a connection — thicker = stronger weight, red = negative. Watch the pulses race from inputs through hidden neurons to the output. Drag the input sliders and the whole network reacts live!
+          🌐 Each line is a connection  thicker = stronger weight, red = negative. Watch the pulses race from inputs through hidden neurons to the output. Drag the input sliders and the whole network reacts live!
         </span>
       </InfoBox>
     </div>
@@ -337,7 +537,7 @@ function ArchitectureTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Layer by Layer                                             */
+/*  Tab 2  Layer by Layer                                             */
 /* ------------------------------------------------------------------ */
 
 function LayerByLayerTab() {
@@ -554,7 +754,7 @@ function LayerByLayerTab() {
 
       <InfoBox variant="green">
         <span className="font-hand text-base">
-          🪜 A forward pass moves data layer by layer. Click step by step and watch the signals light up — first the hidden layer, then the output (with celebration rings 🎉).
+          🪜 A forward pass moves data layer by layer. Click step by step and watch the signals light up  first the hidden layer, then the output (with celebration rings 🎉).
         </span>
       </InfoBox>
     </div>
@@ -562,7 +762,7 @@ function LayerByLayerTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Solving XOR                                                */
+/*  Tab 3  Solving XOR                                                */
 /* ------------------------------------------------------------------ */
 
 const XOR_DATA: [number, number, number][] = [

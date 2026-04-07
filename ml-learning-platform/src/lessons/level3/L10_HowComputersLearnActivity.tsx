@@ -11,9 +11,81 @@ import {
   ChevronUp,
   Trophy,
 } from "lucide-react";
+import { Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
+import { playClick, playPop } from "../../utils/sounds";
+
+const THEMES = [
+  { name: "Coral", node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint", node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky", node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+];
+
+const INK = "#2b2a35";
+
+function ThemePicker({ themeIdx, setThemeIdx }: { themeIdx: number; setThemeIdx: (n: number) => void }) {
+  return (
+    <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+      <div className="flex items-center gap-2">
+        <Palette className="w-4 h-4 text-foreground/60" />
+        <span className="font-hand text-sm font-bold">Theme:</span>
+        <div className="flex gap-1.5">
+          {THEMES.map((t, i) => (
+            <button
+              key={t.name}
+              onClick={() => { playClick(); setThemeIdx(i); }}
+              title={t.name}
+              className={`w-6 h-6 rounded-full border-2 transition-transform ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+              style={{ background: t.node }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Animated learning loop: Guess -> Check -> Adjust -> back */
+function LearningLoopDiagram({ theme }: { theme: typeof THEMES[number] }) {
+  return (
+    <div className="card-sketchy notebook-grid p-3">
+      <p className="font-hand text-xs font-bold uppercase tracking-wide text-center mb-1" style={{ color: INK, opacity: 0.7 }}>
+        The Learning Loop
+      </p>
+      <svg viewBox="0 0 420 140" className="w-full max-w-[460px] mx-auto">
+        <defs>
+          <radialGradient id="ll-grad" cx="35%" cy="30%">
+            <stop offset="0%" stopColor={theme.glow} />
+            <stop offset="100%" stopColor={theme.node} />
+          </radialGradient>
+          <marker id="ll-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+            <path d="M0,0 L10,4 L0,8 Z" fill={INK} />
+          </marker>
+        </defs>
+        {/* Three nodes */}
+        {[
+          { cx: 60, cy: 70, label: "GUESS" },
+          { cx: 210, cy: 70, label: "CHECK" },
+          { cx: 360, cy: 70, label: "ADJUST" },
+        ].map((n, i) => (
+          <g key={i}>
+            <circle cx={n.cx} cy={n.cy} r={36} fill="url(#ll-grad)" stroke={INK} strokeWidth={2.5} className="pulse-glow" style={{ color: theme.node, animationDelay: `${i * 0.4}s` }} />
+            <text x={n.cx} y={n.cy + 4} textAnchor="middle" fontFamily="Kalam" fontWeight="bold" fontSize={13} fill="#fff">{n.label}</text>
+          </g>
+        ))}
+        {/* Forward arrows */}
+        <line x1={100} y1={70} x2={170} y2={70} stroke={theme.node} strokeWidth={3} className="signal-flow" style={{ color: theme.node }} markerEnd="url(#ll-arrow)" />
+        <line x1={250} y1={70} x2={320} y2={70} stroke={theme.node} strokeWidth={3} className="signal-flow" style={{ color: theme.node }} markerEnd="url(#ll-arrow)" />
+        {/* Loop back arrow */}
+        <path d="M 360 110 Q 210 150 60 110" fill="none" stroke={theme.accent} strokeWidth={3} className="signal-flow" style={{ color: theme.accent }} markerEnd="url(#ll-arrow)" />
+        <text x={210} y={138} textAnchor="middle" fontFamily="Kalam" fontWeight="bold" fontSize={11} fill={INK}>repeat until error is small</text>
+      </svg>
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Seeded PRNG                                                        */
@@ -264,10 +336,12 @@ function LossCurve({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — The Guessing Game                                          */
+/*  Tab 1  The Guessing Game                                          */
 /* ------------------------------------------------------------------ */
 
 function GuessingGame() {
+  const [themeIdx, setThemeIdx] = useState(0);
+  const theme = THEMES[themeIdx];
   const [secretNumber, setSecretNumber] = useState(42);
   const [started, setStarted] = useState(false);
   const [low, setLow] = useState(1);
@@ -332,8 +406,10 @@ function GuessingGame() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">
+      <ThemePicker themeIdx={themeIdx} setThemeIdx={setThemeIdx} />
+      <LearningLoopDiagram theme={theme} />
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-base font-bold" style={{ color: INK }}>
           Pick a secret number and watch the computer find it!
         </h3>
 
@@ -363,8 +439,8 @@ function GuessingGame() {
               />
             </div>
             <button
-              onClick={startGame}
-              className="inline-flex items-center gap-1.5 px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+              onClick={() => { playPop(); startGame(); }}
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg font-hand font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] hover:translate-y-px transition-transform"
             >
               <Play className="w-4 h-4" />
               Start
@@ -537,14 +613,14 @@ function GuessingGame() {
 
       <InfoBox variant="blue">
         This is learning in its simplest form: guess, get feedback, adjust. Every machine learning algorithm works on
-        this same principle — make a prediction, check how wrong you are, and adjust to be less wrong next time!
+        this same principle  make a prediction, check how wrong you are, and adjust to be less wrong next time!
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Train the Line                                             */
+/*  Tab 2  Train the Line                                             */
 /* ------------------------------------------------------------------ */
 
 function TrainTheLine() {
@@ -599,7 +675,7 @@ function TrainTheLine() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
         <h3 className="text-sm font-semibold text-slate-700">Watch the computer learn to fit a line to the data</h3>
 
         {/* Stats bar */}
@@ -685,7 +761,7 @@ function TrainTheLine() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Learning Speed                                             */
+/*  Tab 3  Learning Speed                                             */
 /* ------------------------------------------------------------------ */
 
 interface LRTracker {
@@ -785,7 +861,7 @@ function LearningSpeed() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
         <h3 className="text-sm font-semibold text-slate-700">
           How does step size affect learning?
         </h3>
@@ -820,7 +896,7 @@ function LearningSpeed() {
                 <LossCurve width={180} height={100} history={tracker.lossHistory} label={label} color={color} />
               </div>
               <div className="text-xs text-slate-600">
-                Error: <span className="font-bold">{tracker.lossHistory.length > 0 ? tracker.lossHistory[tracker.lossHistory.length - 1].toFixed(2) : "—"}</span>
+                Error: <span className="font-bold">{tracker.lossHistory.length > 0 ? tracker.lossHistory[tracker.lossHistory.length - 1].toFixed(2) : ""}</span>
               </div>
               {getObservation(tracker, type) && (
                 <div
@@ -896,7 +972,7 @@ function LearningSpeed() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 4 — You vs The Computer                                        */
+/*  Tab 4  You vs The Computer                                        */
 /* ------------------------------------------------------------------ */
 
 function YouVsComputer() {
@@ -1024,7 +1100,7 @@ function YouVsComputer() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
         <h3 className="text-sm font-semibold text-slate-700">Can you fit the line better than the computer?</h3>
 
         {/* Timer and status */}
@@ -1180,7 +1256,7 @@ function YouVsComputer() {
       </div>
 
       <InfoBox variant="indigo">
-        Don't worry if the computer beats you — that's the whole point of machine learning! Computers can try thousands
+        Don't worry if the computer beats you  that's the whole point of machine learning! Computers can try thousands
         of adjustments per second. Your job is to understand HOW it works, not to be faster.
       </InfoBox>
     </div>

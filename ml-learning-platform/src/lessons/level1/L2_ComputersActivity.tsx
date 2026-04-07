@@ -3,20 +3,37 @@ import { ToggleLeft, MessageSquare, Cpu, Shuffle, Trash2, Play, Keyboard, Monito
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
+import { playClick, playPop, playSuccess } from "../../utils/sounds";
+
+/* Sketchy palette */
+const INK = "#2b2a35";
+const CORAL = "#ff6b6b";
+const MINT = "#4ecdc4";
+const YELLOW = "#ffd93d";
+const LAVENDER = "#b18cf2";
+const SKY = "#6bb6ff";
+const PEACH = "#ffb88c";
+const PAPER = "#fffdf5";
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Binary Translator                                         */
+/*  Tab 1 – Binary Translator                                          */
 /* ------------------------------------------------------------------ */
+
+const BIT_COLORS = [CORAL, PEACH, YELLOW, MINT, SKY, LAVENDER, "#ff9ec7", "#7ee787"];
 
 function BinaryTranslator() {
   const [bits, setBits] = useState<number[]>([0, 0, 0, 0, 0, 0, 0, 0]);
+  const [flashIdx, setFlashIdx] = useState<number | null>(null);
 
   const toggleBit = useCallback((index: number) => {
+    playPop();
     setBits((prev) => {
       const next = [...prev];
       next[index] = next[index] === 0 ? 1 : 0;
       return next;
     });
+    setFlashIdx(index);
+    setTimeout(() => setFlashIdx(null), 500);
   }, []);
 
   const decimalValue = useMemo(
@@ -32,135 +49,168 @@ function BinaryTranslator() {
   }, [decimalValue]);
 
   const randomize = useCallback(() => {
+    playClick();
     setBits(Array.from({ length: 8 }, () => (Math.random() > 0.5 ? 1 : 0)));
   }, []);
 
   const clearAll = useCallback(() => {
+    playClick();
     setBits([0, 0, 0, 0, 0, 0, 0, 0]);
   }, []);
 
+  const placeValues = [128, 64, 32, 16, 8, 4, 2, 1];
+
   return (
     <div className="space-y-5">
-      {/* Toggle switches */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-5">
-        <h3 className="text-sm font-semibold text-slate-700">Click each switch to toggle a bit</h3>
+      <div className="card-sketchy p-5 space-y-5">
+        <h3 className="font-hand text-base text-center" style={{ color: INK }}>
+          Click each switch to toggle a <span style={{ color: CORAL, fontWeight: 700 }}>bit</span>
+        </h3>
 
-        <div className="flex justify-center gap-2">
-          {bits.map((bit, i) => (
-            <button
-              key={i}
-              onClick={() => toggleBit(i)}
-              className="flex flex-col items-center gap-1 group"
-            >
-              <svg width="40" height="64" viewBox="0 0 40 64" className="cursor-pointer">
-                {/* Track */}
-                <rect
-                  x="4"
-                  y="8"
-                  width="32"
-                  height="48"
-                  rx="16"
-                  className={`transition-colors duration-200 ${bit === 1 ? "fill-indigo-500" : "fill-slate-300"}`}
-                />
-                {/* Knob */}
-                <circle
-                  cx="20"
-                  cy={bit === 1 ? 24 : 40}
-                  r="10"
-                  className="fill-white drop-shadow transition-all duration-200"
-                />
-              </svg>
-              <span
-                className={`text-sm font-mono font-bold transition-colors duration-200 ${
-                  bit === 1 ? "text-indigo-600" : "text-slate-400"
-                }`}
+        <div className="flex justify-center gap-2 flex-wrap">
+          {bits.map((bit, i) => {
+            const color = BIT_COLORS[i];
+            const flashing = flashIdx === i;
+            return (
+              <button
+                key={i}
+                onClick={() => toggleBit(i)}
+                className="flex flex-col items-center gap-1 group"
+                style={{ width: 48 }}
               >
-                {bit}
-              </span>
-            </button>
-          ))}
+                <div className="font-hand text-[10px]" style={{ color: INK, opacity: 0.6 }}>
+                  {placeValues[i]}
+                </div>
+                <svg width="44" height="68" viewBox="0 0 44 68">
+                  {/* Track */}
+                  <rect
+                    x="4" y="6" width="36" height="56" rx="18"
+                    fill={bit === 1 ? color : PAPER}
+                    stroke={INK} strokeWidth={2.5}
+                    style={{ filter: "drop-shadow(2px 2px 0 #2b2a35)", transition: "fill .3s" }}
+                  />
+                  {/* Knob */}
+                  <circle
+                    cx="22"
+                    cy={bit === 1 ? 20 : 48}
+                    r="10"
+                    fill={PAPER}
+                    stroke={INK} strokeWidth={2}
+                    style={{ transition: "cy 0.3s cubic-bezier(.5,1.6,.5,1)" }}
+                  />
+                  {/* Flash ring on toggle */}
+                  {flashing && (
+                    <circle cx="22" cy={bit === 1 ? 20 : 48} r="10" fill="none" stroke={color} strokeWidth="2.5">
+                      <animate attributeName="r" from="10" to="22" dur="0.5s" />
+                      <animate attributeName="opacity" from="1" to="0" dur="0.5s" />
+                    </circle>
+                  )}
+                </svg>
+                <span
+                  className="font-hand text-base"
+                  style={{
+                    color: bit === 1 ? color : INK,
+                    fontWeight: 700,
+                    opacity: bit === 1 ? 1 : 0.5,
+                  }}
+                >
+                  {bit}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Readout */}
-        <div className="text-center space-y-1">
-          <p className="text-sm text-slate-600">
-            Binary: <span className="font-mono font-bold text-slate-800">{binaryString}</span>
+        <div className="text-center space-y-2 pt-2">
+          <p className="font-hand text-base" style={{ color: INK }}>
+            Binary:{" "}
+            <span className="px-2 py-1 rounded border-2" style={{
+              borderColor: INK, background: PAPER, fontFamily: "Kalam, cursive", fontWeight: 700,
+              boxShadow: "2px 2px 0 #2b2a35",
+            }}>
+              {binaryString}
+            </span>
           </p>
-          <p className="text-sm text-slate-600">
-            Decimal: <span className="font-mono font-bold text-slate-800">= {decimalValue}</span>
+          <p className="font-hand text-lg" style={{ color: INK }}>
+            Decimal:{" "}
+            <span className="marker-highlight-yellow" style={{ fontWeight: 700, fontSize: 24 }}>
+              {decimalValue}
+            </span>
           </p>
           {asciiChar && (
-            <p className="text-sm text-slate-600">
-              Character: <span className="font-mono font-bold text-indigo-600 text-lg">{asciiChar}</span>
+            <p className="font-hand text-base" style={{ color: INK }}>
+              Character:{" "}
+              <span style={{
+                display: "inline-block",
+                background: LAVENDER, color: PAPER,
+                padding: "4px 12px", borderRadius: 6,
+                border: `2px solid ${INK}`, boxShadow: "2px 2px 0 #2b2a35",
+                fontFamily: "Kalam, cursive", fontWeight: 700, fontSize: 22,
+              }}>
+                {asciiChar}
+              </span>
             </p>
           )}
         </div>
 
-        {/* Buttons */}
         <div className="flex justify-center gap-3">
-          <button
-            onClick={randomize}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-200 transition-colors"
-          >
-            <Shuffle className="w-3.5 h-3.5" />
-            Random
+          <button onClick={randomize} className="btn-sketchy font-hand text-sm" style={{ background: SKY }}>
+            <Shuffle className="w-3.5 h-3.5" /> Random
           </button>
-          <button
-            onClick={clearAll}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            Clear All
+          <button onClick={clearAll} className="btn-sketchy-outline font-hand text-sm">
+            <Trash2 className="w-3.5 h-3.5" /> Clear
           </button>
         </div>
       </div>
 
-      {/* Reference table */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4">
-        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Quick Reference</h4>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+      <div className="card-sketchy p-4">
+        <h4 className="font-hand text-sm font-bold mb-2" style={{ color: INK }}>Quick Reference</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[
-            { label: "0", binary: "00000000" },
-            { label: "65 (A)", binary: "01000001" },
-            { label: "97 (a)", binary: "01100001" },
-            { label: "48 (0)", binary: "00110000" },
+            { label: "0", binary: "00000000", color: PEACH },
+            { label: "65 (A)", binary: "01000001", color: CORAL },
+            { label: "97 (a)", binary: "01100001", color: MINT },
+            { label: "48 (0)", binary: "00110000", color: LAVENDER },
           ].map((item) => (
-            <div key={item.label} className="bg-slate-50 rounded-lg px-3 py-2 text-center">
-              <span className="text-slate-500">{item.label}</span>
-              <span className="text-slate-400 mx-1">=</span>
-              <span className="text-slate-700">{item.binary}</span>
+            <div key={item.label} className="rounded-lg px-2 py-1.5 text-center border-2 font-hand text-xs"
+              style={{ borderColor: INK, background: PAPER, boxShadow: "2px 2px 0 #2b2a35" }}>
+              <div style={{ color: item.color, fontWeight: 700 }}>{item.label}</div>
+              <div style={{ color: INK, fontFamily: "Kalam, cursive" }}>{item.binary}</div>
             </div>
           ))}
         </div>
       </div>
 
       <InfoBox variant="blue">
-        Computers store everything as 0s and 1s. Each 0 or 1 is called a <strong>bit</strong>. Eight bits together
-        are called a <strong>byte</strong>. With 8 bits you can represent numbers from 0 to 255.
+        Computers store everything as 0s and 1s. Each 0 or 1 is a <strong>bit</strong>. Eight bits together
+        are a <strong>byte</strong>. With 8 bits you can represent 256 different values (0–255).
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Encode a Message                                          */
+/*  Tab 2 – Encode a Message                                           */
 /* ------------------------------------------------------------------ */
 
 function EncodeMessage() {
   const [message, setMessage] = useState("Hello");
 
   const charData = useMemo(() => {
-    return Array.from(message).map((ch) => {
+    return Array.from(message).map((ch, idx) => {
       const code = ch.charCodeAt(0);
       const binaryArr = Array.from({ length: 8 }, (_, i) => (code >> (7 - i)) & 1);
-      return { char: ch, code, bits: binaryArr };
+      return { char: ch, code, bits: binaryArr, color: BIT_COLORS[idx % BIT_COLORS.length] };
     });
   }, [message]);
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Type a short message to see its binary encoding</h3>
+      <div className="card-sketchy p-5 space-y-4">
+        <h3 className="font-hand text-base text-center" style={{ color: INK }}>
+          Type a message to see its <span style={{ color: LAVENDER, fontWeight: 700 }}>binary code</span>
+        </h3>
 
         <input
           type="text"
@@ -168,64 +218,61 @@ function EncodeMessage() {
           onChange={(e) => setMessage(e.target.value.slice(0, 8))}
           maxLength={8}
           placeholder="Type up to 8 characters..."
-          className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition-colors"
+          className="w-full px-4 py-2.5 border-2 rounded-lg font-hand text-base focus:outline-none"
+          style={{ borderColor: INK, background: PAPER, color: INK, boxShadow: "3px 3px 0 #2b2a35" }}
         />
 
-        <p className="text-xs text-slate-500">{message.length}/8 characters</p>
+        <p className="font-hand text-xs text-center" style={{ color: INK, opacity: 0.6 }}>
+          {message.length}/8 characters
+        </p>
 
-        {/* Binary grid */}
         {charData.length > 0 && (
           <div className="overflow-x-auto">
             <svg
-              width={Math.max(charData.length * 56 + 16, 200)}
-              height={220}
-              viewBox={`0 0 ${Math.max(charData.length * 56 + 16, 200)} 220`}
+              width={Math.max(charData.length * 64 + 20, 220)}
+              height={240}
+              viewBox={`0 0 ${Math.max(charData.length * 64 + 20, 220)} 240`}
               className="mx-auto"
             >
+              <defs>
+                <pattern id="paper-grid-enc" width="14" height="14" patternUnits="userSpaceOnUse">
+                  <path d="M14 0H0V14" fill="none" stroke="#e8e3d3" strokeWidth="0.6" />
+                </pattern>
+              </defs>
+              <rect x="0" y="0" width="100%" height="100%" fill="url(#paper-grid-enc)" />
+
               {charData.map((d, ci) => {
-                const x = ci * 56 + 16;
+                const x = ci * 64 + 20;
                 return (
                   <g key={ci}>
-                    {/* Character */}
-                    <rect x={x} y={4} width={44} height={32} rx={6} className="fill-indigo-100" />
-                    <text
-                      x={x + 22}
-                      y={26}
-                      textAnchor="middle"
-                      className="fill-indigo-700 text-sm font-bold"
-                      style={{ fontSize: 16 }}
-                    >
-                      {d.char}
+                    {/* Character card */}
+                    <rect x={x} y={6} width={48} height={42} rx={6}
+                      fill={d.color} stroke={INK} strokeWidth={2.5}
+                      style={{ filter: "drop-shadow(3px 3px 0 #2b2a35)" }} />
+                    <text x={x + 24} y={36} textAnchor="middle" fill={INK}
+                      style={{ fontFamily: "Kalam, cursive", fontSize: 22, fontWeight: 700 }}>
+                      {d.char === " " ? "␣" : d.char}
                     </text>
 
                     {/* ASCII code */}
-                    <text
-                      x={x + 22}
-                      y={54}
-                      textAnchor="middle"
-                      className="fill-slate-500"
-                      style={{ fontSize: 11 }}
-                    >
+                    <text x={x + 24} y={64} textAnchor="middle" fill={INK}
+                      style={{ fontFamily: "Patrick Hand, cursive", fontSize: 12, fontWeight: 700 }}>
                       {d.code}
                     </text>
 
-                    {/* Bits */}
+                    {/* Bits stack */}
                     {d.bits.map((bit, bi) => (
-                      <g key={bi}>
+                      <g key={bi} style={{ animation: `wobble 0.4s ease ${bi * 0.04}s both` }}>
                         <rect
-                          x={x + 4}
-                          y={64 + bi * 18}
-                          width={36}
-                          height={14}
-                          rx={3}
-                          className={`transition-colors duration-200 ${bit === 1 ? "fill-indigo-500" : "fill-slate-200"}`}
+                          x={x + 6} y={74 + bi * 19} width={36} height={16} rx={4}
+                          fill={bit === 1 ? d.color : PAPER}
+                          stroke={INK} strokeWidth={1.5}
+                          style={{ transition: "fill .3s" }}
                         />
                         <text
-                          x={x + 22}
-                          y={64 + bi * 18 + 11}
-                          textAnchor="middle"
-                          className={`font-mono ${bit === 1 ? "fill-white" : "fill-slate-500"}`}
-                          style={{ fontSize: 10 }}
+                          x={x + 24} y={74 + bi * 19 + 13} textAnchor="middle"
+                          fill={bit === 1 ? PAPER : INK}
+                          style={{ fontFamily: "Kalam, cursive", fontSize: 12, fontWeight: 700 }}
                         >
                           {bit}
                         </text>
@@ -240,15 +287,15 @@ function EncodeMessage() {
       </div>
 
       <InfoBox variant="amber">
-        Every letter, number, and symbol has a binary code. When you send a text message, your phone converts each
-        character to binary, sends it as electrical signals, and the other phone decodes it back!
+        Every letter, number, and symbol has a binary code. When you send a text, your phone converts each character
+        to binary, sends it as electrical signals, and the other phone decodes it back!
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Inside the Computer                                       */
+/*  Tab 3 – Inside the Computer                                        */
 /* ------------------------------------------------------------------ */
 
 interface ComponentInfo {
@@ -259,64 +306,61 @@ interface ComponentInfo {
   icon: React.ReactNode;
   cx: number;
   cy: number;
+  color: string;
 }
 
 const COMPONENTS: ComponentInfo[] = [
   {
+    id: "input",
+    label: "Input",
+    subtitle: "The Ears",
+    description: "Input devices like keyboards, mice, and microphones let you send information into the computer.",
+    icon: <Keyboard className="w-5 h-5" />,
+    cx: 70, cy: 170,
+    color: SKY,
+  },
+  {
     id: "cpu",
     label: "CPU",
     subtitle: "The Brain",
-    description:
-      "The CPU is the brain of the computer. It reads instructions, does math, and makes decisions. Modern CPUs do billions of operations per second.",
+    description: "The CPU is the brain. It reads instructions, does math, and makes decisions — billions of times per second.",
     icon: <Brain className="w-5 h-5" />,
-    cx: 200,
-    cy: 60,
+    cx: 210, cy: 60,
+    color: CORAL,
   },
   {
     id: "memory",
     label: "Memory",
     subtitle: "The Bookshelf",
-    description:
-      "Memory (RAM) is like a bookshelf where the computer stores information it's currently using. It's fast but temporary \u2014 data is lost when the computer turns off.",
+    description: "Memory (RAM) is fast temporary storage. Data is lost when the computer turns off.",
     icon: <Database className="w-5 h-5" />,
-    cx: 340,
-    cy: 160,
-  },
-  {
-    id: "input",
-    label: "Input",
-    subtitle: "The Ears",
-    description:
-      "Input devices like keyboards, mice, and microphones let you send information into the computer.",
-    icon: <Keyboard className="w-5 h-5" />,
-    cx: 60,
-    cy: 160,
+    cx: 350, cy: 170,
+    color: LAVENDER,
   },
   {
     id: "output",
     label: "Output",
     subtitle: "The Mouth",
-    description:
-      "Output devices like screens, speakers, and printers let the computer show you results.",
+    description: "Output devices like screens, speakers, and printers let the computer show you results.",
     icon: <Monitor className="w-5 h-5" />,
-    cx: 200,
-    cy: 260,
+    cx: 210, cy: 280,
+    color: MINT,
   },
 ];
 
-/* Arrow path waypoints: Input -> CPU -> Memory -> CPU -> Output */
 const ARROW_PATH = [
-  { x: 60, y: 160 },   // Input
-  { x: 200, y: 60 },   // CPU
-  { x: 340, y: 160 },  // Memory
-  { x: 200, y: 60 },   // CPU (return)
-  { x: 200, y: 260 },  // Output
+  { x: 70, y: 170, id: "input" },
+  { x: 210, y: 60, id: "cpu" },
+  { x: 350, y: 170, id: "memory" },
+  { x: 210, y: 60, id: "cpu" },
+  { x: 210, y: 280, id: "output" },
 ];
 
 function InsideComputer() {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>("cpu");
   const [animating, setAnimating] = useState(false);
   const [dotPos, setDotPos] = useState<{ x: number; y: number } | null>(null);
+  const [activeNode, setActiveNode] = useState<string | null>(null);
   const animRef = useRef<number | null>(null);
 
   const selectedComp = useMemo(
@@ -324,7 +368,6 @@ function InsideComputer() {
     [selected],
   );
 
-  // Clean up animation on unmount
   useEffect(() => {
     return () => {
       if (animRef.current !== null) cancelAnimationFrame(animRef.current);
@@ -333,9 +376,10 @@ function InsideComputer() {
 
   const runAnimation = useCallback(() => {
     if (animating) return;
+    playClick();
     setAnimating(true);
 
-    const totalDuration = 3000; // 3 seconds
+    const totalDuration = 3600;
     const segments = ARROW_PATH.length - 1;
     const segDuration = totalDuration / segments;
     const startTime = performance.now();
@@ -344,7 +388,9 @@ function InsideComputer() {
       const elapsed = now - startTime;
       if (elapsed >= totalDuration) {
         setDotPos(null);
+        setActiveNode(null);
         setAnimating(false);
+        playSuccess();
         return;
       }
 
@@ -357,13 +403,13 @@ function InsideComputer() {
       const y = from.y + (to.y - from.y) * segProgress;
 
       setDotPos({ x, y });
+      setActiveNode(segProgress > 0.85 ? to.id : from.id);
       animRef.current = requestAnimationFrame(tick);
     }
 
     animRef.current = requestAnimationFrame(tick);
   }, [animating]);
 
-  // Build arrow SVG path segments
   const arrowSegments = useMemo(() => {
     const segs: { x1: number; y1: number; x2: number; y2: number }[] = [];
     for (let i = 0; i < ARROW_PATH.length - 1; i++) {
@@ -379,72 +425,67 @@ function InsideComputer() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Click a component to learn about it</h3>
+      <div className="card-sketchy p-5 space-y-4">
+        <h3 className="font-hand text-base text-center" style={{ color: INK }}>
+          Click a component to learn about it
+        </h3>
 
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* SVG Diagram */}
           <div className="flex-1 flex justify-center">
-            <svg width="400" height="320" viewBox="0 0 400 320" className="max-w-full">
+            <svg width="420" height="360" viewBox="0 0 420 360" className="max-w-full">
               <defs>
-                <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-                  <polygon points="0 0, 8 3, 0 6" className="fill-slate-400" />
+                <pattern id="paper-grid-pc" width="14" height="14" patternUnits="userSpaceOnUse">
+                  <path d="M14 0H0V14" fill="none" stroke="#e8e3d3" strokeWidth="0.6" />
+                </pattern>
+                <marker id="arrowhead-pc" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                  <path d="M0,0 L10,4 L0,8 Z" fill={INK} />
                 </marker>
+                <filter id="glow-pc">
+                  <feGaussianBlur stdDeviation="3" result="b" />
+                  <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+                </filter>
               </defs>
+              <rect x="0" y="0" width="420" height="360" fill="url(#paper-grid-pc)" />
 
               {/* Arrows */}
               {arrowSegments.map((seg, i) => (
                 <line
                   key={i}
-                  x1={seg.x1}
-                  y1={seg.y1}
-                  x2={seg.x2}
-                  y2={seg.y2}
-                  stroke="#94a3b8"
-                  strokeWidth="2"
-                  markerEnd="url(#arrowhead)"
+                  x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2}
+                  stroke={INK} strokeWidth={2.5} strokeLinecap="round"
+                  markerEnd="url(#arrowhead-pc)"
                   strokeDasharray={i === 2 ? "6 4" : undefined}
+                  opacity={0.7}
                 />
               ))}
 
               {/* Components */}
               {COMPONENTS.map((comp) => {
                 const isSelected = selected === comp.id;
+                const isActive = activeNode === comp.id;
                 return (
-                  <g
-                    key={comp.id}
-                    onClick={() => setSelected(comp.id)}
-                    className="cursor-pointer"
-                  >
+                  <g key={comp.id} onClick={() => { playClick(); setSelected(comp.id); }} className="cursor-pointer">
+                    {isActive && (
+                      <circle cx={comp.cx} cy={comp.cy} r={45} fill="none" stroke={comp.color} strokeWidth={3}>
+                        <animate attributeName="r" values="40;58;40" dur="0.6s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.9;0.2;0.9" dur="0.6s" repeatCount="indefinite" />
+                      </circle>
+                    )}
                     <rect
-                      x={comp.cx - 50}
-                      y={comp.cy - 28}
-                      width={100}
-                      height={56}
-                      rx={12}
-                      className={`transition-colors duration-200 ${
-                        isSelected
-                          ? "fill-indigo-100 stroke-indigo-500"
-                          : "fill-slate-100 stroke-slate-300 hover:fill-slate-200"
-                      }`}
-                      strokeWidth={isSelected ? 2.5 : 1.5}
+                      x={comp.cx - 56} y={comp.cy - 30} width={112} height={60} rx={10}
+                      fill={isSelected || isActive ? comp.color : PAPER}
+                      stroke={INK}
+                      strokeWidth={isSelected ? 3 : 2.5}
+                      style={{ filter: "drop-shadow(3px 3px 0 #2b2a35)" }}
                     />
-                    <text
-                      x={comp.cx}
-                      y={comp.cy - 6}
-                      textAnchor="middle"
-                      className={`font-semibold ${isSelected ? "fill-indigo-700" : "fill-slate-700"}`}
-                      style={{ fontSize: 13 }}
-                    >
+                    <text x={comp.cx} y={comp.cy - 4} textAnchor="middle"
+                      fill={isSelected || isActive ? PAPER : INK}
+                      style={{ fontFamily: "Kalam, cursive", fontSize: 16, fontWeight: 700 }}>
                       {comp.label}
                     </text>
-                    <text
-                      x={comp.cx}
-                      y={comp.cy + 12}
-                      textAnchor="middle"
-                      className={`${isSelected ? "fill-indigo-500" : "fill-slate-400"}`}
-                      style={{ fontSize: 10 }}
-                    >
+                    <text x={comp.cx} y={comp.cy + 16} textAnchor="middle"
+                      fill={isSelected || isActive ? PAPER : INK}
+                      style={{ fontFamily: "Patrick Hand, cursive", fontSize: 11, opacity: 0.85 }}>
                       {comp.subtitle}
                     </text>
                   </g>
@@ -453,36 +494,48 @@ function InsideComputer() {
 
               {/* Animated dot */}
               {dotPos && (
-                <circle cx={dotPos.x} cy={dotPos.y} r={7} className="fill-indigo-500">
-                  <animate attributeName="opacity" values="1;0.5;1" dur="0.6s" repeatCount="indefinite" />
-                </circle>
+                <>
+                  <circle cx={dotPos.x} cy={dotPos.y} r={9} fill={YELLOW} stroke={INK} strokeWidth={1.5} filter="url(#glow-pc)" />
+                  <circle cx={dotPos.x} cy={dotPos.y} r={14} fill="none" stroke={YELLOW} strokeWidth={2} opacity={0.5}>
+                    <animate attributeName="r" values="9;18;9" dur="0.6s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.7;0;0.7" dur="0.6s" repeatCount="indefinite" />
+                  </circle>
+                </>
               )}
             </svg>
           </div>
 
           {/* Info panel */}
           {selectedComp && (
-            <div className="lg:w-56 bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-2">
-              <div className="flex items-center gap-2 text-indigo-700">
-                {selectedComp.icon}
-                <h4 className="text-sm font-bold">{selectedComp.label}</h4>
+            <div
+              className="lg:w-56 card-sketchy p-4 space-y-2"
+              style={{ background: PAPER, borderTop: `5px solid ${selectedComp.color}` }}
+            >
+              <div className="flex items-center gap-2" style={{ color: INK }}>
+                <div
+                  className="rounded-md p-1"
+                  style={{ background: selectedComp.color, color: PAPER, border: `2px solid ${INK}` }}
+                >
+                  {selectedComp.icon}
+                </div>
+                <h4 className="font-hand text-base font-bold">{selectedComp.label}</h4>
               </div>
-              <p className="text-xs text-indigo-700 font-medium">{selectedComp.subtitle}</p>
-              <p className="text-xs text-indigo-800 leading-relaxed">{selectedComp.description}</p>
+              <p className="font-hand text-xs" style={{ color: selectedComp.color, fontWeight: 700 }}>
+                {selectedComp.subtitle}
+              </p>
+              <p className="font-hand text-xs leading-relaxed" style={{ color: INK }}>
+                {selectedComp.description}
+              </p>
             </div>
           )}
         </div>
 
-        {/* Run a Program button */}
         <div className="flex justify-center">
           <button
             onClick={runAnimation}
             disabled={animating}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              animating
-                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                : "bg-indigo-600 text-white hover:bg-indigo-700"
-            }`}
+            className="btn-sketchy font-hand text-sm"
+            style={{ background: YELLOW, opacity: animating ? 0.5 : 1 }}
           >
             <Play className="w-4 h-4" />
             {animating ? "Running..." : "Run a Program"}
@@ -491,15 +544,15 @@ function InsideComputer() {
       </div>
 
       <InfoBox variant="green">
-        The CPU is the brain. It reads instructions from memory, does the math, and sends results to the output.
-        It does this billions of times per second.
+        The CPU is the brain. It reads instructions from memory, does the math, and sends results to the output —
+        billions of times per second.
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Quiz data                                                         */
+/*  Quiz                                                               */
 /* ------------------------------------------------------------------ */
 
 const quizQuestions = [
@@ -527,12 +580,12 @@ const quizQuestions = [
     options: ["It stays forever", "It gets bigger", "It disappears", "It moves to the screen"],
     correctIndex: 2,
     explanation:
-      "RAM is temporary memory \u2014 when the computer turns off, everything stored in RAM is lost. That's why you save files to a hard drive!",
+      "RAM is temporary memory — when the computer turns off, everything stored in RAM is lost. That's why you save files to a hard drive!",
   },
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Main export                                                       */
+/*  Main                                                               */
 /* ------------------------------------------------------------------ */
 
 export default function L2_ComputersActivity() {

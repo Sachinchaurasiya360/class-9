@@ -1,25 +1,36 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { Box, ListOrdered, Zap } from "lucide-react";
+import { Box, ListOrdered, Zap, Sparkles } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
+import { playClick, playPop, playSuccess, playError } from "../../utils/sounds";
+
+/* Sketchy palette */
+const INK = "#2b2a35";
+const CORAL = "#ff6b6b";
+const MINT = "#4ecdc4";
+const YELLOW = "#ffd93d";
+const LAVENDER = "#b18cf2";
+const SKY = "#6bb6ff";
+const PEACH = "#ffb88c";
+const PAPER = "#fffdf5";
 
 /* ------------------------------------------------------------------ */
 /*  Tab 1 – Input-Output Machine                                      */
 /* ------------------------------------------------------------------ */
 
 const INPUTS = [
-  { label: "Number 5", value: 5, color: "#3b82f6" },
-  { label: "Number 12", value: 12, color: "#8b5cf6" },
-  { label: "Number 7", value: 7, color: "#06b6d4" },
-  { label: "Number 20", value: 20, color: "#f59e0b" },
+  { label: "Number 5", value: 5, color: CORAL },
+  { label: "Number 12", value: 12, color: LAVENDER },
+  { label: "Number 7", value: 7, color: MINT },
+  { label: "Number 20", value: 20, color: PEACH },
 ];
 
-const RULES: { label: string; fn: (n: number) => number }[] = [
-  { label: "Double it", fn: (n) => n * 2 },
-  { label: "Add 10", fn: (n) => n + 10 },
-  { label: "Square it", fn: (n) => n * n },
-  { label: "Subtract 3", fn: (n) => n - 3 },
+const RULES: { label: string; fn: (n: number) => number; color: string }[] = [
+  { label: "Double it", fn: (n) => n * 2, color: CORAL },
+  { label: "Add 10", fn: (n) => n + 10, color: MINT },
+  { label: "Square it", fn: (n) => n * n, color: LAVENDER },
+  { label: "Subtract 3", fn: (n) => n - 3, color: SKY },
 ];
 
 function InputOutputTab() {
@@ -28,28 +39,34 @@ function InputOutputTab() {
   const [output, setOutput] = useState<number | null>(null);
   const [showOutput, setShowOutput] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [pulseKey, setPulseKey] = useState(0);
 
   const handleProcess = useCallback(() => {
     if (selectedInput === null) return;
+    playClick();
     setProcessing(true);
     setShowOutput(false);
     setOutput(null);
+    setPulseKey((k) => k + 1);
     setTimeout(() => {
       const result = RULES[selectedRule].fn(INPUTS[selectedInput].value);
       setOutput(result);
       setProcessing(false);
-      // small delay so the fade-in is visible
+      playPop();
       requestAnimationFrame(() => setShowOutput(true));
-    }, 600);
+    }, 1100);
   }, [selectedInput, selectedRule]);
 
   const handleReset = useCallback(() => {
+    playClick();
     setSelectedInput(null);
     setSelectedRule(0);
     setOutput(null);
     setShowOutput(false);
     setProcessing(false);
   }, []);
+
+  const ruleColor = RULES[selectedRule].color;
 
   return (
     <div className="space-y-4">
@@ -59,15 +76,17 @@ function InputOutputTab() {
           <button
             key={r.label}
             onClick={() => {
+              playClick();
               setSelectedRule(i);
               setOutput(null);
               setShowOutput(false);
             }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 border ${
+            className={
               selectedRule === i
-                ? "bg-indigo-600 text-white border-indigo-600 shadow"
-                : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600"
-            }`}
+                ? "btn-sketchy font-hand text-sm"
+                : "btn-sketchy-outline font-hand text-sm"
+            }
+            style={selectedRule === i ? { background: r.color } : { borderColor: r.color, color: r.color }}
           >
             {r.label}
           </button>
@@ -75,142 +94,173 @@ function InputOutputTab() {
       </div>
 
       {/* SVG machine diagram */}
-      <svg viewBox="0 0 560 220" className="w-full max-w-[560px] mx-auto">
-        {/* Input cards (left) */}
+      <svg viewBox="0 0 580 240" className="w-full max-w-[580px] mx-auto">
+        <defs>
+          <marker id="arrowhead-sketchy" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+            <path d="M0,0 L10,4 L0,8 Z" fill={INK} />
+          </marker>
+          <pattern id="paper-grid" width="14" height="14" patternUnits="userSpaceOnUse">
+            <path d="M14 0H0V14" fill="none" stroke="#e8e3d3" strokeWidth="0.6" />
+          </pattern>
+          <filter id="glow-out">
+            <feGaussianBlur stdDeviation="3" result="b" />
+            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+
+        <rect x="0" y="0" width="580" height="240" fill="url(#paper-grid)" />
+
+        {/* Input cards */}
         {INPUTS.map((inp, i) => {
-          const y = 20 + i * 50;
+          const y = 18 + i * 50;
           const active = selectedInput === i;
           return (
             <g
               key={inp.label}
               onClick={() => {
+                playPop();
                 setSelectedInput(i);
                 setOutput(null);
                 setShowOutput(false);
               }}
               className="cursor-pointer"
+              style={{ transformOrigin: `60px ${y + 19}px`, transform: active ? "scale(1.05)" : "scale(1)", transition: "transform .25s" }}
             >
               <rect
-                x={10}
-                y={y}
-                width={100}
-                height={38}
-                rx={8}
-                fill={active ? inp.color : "#f8fafc"}
-                stroke={active ? inp.color : "#cbd5e1"}
-                strokeWidth={active ? 2 : 1}
-                className="transition-all duration-300"
+                x={10} y={y} width={108} height={40} rx={6}
+                fill={active ? inp.color : PAPER}
+                stroke={INK}
+                strokeWidth={2}
+                style={{ filter: active ? "drop-shadow(3px 3px 0 #2b2a35)" : "drop-shadow(2px 2px 0 #2b2a35)" }}
               />
-              <text
-                x={60}
-                y={y + 23}
-                textAnchor="middle"
-                className={`text-[12px] font-semibold ${active ? "fill-white" : "fill-slate-700"}`}
-                style={{ transition: "fill 0.3s" }}
-              >
+              <text x={64} y={y + 25} textAnchor="middle" fill={active ? PAPER : INK}
+                style={{ fontFamily: "Kalam, cursive", fontSize: 14, fontWeight: 700 }}>
                 {inp.label}
               </text>
             </g>
           );
         })}
 
-        {/* Arrow from inputs to machine */}
-        <line x1={120} y1={110} x2={185} y2={110} stroke="#94a3b8" strokeWidth={2} markerEnd="url(#arrowhead)" />
+        {/* Arrow input -> machine */}
+        <path d="M122,120 Q160,120 195,120" fill="none" stroke={INK} strokeWidth={2.5} strokeLinecap="round"
+          markerEnd="url(#arrowhead-sketchy)" />
+
+        {processing && selectedInput !== null && (
+          <circle key={`p1-${pulseKey}`} r={6} fill={INPUTS[selectedInput].color} stroke={INK} strokeWidth={1.5} filter="url(#glow-out)">
+            <animateMotion dur="0.55s" repeatCount="1" path="M122,120 Q160,120 195,120" />
+          </circle>
+        )}
 
         {/* Machine box */}
-        <rect x={190} y={50} width={160} height={120} rx={16} fill="#1e293b" stroke="#334155" strokeWidth={2} />
-        {/* Gear decoration */}
-        <circle cx={270} cy={110} r={28} fill="none" stroke="#475569" strokeWidth={2} strokeDasharray="6 4" />
-        <circle cx={270} cy={110} r={14} fill="#475569" />
-        <text x={270} y={115} textAnchor="middle" className="text-[11px] fill-slate-300 font-bold">
+        <rect x={200} y={50} width={170} height={140} rx={14} fill={PAPER} stroke={INK} strokeWidth={3}
+          style={{ filter: "drop-shadow(4px 4px 0 #2b2a35)" }} />
+        <rect x={208} y={58} width={154} height={124} rx={10} fill="none" stroke={ruleColor} strokeWidth={2} strokeDasharray="4 3" />
+
+        {/* Spinning gears */}
+        <g style={{ transformOrigin: "260px 125px", animation: processing ? "spin 1.2s linear infinite" : "none" }}>
+          <circle cx={260} cy={125} r={26} fill="none" stroke={INK} strokeWidth={2} />
+          {Array.from({ length: 8 }).map((_, i) => {
+            const a = (i / 8) * Math.PI * 2;
+            return <rect key={i} x={258} y={95} width={4} height={6} fill={INK}
+              transform={`rotate(${(a * 180) / Math.PI} 260 125)`} />;
+          })}
+          <circle cx={260} cy={125} r={10} fill={ruleColor} stroke={INK} strokeWidth={2} />
+        </g>
+        <g style={{ transformOrigin: "315px 155px", animation: processing ? "spin 0.9s linear infinite reverse" : "none" }}>
+          <circle cx={315} cy={155} r={16} fill="none" stroke={INK} strokeWidth={2} />
+          {Array.from({ length: 6 }).map((_, i) => {
+            const a = (i / 6) * Math.PI * 2;
+            return <rect key={i} x={313} y={137} width={4} height={5} fill={INK}
+              transform={`rotate(${(a * 180) / Math.PI} 315 155)`} />;
+          })}
+          <circle cx={315} cy={155} r={6} fill={YELLOW} stroke={INK} strokeWidth={1.5} />
+        </g>
+
+        <text x={285} y={75} textAnchor="middle" fill={INK}
+          style={{ fontFamily: "Patrick Hand, cursive", fontSize: 13, letterSpacing: 1 }}>
+          MACHINE
+        </text>
+        <text x={285} y={210} textAnchor="middle" fill={ruleColor}
+          style={{ fontFamily: "Kalam, cursive", fontSize: 14, fontWeight: 700 }}>
           {RULES[selectedRule].label}
         </text>
-        <text x={270} y={62} textAnchor="middle" className="text-[9px] fill-slate-400 font-medium uppercase tracking-wider">
-          Machine
-        </text>
 
-        {/* Arrow from machine to output */}
-        <line x1={355} y1={110} x2={420} y2={110} stroke="#94a3b8" strokeWidth={2} markerEnd="url(#arrowhead)" />
+        {/* Arrow machine -> output */}
+        <path d="M375,120 Q405,120 435,120" fill="none" stroke={INK} strokeWidth={2.5} strokeLinecap="round"
+          markerEnd="url(#arrowhead-sketchy)" />
+
+        {processing && (
+          <circle key={`p2-${pulseKey}`} r={6} fill={ruleColor} stroke={INK} strokeWidth={1.5} filter="url(#glow-out)">
+            <animateMotion dur="0.5s" begin="0.55s" repeatCount="1" path="M375,120 Q405,120 435,120" />
+          </circle>
+        )}
 
         {/* Output area */}
-        <rect
-          x={425}
-          y={70}
-          width={120}
-          height={80}
-          rx={12}
-          fill={showOutput ? "#ecfdf5" : "#f8fafc"}
-          stroke={showOutput ? "#34d399" : "#cbd5e1"}
-          strokeWidth={showOutput ? 2 : 1}
-          className="transition-all duration-500"
-        />
+        <rect x={440} y={70} width={130} height={100} rx={10}
+          fill={showOutput ? "#e8fff9" : PAPER}
+          stroke={INK} strokeWidth={3}
+          style={{ filter: "drop-shadow(3px 3px 0 #2b2a35)" }} />
+        {showOutput && (
+          <circle cx={505} cy={120} r={48} fill="none" stroke={MINT} strokeWidth={2.5} opacity={0.7}>
+            <animate attributeName="r" from="20" to="55" dur="0.8s" />
+            <animate attributeName="opacity" from="0.9" to="0" dur="0.8s" />
+          </circle>
+        )}
+        <text x={505} y={88} textAnchor="middle" fill={INK}
+          style={{ fontFamily: "Patrick Hand, cursive", fontSize: 12, letterSpacing: 1 }}>
+          OUTPUT
+        </text>
         {processing && (
-          <text x={485} y={115} textAnchor="middle" className="text-[13px] fill-slate-400 font-medium">
+          <text x={505} y={130} textAnchor="middle" fill={INK}
+            style={{ fontFamily: "Kalam, cursive", fontSize: 22, fontWeight: 700 }}>
             ...
           </text>
         )}
         {output !== null && (
-          <text
-            x={485}
-            y={115}
-            textAnchor="middle"
-            className="text-[22px] fill-green-700 font-bold"
+          <text x={505} y={140} textAnchor="middle" fill={INK}
             style={{
+              fontFamily: "Kalam, cursive", fontSize: 32, fontWeight: 700,
               opacity: showOutput ? 1 : 0,
               transition: "opacity 0.5s ease-in",
-            }}
-          >
+            }}>
             {output}
           </text>
         )}
-        <text x={485} y={85} textAnchor="middle" className="text-[9px] fill-slate-400 font-medium uppercase tracking-wider">
-          Output
-        </text>
-
-        {/* Arrow marker definition */}
-        <defs>
-          <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-            <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8" />
-          </marker>
-        </defs>
       </svg>
 
-      {/* Result text */}
       {output !== null && selectedInput !== null && showOutput && (
-        <div className="text-center text-sm font-medium text-slate-700 bg-slate-50 rounded-lg py-2 px-4 border border-slate-200 transition-all duration-300">
-          Input: <span className="text-blue-600">{INPUTS[selectedInput].value}</span> &rarr; Rule:{" "}
-          <span className="text-indigo-600">{RULES[selectedRule].label}</span> &rarr; Output:{" "}
-          <span className="text-green-600 font-bold">{output}</span>
+        <div className="card-sketchy text-center font-hand text-base py-2 px-4">
+          <span style={{ color: INPUTS[selectedInput].color }}>{INPUTS[selectedInput].value}</span>
+          {" → "}
+          <span style={{ color: ruleColor }}>{RULES[selectedRule].label}</span>
+          {" → "}
+          <span style={{ color: MINT, fontWeight: 700 }}>{output}</span>
         </div>
       )}
 
-      {/* Buttons */}
       <div className="flex gap-2 justify-center">
         <button
           onClick={handleProcess}
           disabled={selectedInput === null || processing}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="btn-sketchy font-hand"
+          style={{ background: YELLOW, opacity: selectedInput === null || processing ? 0.5 : 1 }}
         >
-          {processing ? "Processing..." : "Process"}
+          {processing ? "Processing..." : "Process!"}
         </button>
-        <button
-          onClick={handleReset}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300"
-        >
+        <button onClick={handleReset} className="btn-sketchy-outline font-hand">
           Reset
         </button>
       </div>
 
       <InfoBox variant="blue">
-        A machine takes something in, does something to it, and gives something back. Every time you give it the same
-        input with the same rule, you get the same output!
+        A machine takes something in, does something to it, and gives something back. Same input + same rule = same output, every time!
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 – Instruction Sequence (Robot Grid)                          */
+/*  Tab 2 – Instruction Sequence                                       */
 /* ------------------------------------------------------------------ */
 
 const GRID_SIZE = 6;
@@ -226,13 +276,21 @@ const DIR_DELTAS: Record<Direction, [number, number]> = {
   up: [0, -1],
 };
 
+const DIR_ARROW: Record<Direction, string> = {
+  right: "→",
+  down: "↓",
+  left: "←",
+  up: "↑",
+};
+
 function InstructionSequenceTab() {
   const [instructions, setInstructions] = useState<Direction[]>([]);
   const [robotPos, setRobotPos] = useState<[number, number]>([0, 0]);
-  const [visited, setVisited] = useState<Set<string>>(new Set(["0,0"]));
+  const [trail, setTrail] = useState<[number, number][]>([[0, 0]]);
   const [running, setRunning] = useState(false);
   const [execIndex, setExecIndex] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
+  const [celebrate, setCelebrate] = useState(false);
   const runTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const starPos: [number, number] = [5, 5];
@@ -242,6 +300,7 @@ function InstructionSequenceTab() {
   const addInstruction = useCallback(
     (dir: Direction) => {
       if (running) return;
+      playClick();
       setInstructions((prev) => [...prev, dir]);
       setMessage(null);
     },
@@ -252,61 +311,22 @@ function InstructionSequenceTab() {
     if (runTimerRef.current) clearTimeout(runTimerRef.current);
     setInstructions([]);
     setRobotPos([0, 0]);
-    setVisited(new Set(["0,0"]));
+    setTrail([[0, 0]]);
     setRunning(false);
     setExecIndex(0);
     setMessage(null);
+    setCelebrate(false);
   }, []);
-
-  const executeStep = useCallback(
-    (pos: [number, number], vis: Set<string>, idx: number, instrs: Direction[]): boolean => {
-      if (idx >= instrs.length) {
-        setRunning(false);
-        if (pos[0] === starPos[0] && pos[1] === starPos[1]) {
-          setMessage("You reached the star! Great job!");
-        }
-        return false;
-      }
-      const dir = instrs[idx];
-      const [dx, dy] = DIR_DELTAS[dir];
-      const nx = pos[0] + dx;
-      const ny = pos[1] + dy;
-      if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) {
-        setMessage("Oops! The robot went off the grid. Try again!");
-        setRunning(false);
-        return false;
-      }
-      const newPos: [number, number] = [nx, ny];
-      const newVis = new Set(vis);
-      newVis.add(`${nx},${ny}`);
-      setRobotPos(newPos);
-      setVisited(newVis);
-      setExecIndex(idx + 1);
-      if (nx === starPos[0] && ny === starPos[1]) {
-        setMessage("You reached the star! Great job!");
-        setRunning(false);
-        return false;
-      }
-      return true; // can continue
-    },
-    [starPos],
-  );
-
-  const handleStep = useCallback(() => {
-    if (running) return;
-    setMessage(null);
-    executeStep(robotPos, visited, execIndex, instructions);
-  }, [running, robotPos, visited, execIndex, instructions, executeStep]);
 
   const handleRun = useCallback(() => {
     if (running || instructions.length === 0) return;
     setMessage(null);
-    // Reset position before run
+    setCelebrate(false);
     let pos: [number, number] = [0, 0];
-    let vis = new Set(["0,0"]);
+    let tr: [number, number][] = [[0, 0]];
     let idx = 0;
     setRobotPos(pos);
-    setVisited(vis);
+    setTrail(tr);
     setExecIndex(0);
     setRunning(true);
 
@@ -315,6 +335,8 @@ function InstructionSequenceTab() {
         setRunning(false);
         if (pos[0] === starPos[0] && pos[1] === starPos[1]) {
           setMessage("You reached the star! Great job!");
+          setCelebrate(true);
+          playSuccess();
         }
         return;
       }
@@ -325,164 +347,167 @@ function InstructionSequenceTab() {
       if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE) {
         setMessage("Oops! The robot went off the grid. Try again!");
         setRunning(false);
+        playError();
         return;
       }
       pos = [nx, ny];
-      vis = new Set(vis);
-      vis.add(`${nx},${ny}`);
+      tr = [...tr, [nx, ny]];
       idx++;
-      setRobotPos([...pos] as [number, number]);
-      setVisited(new Set(vis));
+      setRobotPos(pos);
+      setTrail(tr);
       setExecIndex(idx);
+      playPop();
       if (nx === starPos[0] && ny === starPos[1]) {
         setMessage("You reached the star! Great job!");
+        setCelebrate(true);
         setRunning(false);
+        playSuccess();
         return;
       }
-      runTimerRef.current = setTimeout(tick, 200);
+      runTimerRef.current = setTimeout(tick, 280);
     };
-    runTimerRef.current = setTimeout(tick, 200);
-  }, [running, instructions, starPos]);
+    runTimerRef.current = setTimeout(tick, 280);
+  }, [running, instructions]);
 
-  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
       if (runTimerRef.current) clearTimeout(runTimerRef.current);
     };
   }, []);
 
-  const dirButtons: { dir: Direction; label: string }[] = [
-    { dir: "right", label: "Move Right" },
-    { dir: "down", label: "Move Down" },
-    { dir: "left", label: "Move Left" },
-    { dir: "up", label: "Move Up" },
+  const dirButtons: { dir: Direction; color: string }[] = [
+    { dir: "right", color: CORAL },
+    { dir: "down", color: MINT },
+    { dir: "left", color: LAVENDER },
+    { dir: "up", color: SKY },
   ];
+
+  const robotPx = GRID_PAD + robotPos[0] * CELL + CELL / 2;
+  const robotPy = GRID_PAD + robotPos[1] * CELL + CELL / 2;
 
   return (
     <div className="space-y-4">
-      {/* SVG Grid */}
       <div className="flex justify-center">
         <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full" style={{ maxWidth: svgW }}>
-          {/* Grid cells */}
+          <defs>
+            <pattern id="paper-grid-2" width="14" height="14" patternUnits="userSpaceOnUse">
+              <path d="M14 0H0V14" fill="none" stroke="#e8e3d3" strokeWidth="0.6" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width={svgW} height={svgH} fill="url(#paper-grid-2)" />
+
           {Array.from({ length: GRID_SIZE }, (_, row) =>
             Array.from({ length: GRID_SIZE }, (_, col) => {
               const x = GRID_PAD + col * CELL;
               const y = GRID_PAD + row * CELL;
               const key = `${col},${row}`;
-              const isVisited = visited.has(key);
-              const isRobot = robotPos[0] === col && robotPos[1] === row;
+              const visitIdx = trail.findIndex(([cx, cy]) => cx === col && cy === row);
+              const isVisited = visitIdx !== -1;
               const isStar = col === starPos[0] && row === starPos[1];
               return (
                 <g key={key}>
                   <rect
-                    x={x}
-                    y={y}
-                    width={CELL}
-                    height={CELL}
-                    fill={isRobot ? "#3b82f6" : isVisited ? "#bbf7d0" : "#f8fafc"}
-                    stroke="#cbd5e1"
-                    strokeWidth={1}
-                    rx={4}
-                    className="transition-all duration-200"
+                    x={x + 2} y={y + 2} width={CELL - 4} height={CELL - 4} rx={6}
+                    fill={isVisited ? "#fff4b8" : PAPER}
+                    stroke={INK}
+                    strokeWidth={1.5}
+                    opacity={isVisited ? 0.85 : 1}
                   />
-                  {isStar && !isRobot && (
-                    <text x={x + CELL / 2} y={y + CELL / 2 + 6} textAnchor="middle" className="text-[20px]">
-                      &#9733;
-                    </text>
-                  )}
-                  {isRobot && (
-                    <text x={x + CELL / 2} y={y + CELL / 2 + 7} textAnchor="middle" className="text-[22px]">
-                      &#129302;
+                  {isStar && (
+                    <text x={x + CELL / 2} y={y + CELL / 2 + 8} textAnchor="middle"
+                      style={{ fontSize: 24, filter: celebrate ? "drop-shadow(0 0 6px #ffd93d)" : "none" }}>
+                      ⭐
                     </text>
                   )}
                 </g>
               );
             }),
           )}
+
+          {trail.length > 1 && (
+            <polyline
+              points={trail.map(([cx, cy]) => `${GRID_PAD + cx * CELL + CELL / 2},${GRID_PAD + cy * CELL + CELL / 2}`).join(" ")}
+              fill="none" stroke={CORAL} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"
+              strokeDasharray="5 4" opacity={0.8}
+            />
+          )}
+
+          <g style={{ transition: "transform 0.25s ease-out", transform: `translate(${robotPx - CELL / 2}px, ${robotPy - CELL / 2}px)` }}>
+            <circle cx={CELL / 2} cy={CELL / 2} r={20} fill={SKY} stroke={INK} strokeWidth={2}
+              style={{ filter: "drop-shadow(2px 2px 0 #2b2a35)" }} />
+            <text x={CELL / 2} y={CELL / 2 + 8} textAnchor="middle" style={{ fontSize: 22 }}>🤖</text>
+          </g>
+
+          {celebrate && (
+            <circle cx={GRID_PAD + starPos[0] * CELL + CELL / 2} cy={GRID_PAD + starPos[1] * CELL + CELL / 2}
+              r={20} fill="none" stroke={YELLOW} strokeWidth={3}>
+              <animate attributeName="r" from="10" to="60" dur="0.9s" repeatCount="2" />
+              <animate attributeName="opacity" from="1" to="0" dur="0.9s" repeatCount="2" />
+            </circle>
+          )}
         </svg>
       </div>
 
-      {/* Step counter */}
-      <p className="text-center text-sm font-medium text-slate-600">
-        Steps: <span className="font-bold text-slate-800">{execIndex}</span>
+      <p className="text-center font-hand text-base">
+        Steps: <span style={{ color: CORAL, fontWeight: 700 }}>{execIndex}</span>
       </p>
 
-      {/* Direction buttons */}
       <div className="flex flex-wrap gap-2 justify-center">
         {dirButtons.map((b) => (
           <button
             key={b.dir}
             onClick={() => addInstruction(b.dir)}
             disabled={running}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300"
+            className="btn-sketchy font-hand text-sm"
+            style={{ background: b.color, opacity: running ? 0.5 : 1 }}
           >
-            {b.label}
+            {DIR_ARROW[b.dir]} {b.dir}
           </button>
         ))}
       </div>
 
-      {/* Instruction list */}
       {instructions.length > 0 && (
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-          <p className="text-xs font-medium text-slate-500 mb-1.5">Instruction List:</p>
-          <div className="flex flex-wrap gap-1">
-            {instructions.map((dir, i) => (
-              <span
-                key={i}
-                className={`inline-block px-2 py-0.5 rounded text-[11px] font-mono font-semibold transition-all duration-200 ${
-                  i < execIndex
-                    ? "bg-green-100 text-green-700 border border-green-300"
-                    : i === execIndex && running
-                      ? "bg-blue-100 text-blue-700 border border-blue-300"
-                      : "bg-white text-slate-600 border border-slate-200"
-                }`}
-              >
-                {dir}
-              </span>
-            ))}
+        <div className="card-sketchy">
+          <p className="font-hand text-xs mb-2" style={{ color: INK }}>Instruction List:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {instructions.map((dir, i) => {
+              const done = i < execIndex;
+              const current = i === execIndex && running;
+              return (
+                <span key={i}
+                  className="font-hand text-sm px-2 py-0.5 rounded border-2"
+                  style={{
+                    borderColor: INK,
+                    background: done ? MINT : current ? YELLOW : PAPER,
+                    boxShadow: "2px 2px 0 #2b2a35",
+                    transition: "all .25s",
+                  }}>
+                  {DIR_ARROW[dir]}
+                </span>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Control buttons */}
       <div className="flex gap-2 justify-center">
-        <button
-          onClick={handleRun}
-          disabled={running || instructions.length === 0}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
-        >
-          Run
+        <button onClick={handleRun} disabled={running || instructions.length === 0}
+          className="btn-sketchy font-hand"
+          style={{ background: MINT, opacity: running || instructions.length === 0 ? 0.5 : 1 }}>
+          ▶ Run
         </button>
-        <button
-          onClick={handleStep}
-          disabled={running || execIndex >= instructions.length}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
-        >
-          Step
-        </button>
-        <button
-          onClick={clearAll}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300"
-        >
-          Clear
-        </button>
+        <button onClick={clearAll} className="btn-sketchy-outline font-hand">Clear</button>
       </div>
 
-      {/* Message */}
       {message && (
-        <div
-          className={`text-center text-sm font-semibold rounded-lg py-2 px-4 border transition-all duration-300 ${
-            message.includes("star")
-              ? "bg-green-50 border-green-300 text-green-700"
-              : "bg-red-50 border-red-300 text-red-700"
-          }`}
-        >
+        <div className="card-sketchy text-center font-hand text-base"
+          style={{ background: message.includes("star") ? "#e8fff9" : "#ffe8e8" }}>
           {message}
         </div>
       )}
 
       <InfoBox variant="amber">
-        Order matters! The robot follows your instructions exactly, one at a time. Try different paths to reach the star!
+        Order matters! The robot follows your instructions exactly, one at a time.
       </InfoBox>
     </div>
   );
@@ -500,7 +525,6 @@ function SpeedTab() {
   const [finished, setFinished] = useState(false);
   const humanTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Log-scale slider: map 0..100 -> 10..10000
   const sliderToCount = useCallback((v: number): number => {
     const minLog = Math.log10(10);
     const maxLog = Math.log10(10000);
@@ -525,22 +549,20 @@ function SpeedTab() {
 
   const startRace = useCallback(() => {
     if (racing) return;
+    playClick();
     setHumanCount(0);
     setComputerCount(0);
     setFinished(false);
     setRacing(true);
 
-    // Computer finishes "instantly" (after a tiny delay for drama)
     setTimeout(() => {
       setComputerCount(additionCount);
-    }, 150);
+    }, 200);
 
-    // Human does ~5 per second
     let h = 0;
     humanTimerRef.current = setInterval(() => {
       h += 1;
       setHumanCount(h);
-      // Stop human when they reach ~5% or 50, whichever is bigger, or if they somehow finish
       if (h >= additionCount) {
         if (humanTimerRef.current) clearInterval(humanTimerRef.current);
         setFinished(true);
@@ -550,7 +572,7 @@ function SpeedTab() {
         setFinished(true);
         setRacing(false);
       }
-    }, 200); // 5 per second
+    }, 200);
   }, [racing, additionCount]);
 
   const resetRace = useCallback(() => {
@@ -568,105 +590,82 @@ function SpeedTab() {
   }, []);
 
   const barWidth = 380;
-  const barHeight = 32;
+  const barHeight = 36;
   const humanPct = additionCount > 0 ? Math.min(humanCount / additionCount, 1) : 0;
   const computerPct = additionCount > 0 ? Math.min(computerCount / additionCount, 1) : 0;
 
   return (
     <div className="space-y-4">
-      {/* Slider */}
-      <div className="space-y-1">
-        <label className="block text-xs font-medium text-slate-600">
-          Number of additions: <span className="font-bold text-slate-800">{additionCount.toLocaleString()}</span>
+      <div className="card-sketchy space-y-2">
+        <label className="block font-hand text-sm" style={{ color: INK }}>
+          Number of additions: <span style={{ color: CORAL, fontWeight: 700 }}>{additionCount.toLocaleString()}</span>
         </label>
         <input
-          type="range"
-          min={0}
-          max={100}
-          step={1}
-          value={sliderValue}
-          onChange={handleSlider}
-          disabled={racing}
-          className="w-full accent-indigo-600"
+          type="range" min={0} max={100} step={1}
+          value={sliderValue} onChange={handleSlider} disabled={racing}
+          className="w-full" style={{ accentColor: CORAL }}
         />
-        <div className="flex justify-between text-[10px] text-slate-400">
-          <span>10</span>
-          <span>10,000</span>
+        <div className="flex justify-between font-hand text-xs" style={{ color: INK }}>
+          <span>10</span><span>10,000</span>
         </div>
       </div>
 
-      {/* Race SVG */}
-      <svg viewBox={`0 0 520 160`} className="w-full max-w-[520px] mx-auto">
-        {/* Human row */}
-        <text x={10} y={30} className="text-[13px] fill-slate-700 font-semibold">
-          Human
-        </text>
-        {/* person icon placeholder */}
-        <text x={10} y={52} className="text-[18px]">
-          &#128100;
-        </text>
-        <rect x={40} y={38} width={barWidth} height={barHeight} rx={6} fill="#f1f5f9" stroke="#cbd5e1" strokeWidth={1} />
-        <rect
-          x={40}
-          y={38}
-          width={Math.max(humanPct * barWidth, 0)}
-          height={barHeight}
-          rx={6}
-          fill="#60a5fa"
-          className="transition-all duration-200"
-        />
-        <text x={barWidth + 50} y={60} className="text-[11px] fill-slate-600 font-mono font-semibold">
-          {humanCount.toLocaleString()}/{additionCount.toLocaleString()}
+      <svg viewBox={`0 0 540 180`} className="w-full max-w-[540px] mx-auto">
+        <defs>
+          <pattern id="paper-grid-3" width="14" height="14" patternUnits="userSpaceOnUse">
+            <path d="M14 0H0V14" fill="none" stroke="#e8e3d3" strokeWidth="0.6" />
+          </pattern>
+          <linearGradient id="human-fill" x1="0" x2="1">
+            <stop offset="0" stopColor={SKY} /><stop offset="1" stopColor={LAVENDER} />
+          </linearGradient>
+          <linearGradient id="comp-fill" x1="0" x2="1">
+            <stop offset="0" stopColor={MINT} /><stop offset="1" stopColor={YELLOW} />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="540" height="180" fill="url(#paper-grid-3)" />
+
+        <text x={10} y={28} fill={INK} style={{ fontFamily: "Patrick Hand, cursive", fontSize: 14, letterSpacing: 1 }}>HUMAN</text>
+        <text x={10} y={62} style={{ fontSize: 22 }}>🧑</text>
+        <rect x={50} y={38} width={barWidth} height={barHeight} rx={8} fill={PAPER} stroke={INK} strokeWidth={2}
+          style={{ filter: "drop-shadow(2px 2px 0 #2b2a35)" }} />
+        <rect x={50} y={38} width={Math.max(humanPct * barWidth, 0)} height={barHeight} rx={8}
+          fill="url(#human-fill)" stroke={INK} strokeWidth={1.5}
+          style={{ transition: "width 0.2s" }} />
+        <text x={barWidth + 60} y={62} fill={INK} style={{ fontFamily: "Kalam, cursive", fontSize: 13, fontWeight: 700 }}>
+          {humanCount.toLocaleString()}
         </text>
 
-        {/* Computer row */}
-        <text x={10} y={100} className="text-[13px] fill-slate-700 font-semibold">
-          Computer
-        </text>
-        {/* CPU icon placeholder */}
-        <text x={10} y={122} className="text-[18px]">
-          &#128187;
-        </text>
-        <rect x={40} y={108} width={barWidth} height={barHeight} rx={6} fill="#f1f5f9" stroke="#cbd5e1" strokeWidth={1} />
-        <rect
-          x={40}
-          y={108}
-          width={Math.max(computerPct * barWidth, 0)}
-          height={barHeight}
-          rx={6}
-          fill="#34d399"
-          className="transition-all duration-200"
-        />
-        <text x={barWidth + 50} y={130} className="text-[11px] fill-slate-600 font-mono font-semibold">
-          {computerCount.toLocaleString()}/{additionCount.toLocaleString()}
-          {computerCount === additionCount && computerCount > 0 ? " DONE!" : ""}
+        <text x={10} y={108} fill={INK} style={{ fontFamily: "Patrick Hand, cursive", fontSize: 14, letterSpacing: 1 }}>COMPUTER</text>
+        <text x={10} y={142} style={{ fontSize: 22 }}>💻</text>
+        <rect x={50} y={118} width={barWidth} height={barHeight} rx={8} fill={PAPER} stroke={INK} strokeWidth={2}
+          style={{ filter: "drop-shadow(2px 2px 0 #2b2a35)" }} />
+        <rect x={50} y={118} width={Math.max(computerPct * barWidth, 0)} height={barHeight} rx={8}
+          fill="url(#comp-fill)" stroke={INK} strokeWidth={1.5}
+          style={{ transition: "width 0.25s ease-out" }} />
+        {racing && computerCount > 0 && (
+          <circle cx={50 + computerPct * barWidth} cy={136} r={6} fill={YELLOW} stroke={INK} strokeWidth={1.5}>
+            <animate attributeName="r" values="4;9;4" dur="0.6s" repeatCount="indefinite" />
+          </circle>
+        )}
+        <text x={barWidth + 60} y={142} fill={INK} style={{ fontFamily: "Kalam, cursive", fontSize: 13, fontWeight: 700 }}>
+          {computerCount.toLocaleString()}{computerCount === additionCount && computerCount > 0 ? " ✓" : ""}
         </text>
       </svg>
 
-      {/* Buttons */}
       <div className="flex gap-2 justify-center">
-        <button
-          onClick={startRace}
-          disabled={racing}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
-        >
-          Start Race!
+        <button onClick={startRace} disabled={racing} className="btn-sketchy font-hand"
+          style={{ background: MINT, opacity: racing ? 0.5 : 1 }}>
+          🏁 Start Race!
         </button>
-        <button
-          onClick={resetRace}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300"
-        >
-          Reset
-        </button>
+        <button onClick={resetRace} className="btn-sketchy-outline font-hand">Reset</button>
       </div>
 
-      {/* Result message */}
       {finished && (
-        <div className="text-center text-sm font-medium text-slate-700 bg-indigo-50 border border-indigo-200 rounded-lg py-3 px-4 transition-all duration-300">
+        <div className="card-sketchy text-center font-hand text-base" style={{ background: "#fffbe6" }}>
           The computer finished{" "}
-          <span className="font-bold text-indigo-700">{additionCount.toLocaleString()}</span> additions while you were
-          watching! A modern computer can do <span className="font-bold text-indigo-700">BILLIONS</span> of calculations
-          per second.
+          <span style={{ color: CORAL, fontWeight: 700 }}>{additionCount.toLocaleString()}</span>{" "}
+          additions while you were watching! Modern computers do{" "}
+          <span style={{ color: LAVENDER, fontWeight: 700 }}>BILLIONS</span> of calculations per second.
         </div>
       )}
 
@@ -678,7 +677,170 @@ function SpeedTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Quiz data                                                          */
+/*  Tab 4 – Real World Examples                                        */
+/* ------------------------------------------------------------------ */
+
+const EXAMPLES: {
+  emoji: string;
+  name: string;
+  input: string;
+  rule: string;
+  output: string;
+  story: string;
+  color: string;
+}[] = [
+  {
+    emoji: "🥤",
+    name: "Vending Machine",
+    input: "Press B4 + insert ₹20",
+    rule: "If money ≥ price, drop item B4",
+    output: "Cold drink falls out",
+    story: "Same button, same coins, same drink — every single time. Aru tested it five times in a row!",
+    color: CORAL,
+  },
+  {
+    emoji: "🧮",
+    name: "Calculator",
+    input: "Type 7 × 8",
+    rule: "Multiply the two numbers",
+    output: "Shows 56",
+    story: "It doesn't 'know' math — it just follows the multiplication instruction perfectly, billions of times.",
+    color: MINT,
+  },
+  {
+    emoji: "🚦",
+    name: "Traffic Light",
+    input: "30-second timer tick",
+    rule: "Green → Yellow → Red → loop",
+    output: "Lights change color",
+    story: "No human stands there flipping switches. It's a tiny machine following 3 instructions in a loop, forever.",
+    color: YELLOW,
+  },
+  {
+    emoji: "🧺",
+    name: "Washing Machine",
+    input: "Clothes + soap + 'Cotton' button",
+    rule: "Fill → wash 30min → rinse → spin → drain",
+    output: "Clean wet clothes",
+    story: "Press the same button with the same load — you'll get the exact same wash cycle, perfectly repeated.",
+    color: SKY,
+  },
+  {
+    emoji: "🏧",
+    name: "ATM",
+    input: "Card + PIN + ₹500",
+    rule: "If PIN ok and balance ≥ ₹500, dispense",
+    output: "₹500 in cash",
+    story: "An ATM is a machine that follows a checklist. No checklist passes? No money. Every. Single. Time.",
+    color: LAVENDER,
+  },
+  {
+    emoji: "📷",
+    name: "Camera",
+    input: "Press shutter button",
+    rule: "Capture light from sensor → save as image",
+    output: "A new photo file",
+    story: "Same scene, same settings → same picture. The machine doesn't decide what's pretty — it just records.",
+    color: PEACH,
+  },
+];
+
+function ExamplesTab() {
+  return (
+    <div className="space-y-4">
+      <p className="text-center font-hand text-base" style={{ color: INK }}>
+        Look around — machines are everywhere! Each one is just{" "}
+        <span style={{ color: CORAL, fontWeight: 700 }}>input</span> →{" "}
+        <span style={{ color: LAVENDER, fontWeight: 700 }}>rule</span> →{" "}
+        <span style={{ color: MINT, fontWeight: 700 }}>output</span>.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {EXAMPLES.map((ex) => (
+          <div
+            key={ex.name}
+            className="card-sketchy overflow-hidden p-4"
+            style={{ transition: "transform .2s" }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "translate(-2px,-2px)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "translate(0,0)")}
+          >
+            <div
+              style={{
+                height: 6,
+                background: ex.color,
+                margin: "-16px -16px 12px -16px",
+                borderBottom: `2px solid ${INK}`,
+              }}
+            />
+            <div className="flex items-center gap-3 mb-2">
+              <div
+                className="flex items-center justify-center rounded-lg"
+                style={{
+                  width: 52,
+                  height: 52,
+                  background: ex.color,
+                  border: `2px solid ${INK}`,
+                  boxShadow: "3px 3px 0 #2b2a35",
+                  fontSize: 28,
+                }}
+              >
+                {ex.emoji}
+              </div>
+              <h3 className="font-hand text-lg font-bold" style={{ color: INK }}>
+                {ex.name}
+              </h3>
+            </div>
+
+            <div className="space-y-1.5 font-hand text-sm" style={{ color: INK }}>
+              <div className="flex gap-2">
+                <span
+                  className="px-1.5 rounded"
+                  style={{ background: CORAL, color: PAPER, fontSize: 10, fontWeight: 700 }}
+                >
+                  IN
+                </span>
+                <span>{ex.input}</span>
+              </div>
+              <div className="flex gap-2">
+                <span
+                  className="px-1.5 rounded"
+                  style={{ background: LAVENDER, color: PAPER, fontSize: 10, fontWeight: 700 }}
+                >
+                  RULE
+                </span>
+                <span>{ex.rule}</span>
+              </div>
+              <div className="flex gap-2">
+                <span
+                  className="px-1.5 rounded"
+                  style={{ background: MINT, color: PAPER, fontSize: 10, fontWeight: 700 }}
+                >
+                  OUT
+                </span>
+                <span>{ex.output}</span>
+              </div>
+            </div>
+
+            <div
+              className="mt-3 pt-2 font-hand text-xs italic"
+              style={{ color: INK, opacity: 0.75, borderTop: "1.5px dashed #2b2a35" }}
+            >
+              {ex.story}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <InfoBox variant="blue">
+        Pick any object near you — a fan, a microwave, a doorbell. Can you write down its{" "}
+        <b>input</b>, <b>rule</b>, and <b>output</b>? That's the secret of every machine in the world.
+      </InfoBox>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Quiz                                                               */
 /* ------------------------------------------------------------------ */
 
 const quizQuestions = [
@@ -712,7 +874,7 @@ const quizQuestions = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Main component                                                     */
+/*  Main                                                               */
 /* ------------------------------------------------------------------ */
 
 export default function L1_MachinesActivity() {
@@ -735,6 +897,12 @@ export default function L1_MachinesActivity() {
         label: "Speed of Computers",
         icon: <Zap className="w-4 h-4" />,
         content: <SpeedTab />,
+      },
+      {
+        id: "examples",
+        label: "Real World Examples",
+        icon: <Sparkles className="w-4 h-4" />,
+        content: <ExamplesTab />,
       },
     ],
     [],

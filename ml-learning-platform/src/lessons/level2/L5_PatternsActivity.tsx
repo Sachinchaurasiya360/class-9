@@ -3,6 +3,49 @@ import { TrendingUp, Circle, AlertCircle, RefreshCw, Check } from "lucide-react"
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
+import { playClick, playPop, playSuccess, playError } from "../../utils/sounds";
+
+function PlotDefs() {
+  return (
+    <defs>
+      <radialGradient id="pat-lav" cx="35%" cy="30%">
+        <stop offset="0%" stopColor="#c9adf7" />
+        <stop offset="100%" stopColor="#b18cf2" />
+      </radialGradient>
+      <radialGradient id="pat-coral" cx="35%" cy="30%">
+        <stop offset="0%" stopColor="#ff9b9b" />
+        <stop offset="100%" stopColor="#ff6b6b" />
+      </radialGradient>
+      <radialGradient id="pat-mint" cx="35%" cy="30%">
+        <stop offset="0%" stopColor="#7ee0d8" />
+        <stop offset="100%" stopColor="#4ecdc4" />
+      </radialGradient>
+      <radialGradient id="pat-peach" cx="35%" cy="30%">
+        <stop offset="0%" stopColor="#ffd0b3" />
+        <stop offset="100%" stopColor="#ffb88c" />
+      </radialGradient>
+      <radialGradient id="pat-sky" cx="35%" cy="30%">
+        <stop offset="0%" stopColor="#94caff" />
+        <stop offset="100%" stopColor="#6bb6ff" />
+      </radialGradient>
+      <radialGradient id="pat-yellow" cx="35%" cy="30%">
+        <stop offset="0%" stopColor="#fff3a0" />
+        <stop offset="100%" stopColor="#ffd93d" />
+      </radialGradient>
+    </defs>
+  );
+}
+
+const CLUSTER_GRADS = ["url(#pat-coral)", "url(#pat-mint)", "url(#pat-lav)", "url(#pat-peach)"];
+
+/* Sketchy palette */
+const INK = "#2b2a35";
+const CORAL = "#ff6b6b";
+const MINT = "#4ecdc4";
+const YELLOW = "#ffd93d";
+const LAVENDER = "#b18cf2";
+const SKY = "#6bb6ff";
+const PEACH = "#ffb88c";
 
 /* ------------------------------------------------------------------ */
 /*  Seeded PRNG                                                        */
@@ -18,18 +61,17 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-/** Approximate normal distribution using sum of 6 uniforms. */
 function normalApprox(rng: () => number, std: number): number {
-  return (rng() + rng() + rng() + rng() + rng() + rng() - 3) / 3 * std;
+  return ((rng() + rng() + rng() + rng() + rng() + rng() - 3) / 3) * std;
 }
 
 /* ------------------------------------------------------------------ */
 /*  SVG helpers                                                        */
 /* ------------------------------------------------------------------ */
 
-const PLOT_W = 500;
-const PLOT_H = 350;
-const PAD = { top: 20, right: 20, bottom: 40, left: 45 };
+const PLOT_W = 520;
+const PLOT_H = 360;
+const PAD = { top: 20, right: 20, bottom: 40, left: 50 };
 const INNER_W = PLOT_W - PAD.left - PAD.right;
 const INNER_H = PLOT_H - PAD.top - PAD.bottom;
 
@@ -40,87 +82,56 @@ function toSvgY(val: number, min: number, max: number) {
   return PAD.top + INNER_H - ((val - min) / (max - min)) * INNER_H;
 }
 
-/** Render axes, gridlines and labels for a 0-10 range. */
+function PaperBg({ id }: { id: string }) {
+  return (
+    <>
+      <defs>
+        <pattern id={id} width="14" height="14" patternUnits="userSpaceOnUse">
+          <path d="M14 0H0V14" fill="none" stroke="#e8e3d3" strokeWidth="0.6" />
+        </pattern>
+      </defs>
+      <rect x="0" y="0" width={PLOT_W} height={PLOT_H} fill={`url(#${id})`} rx={12} />
+    </>
+  );
+}
+
 function PlotAxes({ xLabel = "X", yLabel = "Y" }: { xLabel?: string; yLabel?: string }) {
   const ticks = [0, 2, 4, 6, 8, 10];
   return (
     <g>
-      {/* Gridlines */}
       {ticks.map((t) => (
         <g key={t}>
           <line
-            x1={toSvgX(t, 0, 10)}
-            y1={PAD.top}
-            x2={toSvgX(t, 0, 10)}
-            y2={PAD.top + INNER_H}
-            stroke="#e2e8f0"
-            strokeWidth={1}
+            x1={toSvgX(t, 0, 10)} y1={PAD.top}
+            x2={toSvgX(t, 0, 10)} y2={PAD.top + INNER_H}
+            stroke={INK} strokeWidth={0.6} opacity={0.15}
           />
           <line
-            x1={PAD.left}
-            y1={toSvgY(t, 0, 10)}
-            x2={PAD.left + INNER_W}
-            y2={toSvgY(t, 0, 10)}
-            stroke="#e2e8f0"
-            strokeWidth={1}
+            x1={PAD.left} y1={toSvgY(t, 0, 10)}
+            x2={PAD.left + INNER_W} y2={toSvgY(t, 0, 10)}
+            stroke={INK} strokeWidth={0.6} opacity={0.15}
           />
-          {/* X labels */}
-          <text
-            x={toSvgX(t, 0, 10)}
-            y={PAD.top + INNER_H + 18}
-            textAnchor="middle"
-            className="fill-slate-400"
-            style={{ fontSize: 10 }}
-          >
+          <text x={toSvgX(t, 0, 10)} y={PAD.top + INNER_H + 18} textAnchor="middle"
+            fill={INK} style={{ fontFamily: "Kalam, cursive", fontSize: 11, opacity: 0.6 }}>
             {t}
           </text>
-          {/* Y labels */}
-          <text
-            x={PAD.left - 10}
-            y={toSvgY(t, 0, 10) + 4}
-            textAnchor="end"
-            className="fill-slate-400"
-            style={{ fontSize: 10 }}
-          >
+          <text x={PAD.left - 12} y={toSvgY(t, 0, 10) + 4} textAnchor="end"
+            fill={INK} style={{ fontFamily: "Kalam, cursive", fontSize: 11, opacity: 0.6 }}>
             {t}
           </text>
         </g>
       ))}
-      {/* Axes lines */}
-      <line
-        x1={PAD.left}
-        y1={PAD.top + INNER_H}
-        x2={PAD.left + INNER_W}
-        y2={PAD.top + INNER_H}
-        stroke="#94a3b8"
-        strokeWidth={1.5}
-      />
-      <line
-        x1={PAD.left}
-        y1={PAD.top}
-        x2={PAD.left}
-        y2={PAD.top + INNER_H}
-        stroke="#94a3b8"
-        strokeWidth={1.5}
-      />
-      {/* Axis labels */}
-      <text
-        x={PAD.left + INNER_W / 2}
-        y={PAD.top + INNER_H + 35}
-        textAnchor="middle"
-        className="fill-slate-500"
-        style={{ fontSize: 11 }}
-      >
+      <line x1={PAD.left} y1={PAD.top + INNER_H} x2={PAD.left + INNER_W} y2={PAD.top + INNER_H}
+        stroke={INK} strokeWidth={2.5} strokeLinecap="round" />
+      <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + INNER_H}
+        stroke={INK} strokeWidth={2.5} strokeLinecap="round" />
+      <text x={PAD.left + INNER_W / 2} y={PAD.top + INNER_H + 35} textAnchor="middle"
+        fill={INK} style={{ fontFamily: "Patrick Hand, cursive", fontSize: 13 }}>
         {xLabel}
       </text>
-      <text
-        x={12}
-        y={PAD.top + INNER_H / 2}
-        textAnchor="middle"
-        className="fill-slate-500"
-        style={{ fontSize: 11 }}
-        transform={`rotate(-90, 12, ${PAD.top + INNER_H / 2})`}
-      >
+      <text x={14} y={PAD.top + INNER_H / 2} textAnchor="middle"
+        fill={INK} style={{ fontFamily: "Patrick Hand, cursive", fontSize: 13 }}
+        transform={`rotate(-90, 14, ${PAD.top + INNER_H / 2})`}>
         {yLabel}
       </text>
     </g>
@@ -128,36 +139,26 @@ function PlotAxes({ xLabel = "X", yLabel = "Y" }: { xLabel?: string; yLabel?: st
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Trend Detector                                             */
+/*  Tab 1 – Trend Detector                                             */
 /* ------------------------------------------------------------------ */
 
 type TrendType = "positive" | "negative" | "flat";
 
-interface TrendPoint {
-  x: number;
-  y: number;
-}
+interface TrendPoint { x: number; y: number; }
 
-function generateTrendData(seed: number): { points: TrendPoint[]; trend: TrendType; slope: number; intercept: number } {
+function generateTrendData(seed: number) {
   const rng = mulberry32(seed);
   const r = rng();
   let trend: TrendType;
   let slope: number;
-  if (r < 0.33) {
-    trend = "positive";
-    slope = 0.5 + rng() * 0.4; // ~0.5-0.9
-  } else if (r < 0.66) {
-    trend = "negative";
-    slope = -(0.5 + rng() * 0.4);
-  } else {
-    trend = "flat";
-    slope = (rng() - 0.5) * 0.15; // nearly zero
-  }
+  if (r < 0.33) { trend = "positive"; slope = 0.5 + rng() * 0.4; }
+  else if (r < 0.66) { trend = "negative"; slope = -(0.5 + rng() * 0.4); }
+  else { trend = "flat"; slope = (rng() - 0.5) * 0.15; }
 
-  const intercept = 2 + rng() * 3; // 2-5
+  const intercept = 2 + rng() * 3;
   const points: TrendPoint[] = [];
   for (let i = 0; i < 25; i++) {
-    const x = 0.5 + rng() * 9; // 0.5-9.5
+    const x = 0.5 + rng() * 9;
     const noise = normalApprox(rng, 1.0);
     let y = slope * x + intercept + noise;
     y = Math.max(0.2, Math.min(9.8, y));
@@ -177,12 +178,14 @@ function TrendDetector() {
 
   const handleAnswer = useCallback(
     (answer: TrendType) => {
-      if (correct === true) return; // already answered correctly
+      if (correct === true) return;
       if (answer === data.trend) {
+        playSuccess();
         setSelected(answer);
         setCorrect(true);
         setStreak((s) => s + 1);
       } else {
+        playError();
         setCorrect(false);
         setStreak(0);
         setShakeBtn(answer);
@@ -193,116 +196,96 @@ function TrendDetector() {
   );
 
   const handleNewData = useCallback(() => {
+    playClick();
     setSeedCounter((c) => c + 1);
     setSelected(null);
     setCorrect(null);
   }, []);
 
-  const trendLabel: Record<TrendType, string> = {
-    positive: "Going Up (Positive)",
-    negative: "Going Down (Negative)",
-    flat: "No Clear Trend",
+  const trendInfo: Record<TrendType, { label: string; color: string }> = {
+    positive: { label: "Going Up ↗", color: MINT },
+    negative: { label: "Going Down ↘", color: CORAL },
+    flat: { label: "Flat →", color: SKY },
   };
 
-  // Compute trend line endpoints
   const trendLineY0 = data.slope * 0 + data.intercept;
   const trendLineY10 = data.slope * 10 + data.intercept;
 
   return (
     <div className="space-y-5">
-      <style>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          20% { transform: translateX(-4px); }
-          40% { transform: translateX(4px); }
-          60% { transform: translateX(-4px); }
-          80% { transform: translateX(4px); }
-        }
-        .shake-anim { animation: shake 0.4s ease-in-out; }
-      `}</style>
-
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">What trend do you see?</h3>
-          <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
-            Correct streak: {streak}
+      <div className="card-sketchy p-5 space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h3 className="font-hand text-base font-bold" style={{ color: INK }}>What trend do you see?</h3>
+          <span className="font-hand text-sm font-bold px-3 py-1 rounded-full border-2"
+            style={{ borderColor: INK, background: YELLOW, boxShadow: "2px 2px 0 #2b2a35" }}>
+            🔥 Streak: {streak}
           </span>
         </div>
 
-        {/* SVG Scatter Plot */}
         <div className="flex justify-center">
-          <svg
-            width={PLOT_W}
-            height={PLOT_H}
-            viewBox={`0 0 ${PLOT_W} ${PLOT_H}`}
-            className="max-w-full bg-slate-50 rounded-lg"
-          >
+          <svg width={PLOT_W} height={PLOT_H} viewBox={`0 0 ${PLOT_W} ${PLOT_H}`}
+            className="max-w-full" style={{
+              borderRadius: 12, border: `2.5px solid ${INK}`, boxShadow: "3px 3px 0 #2b2a35",
+            }}>
+            <PaperBg id="bg-trend" />
+            <PlotDefs />
             <PlotAxes />
-            {/* Data points */}
             {data.points.map((p, i) => (
-              <circle
-                key={i}
-                cx={toSvgX(p.x, 0, 10)}
-                cy={toSvgY(p.y, 0, 10)}
-                r={5}
-                className="fill-indigo-500 opacity-70"
+              <circle key={i}
+                cx={toSvgX(p.x, 0, 10)} cy={toSvgY(p.y, 0, 10)}
+                r={6.5} fill="url(#pat-lav)" stroke={INK} strokeWidth={1.5}
+                style={{ filter: "drop-shadow(1.5px 1.5px 0 #2b2a35)" }}
               />
             ))}
-            {/* Trend line (shown on correct answer) */}
             {correct === true && (
               <line
-                x1={toSvgX(0, 0, 10)}
-                y1={toSvgY(Math.max(0, Math.min(10, trendLineY0)), 0, 10)}
-                x2={toSvgX(10, 0, 10)}
-                y2={toSvgY(Math.max(0, Math.min(10, trendLineY10)), 0, 10)}
-                stroke="#ef4444"
-                strokeWidth={2.5}
-                strokeDasharray="8 4"
-                opacity={0.8}
-              />
+                x1={toSvgX(0, 0, 10)} y1={toSvgY(Math.max(0, Math.min(10, trendLineY0)), 0, 10)}
+                x2={toSvgX(10, 0, 10)} y2={toSvgY(Math.max(0, Math.min(10, trendLineY10)), 0, 10)}
+                stroke={CORAL} strokeWidth={3.5} strokeDasharray="8 5" strokeLinecap="round"
+                className="signal-flow pulse-glow"
+                style={{ color: CORAL }}
+              >
+                <animate attributeName="stroke-dashoffset" from="50" to="0" dur="0.8s" />
+              </line>
             )}
           </svg>
         </div>
 
-        {/* Answer buttons */}
         <div className="flex flex-wrap justify-center gap-2">
           {(["positive", "negative", "flat"] as TrendType[]).map((t) => {
+            const info = trendInfo[t];
             const isCorrectAnswer = correct === true && selected === t;
             return (
               <button
                 key={t}
                 onClick={() => handleAnswer(t)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isCorrectAnswer
-                    ? "bg-green-500 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                } ${shakeBtn === t ? "shake-anim" : ""}`}
+                className="btn-sketchy font-hand text-sm"
+                style={{
+                  background: isCorrectAnswer ? MINT : info.color,
+                  animation: shakeBtn === t ? "shake-x 0.4s" : undefined,
+                }}
               >
-                {trendLabel[t]}
+                {info.label}
               </button>
             );
           })}
         </div>
 
-        {/* Feedback */}
         {correct === true && (
-          <p className="text-center text-sm font-medium text-green-600">
+          <p className="text-center font-hand text-base font-bold" style={{ color: MINT }}>
             <Check className="w-4 h-4 inline -mt-0.5 mr-1" />
             Correct! The data has a {data.trend === "flat" ? "flat (no clear)" : data.trend} trend.
           </p>
         )}
         {correct === false && (
-          <p className="text-center text-sm font-medium text-amber-600">Look again...</p>
+          <p className="text-center font-hand text-base font-bold" style={{ color: CORAL }}>
+            Look again...
+          </p>
         )}
 
-        {/* New Data button */}
         <div className="flex justify-center">
-          <button
-            onClick={handleNewData}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-200 transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            New Data
+          <button onClick={handleNewData} className="btn-sketchy-outline font-hand text-sm">
+            <RefreshCw className="w-3.5 h-3.5" /> New Data
           </button>
         </div>
       </div>
@@ -316,23 +299,14 @@ function TrendDetector() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Find the Clusters                                          */
+/*  Tab 2 – Find the Clusters                                          */
 /* ------------------------------------------------------------------ */
 
-interface ClusterPoint {
-  x: number;
-  y: number;
-  cluster: number;
-}
+interface ClusterPoint { x: number; y: number; cluster: number; }
 
-function generateClusterData(
-  seed: number,
-  difficulty: number,
-): { points: ClusterPoint[]; numClusters: number } {
+function generateClusterData(seed: number, difficulty: number) {
   const rng = mulberry32(seed);
-  const numClusters = 2 + Math.floor(rng() * 3); // 2-4
-
-  // Generate cluster centers spread apart
+  const numClusters = 2 + Math.floor(rng() * 3);
   const centers: { cx: number; cy: number }[] = [];
   for (let c = 0; c < numClusters; c++) {
     let cx: number, cy: number;
@@ -347,13 +321,10 @@ function generateClusterData(
     );
     centers.push({ cx, cy });
   }
-
-  // Spread: easy = 0.4, hard = 1.2
   const spread = 0.4 + difficulty * 0.4;
-
   const points: ClusterPoint[] = [];
   for (let c = 0; c < numClusters; c++) {
-    const count = 10 + Math.floor(rng() * 6); // 10-15
+    const count = 10 + Math.floor(rng() * 6);
     for (let i = 0; i < count; i++) {
       let x = centers[c].cx + normalApprox(rng, spread);
       let y = centers[c].cy + normalApprox(rng, spread);
@@ -362,20 +333,14 @@ function generateClusterData(
       points.push({ x, y, cluster: c });
     }
   }
-
   return { points, numClusters };
 }
 
-const CLUSTER_COLORS = [
-  { fill: "#6366f1", stroke: "#4f46e5" }, // indigo
-  { fill: "#f97316", stroke: "#ea580c" }, // orange
-  { fill: "#10b981", stroke: "#059669" }, // emerald
-  { fill: "#ec4899", stroke: "#db2777" }, // pink
-];
+const CLUSTER_COLORS = [CORAL, MINT, LAVENDER, PEACH];
 
 function FindClusters() {
   const [seedCounter, setSeedCounter] = useState(17);
-  const [difficulty, setDifficulty] = useState(0); // 0=easy, 1=medium, 2=hard
+  const [difficulty, setDifficulty] = useState(0);
   const [guess, setGuess] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState(0);
@@ -391,8 +356,10 @@ function FindClusters() {
       setGuess(n);
       setRevealed(true);
       if (n === data.numClusters) {
+        playSuccess();
         setScore((s) => s + 1);
       } else {
+        playError();
         setScore(0);
       }
     },
@@ -400,6 +367,7 @@ function FindClusters() {
   );
 
   const handleNewData = useCallback(() => {
+    playClick();
     setSeedCounter((c) => c + 1);
     setGuess(null);
     setRevealed(false);
@@ -409,65 +377,57 @@ function FindClusters() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+      <div className="card-sketchy p-5 space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h3 className="text-sm font-semibold text-slate-700">How many clusters do you see?</h3>
-          <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">
-            Score: {score}
+          <h3 className="font-hand text-base font-bold" style={{ color: INK }}>How many clusters do you see?</h3>
+          <span className="font-hand text-sm font-bold px-3 py-1 rounded-full border-2"
+            style={{ borderColor: INK, background: YELLOW, boxShadow: "2px 2px 0 #2b2a35" }}>
+            ⭐ Score: {score}
           </span>
         </div>
 
-        {/* Difficulty slider */}
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500 font-medium">Difficulty:</span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="font-hand text-sm font-bold" style={{ color: INK }}>Difficulty:</span>
           <input
-            type="range"
-            min={0}
-            max={2}
-            step={1}
-            value={difficulty}
+            type="range" min={0} max={2} step={1} value={difficulty}
             onChange={(e) => {
               setDifficulty(Number(e.target.value));
               setSeedCounter((c) => c + 1);
               setGuess(null);
               setRevealed(false);
             }}
-            className="w-32 accent-indigo-500"
+            className="w-32" style={{ accentColor: CORAL }}
           />
-          <span className="text-xs font-medium text-slate-600">{difficultyLabels[difficulty]}</span>
+          <span className="font-hand text-sm font-bold" style={{ color: CORAL }}>{difficultyLabels[difficulty]}</span>
         </div>
 
-        {/* SVG Scatter Plot */}
         <div className="flex justify-center">
-          <svg
-            width={PLOT_W}
-            height={PLOT_H}
-            viewBox={`0 0 ${PLOT_W} ${PLOT_H}`}
-            className="max-w-full bg-slate-50 rounded-lg"
-          >
+          <svg width={PLOT_W} height={PLOT_H} viewBox={`0 0 ${PLOT_W} ${PLOT_H}`}
+            className="max-w-full" style={{
+              borderRadius: 12, border: `2.5px solid ${INK}`, boxShadow: "3px 3px 0 #2b2a35",
+            }}>
+            <PaperBg id="bg-clust" />
+            <PlotDefs />
             <PlotAxes />
             {data.points.map((p, i) => {
-              const color = revealed
-                ? CLUSTER_COLORS[p.cluster % CLUSTER_COLORS.length]
-                : { fill: "#94a3b8", stroke: "#64748b" };
+              const fill = revealed ? CLUSTER_GRADS[p.cluster % CLUSTER_GRADS.length] : "#9aa0b4";
+              const glowColor = revealed ? CLUSTER_COLORS[p.cluster % CLUSTER_COLORS.length] : "#9aa0b4";
               return (
-                <circle
-                  key={i}
-                  cx={toSvgX(p.x, 0, 10)}
-                  cy={toSvgY(p.y, 0, 10)}
-                  r={5}
-                  fill={color.fill}
-                  stroke={color.stroke}
-                  strokeWidth={1}
-                  opacity={0.8}
-                  className="transition-all duration-500"
+                <circle key={i}
+                  cx={toSvgX(p.x, 0, 10)} cy={toSvgY(p.y, 0, 10)}
+                  r={6.5} fill={fill} stroke={INK} strokeWidth={1.5}
+                  className={revealed ? "pulse-glow" : ""}
+                  style={{
+                    filter: "drop-shadow(1.5px 1.5px 0 #2b2a35)",
+                    transition: "fill .5s",
+                    color: glowColor,
+                  }}
                 />
               );
             })}
           </svg>
         </div>
 
-        {/* Guess buttons */}
         <div className="flex flex-wrap justify-center gap-2">
           {[2, 3, 4].map((n) => {
             const isCorrect = revealed && n === data.numClusters;
@@ -476,13 +436,10 @@ function FindClusters() {
               <button
                 key={n}
                 onClick={() => handleGuess(n)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isCorrect
-                    ? "bg-green-500 text-white"
-                    : isWrong
-                      ? "bg-red-100 text-red-600"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                className="btn-sketchy font-hand text-sm"
+                style={{
+                  background: isCorrect ? MINT : isWrong ? CORAL : SKY,
+                }}
               >
                 I see {n} clusters
               </button>
@@ -490,36 +447,23 @@ function FindClusters() {
           })}
         </div>
 
-        {/* Feedback */}
         {revealed && (
-          <p
-            className={`text-center text-sm font-medium ${
-              guess === data.numClusters ? "text-green-600" : "text-red-600"
-            }`}
-          >
+          <p className="text-center font-hand text-base font-bold"
+            style={{ color: guess === data.numClusters ? MINT : CORAL }}>
             {guess === data.numClusters ? (
               <>
                 <Check className="w-4 h-4 inline -mt-0.5 mr-1" />
-                Correct! There {data.numClusters === 1 ? "is" : "are"} {data.numClusters} cluster
-                {data.numClusters !== 1 && "s"}.
+                Correct! There are {data.numClusters} clusters.
               </>
             ) : (
-              <>
-                Not quite — there {data.numClusters === 1 ? "is" : "are"} actually{" "}
-                {data.numClusters} cluster{data.numClusters !== 1 && "s"}. Look at the colors!
-              </>
+              <>Not quite — there are actually {data.numClusters} clusters. Look at the colors!</>
             )}
           </p>
         )}
 
-        {/* New Data button */}
         <div className="flex justify-center">
-          <button
-            onClick={handleNewData}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-200 transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            New Data
+          <button onClick={handleNewData} className="btn-sketchy-outline font-hand text-sm">
+            <RefreshCw className="w-3.5 h-3.5" /> New Data
           </button>
         </div>
       </div>
@@ -533,23 +477,17 @@ function FindClusters() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Outlier Spotter                                            */
+/*  Tab 3 – Outlier Spotter                                            */
 /* ------------------------------------------------------------------ */
 
-interface OutlierPoint {
-  x: number;
-  y: number;
-  isOutlier: boolean;
-}
+interface OutlierPoint { x: number; y: number; isOutlier: boolean; }
 
-function generateOutlierData(seed: number): { points: OutlierPoint[]; slope: number; intercept: number } {
+function generateOutlierData(seed: number) {
   const rng = mulberry32(seed);
-  const slope = 0.4 + rng() * 0.4; // positive trend 0.4-0.8
-  const intercept = 1.5 + rng() * 2; // 1.5-3.5
-
+  const slope = 0.4 + rng() * 0.4;
+  const intercept = 1.5 + rng() * 2;
   const points: OutlierPoint[] = [];
 
-  // Generate ~20 trend-following points
   for (let i = 0; i < 20; i++) {
     const x = 0.5 + rng() * 9;
     const noise = normalApprox(rng, 0.6);
@@ -558,23 +496,19 @@ function generateOutlierData(seed: number): { points: OutlierPoint[]; slope: num
     points.push({ x, y, isOutlier: false });
   }
 
-  // Generate 1-3 outliers placed far from the trend
   const numOutliers = 1 + Math.floor(rng() * 3);
   for (let i = 0; i < numOutliers; i++) {
     const x = 1 + rng() * 8;
     const expected = slope * x + intercept;
-    // Place outlier far above or below the trend
     const direction = rng() > 0.5 ? 1 : -1;
     const offset = 2.5 + rng() * 2;
     let y = expected + direction * offset;
     y = Math.max(0.3, Math.min(9.7, y));
-    // If still too close, force further away
     if (Math.abs(y - expected) < 2) {
       y = direction > 0 ? Math.min(9.7, expected + 3) : Math.max(0.3, expected - 3);
     }
     points.push({ x, y, isOutlier: true });
   }
-
   return { points, slope, intercept };
 }
 
@@ -587,22 +521,16 @@ function OutlierSpotter() {
   const [flashWrong, setFlashWrong] = useState<Set<number>>(new Set());
 
   const data = useMemo(() => generateOutlierData(seedCounter), [seedCounter]);
-
-  const totalOutliers = useMemo(
-    () => data.points.filter((p) => p.isOutlier).length,
-    [data.points],
-  );
+  const totalOutliers = useMemo(() => data.points.filter((p) => p.isOutlier).length, [data.points]);
 
   const handlePointClick = useCallback(
     (index: number) => {
       if (checked) return;
+      playClick();
       setSelectedIndices((prev) => {
         const next = new Set(prev);
-        if (next.has(index)) {
-          next.delete(index);
-        } else {
-          next.add(index);
-        }
+        if (next.has(index)) next.delete(index);
+        else next.add(index);
         return next;
       });
     },
@@ -611,6 +539,7 @@ function OutlierSpotter() {
 
   const handleCheck = useCallback(() => {
     if (checked) return;
+    playPop();
     setChecked(true);
 
     const correctSet = new Set<number>();
@@ -618,20 +547,15 @@ function OutlierSpotter() {
     const wrongSet = new Set<number>();
 
     data.points.forEach((p, i) => {
-      if (p.isOutlier && selectedIndices.has(i)) {
-        correctSet.add(i);
-      } else if (p.isOutlier && !selectedIndices.has(i)) {
-        missedSet.add(i);
-      } else if (!p.isOutlier && selectedIndices.has(i)) {
-        wrongSet.add(i);
-      }
+      if (p.isOutlier && selectedIndices.has(i)) correctSet.add(i);
+      else if (p.isOutlier && !selectedIndices.has(i)) missedSet.add(i);
+      else if (!p.isOutlier && selectedIndices.has(i)) wrongSet.add(i);
     });
 
     setFlashCorrect(correctSet);
     setFlashMissed(missedSet);
     setFlashWrong(wrongSet);
 
-    // Clear wrong selections after brief flash
     setTimeout(() => {
       setFlashWrong(new Set());
       setSelectedIndices((prev) => {
@@ -658,27 +582,18 @@ function OutlierSpotter() {
 
   return (
     <div className="space-y-5">
-      <style>{`
-        @keyframes pulse-flash {
-          0%, 100% { opacity: 0.7; }
-          50% { opacity: 1; }
-        }
-        .pulse-flash { animation: pulse-flash 0.6s ease-in-out infinite; }
-      `}</style>
-
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">
-          Click on points you think are outliers, then press Check
+      <div className="card-sketchy p-5 space-y-4">
+        <h3 className="font-hand text-base font-bold text-center" style={{ color: INK }}>
+          Click points you think are <span style={{ color: CORAL }}>outliers</span>, then press Check
         </h3>
 
-        {/* SVG Scatter Plot */}
         <div className="flex justify-center">
-          <svg
-            width={PLOT_W}
-            height={PLOT_H}
-            viewBox={`0 0 ${PLOT_W} ${PLOT_H}`}
-            className="max-w-full bg-slate-50 rounded-lg"
-          >
+          <svg width={PLOT_W} height={PLOT_H} viewBox={`0 0 ${PLOT_W} ${PLOT_H}`}
+            className="max-w-full" style={{
+              borderRadius: 12, border: `2.5px solid ${INK}`, boxShadow: "3px 3px 0 #2b2a35",
+            }}>
+            <PaperBg id="bg-out" />
+            <PlotDefs />
             <PlotAxes />
             {data.points.map((p, i) => {
               const cx = toSvgX(p.x, 0, 10);
@@ -688,48 +603,29 @@ function OutlierSpotter() {
               const isMissed = flashMissed.has(i);
               const isWrongPick = flashWrong.has(i);
 
-              let fillColor = "#6366f1"; // default blue/indigo
-              if (isCorrectlyFound) fillColor = "#22c55e"; // green
-              else if (isMissed) fillColor = "#f59e0b"; // amber
-              else if (isWrongPick) fillColor = "#ef4444"; // red
+              let fillColor: string = "url(#pat-lav)";
+              let glow = LAVENDER;
+              if (isCorrectlyFound) { fillColor = "url(#pat-mint)"; glow = MINT; }
+              else if (isMissed) { fillColor = "url(#pat-yellow)"; glow = YELLOW; }
+              else if (isWrongPick) { fillColor = "url(#pat-coral)"; glow = CORAL; }
 
               return (
-                <g
-                  key={i}
-                  onClick={() => handlePointClick(i)}
-                  className={`cursor-pointer ${isMissed ? "pulse-flash" : ""}`}
-                >
-                  {/* Selection ring */}
+                <g key={i} onClick={() => handlePointClick(i)} className="cursor-pointer">
                   {(isSelected || isCorrectlyFound || isMissed) && (
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={10}
-                      fill="none"
-                      stroke={isCorrectlyFound ? "#22c55e" : isMissed ? "#f59e0b" : "#ef4444"}
-                      strokeWidth={2.5}
-                      className="transition-all duration-300"
-                    />
+                    <circle cx={cx} cy={cy} r={12} fill="none"
+                      stroke={isCorrectlyFound ? MINT : isMissed ? YELLOW : CORAL}
+                      strokeWidth={3} strokeDasharray="3 2">
+                      {isMissed && (
+                        <animate attributeName="r" values="10;14;10" dur="0.7s" repeatCount="indefinite" />
+                      )}
+                    </circle>
                   )}
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={5.5}
-                    fill={fillColor}
-                    opacity={0.8}
-                    className="transition-all duration-300"
-                  />
-                  {/* Checkmark for correctly found */}
+                  <circle cx={cx} cy={cy} r={7} fill={fillColor} stroke={INK} strokeWidth={1.5}
+                    className={isCorrectlyFound || isMissed ? "pulse-glow" : ""}
+                    style={{ filter: "drop-shadow(1.5px 1.5px 0 #2b2a35)", transition: "fill .3s", color: glow }} />
                   {isCorrectlyFound && (
-                    <text
-                      x={cx}
-                      y={cy + 3.5}
-                      textAnchor="middle"
-                      fill="white"
-                      style={{ fontSize: 8, fontWeight: "bold" }}
-                    >
-                      ✓
-                    </text>
+                    <text x={cx} y={cy + 3.5} textAnchor="middle" fill={INK}
+                      style={{ fontSize: 9, fontWeight: 700 }}>✓</text>
                   )}
                 </g>
               );
@@ -737,75 +633,55 @@ function OutlierSpotter() {
           </svg>
         </div>
 
-        {/* Controls */}
         <div className="flex flex-wrap items-center justify-center gap-3">
           {!checked ? (
             <button
               onClick={handleCheck}
               disabled={selectedIndices.size === 0}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedIndices.size === 0
-                  ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }`}
+              className="btn-sketchy font-hand text-sm"
+              style={{ background: YELLOW, opacity: selectedIndices.size === 0 ? 0.5 : 1 }}
             >
-              <Check className="w-4 h-4" />
-              Check
+              <Check className="w-4 h-4" /> Check
             </button>
           ) : (
-            <p className="text-sm font-medium text-slate-700">
+            <p className="font-hand text-base font-bold" style={{ color: INK }}>
               You found{" "}
-              <span className={foundCount === totalOutliers ? "text-green-600" : "text-amber-600"}>
+              <span style={{ color: foundCount === totalOutliers ? MINT : CORAL }}>
                 {foundCount} of {totalOutliers}
               </span>{" "}
               outlier{totalOutliers !== 1 && "s"}
             </p>
           )}
 
-          <button
-            onClick={handleNewData}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-200 transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            New Data
+          <button onClick={handleNewData} className="btn-sketchy-outline font-hand text-sm">
+            <RefreshCw className="w-3.5 h-3.5" /> New Data
           </button>
         </div>
       </div>
 
       <InfoBox variant="green">
         An <strong>outlier</strong> is a data point that is very different from the others. Outliers
-        can be mistakes in data collection, or they can be the most interesting discoveries!
-        Scientists pay close attention to outliers.
+        can be mistakes — or the most interesting discoveries! Scientists pay close attention to outliers.
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Quiz data                                                          */
+/*  Quiz                                                               */
 /* ------------------------------------------------------------------ */
 
 const quizQuestions = [
   {
     question: "What is a trend in data?",
-    options: [
-      "A single data point",
-      "The general direction data is heading",
-      "The largest value",
-      "The average value",
-    ],
+    options: ["A single data point", "The general direction data is heading", "The largest value", "The average value"],
     correctIndex: 1,
     explanation:
       "A trend is the overall pattern or direction in the data — whether values tend to go up, go down, or stay flat.",
   },
   {
     question: "What are clusters in data?",
-    options: [
-      "The biggest numbers",
-      "Groups of data points close together",
-      "Points on a straight line",
-      "Empty spaces in the data",
-    ],
+    options: ["The biggest numbers", "Groups of data points close together", "Points on a straight line", "Empty spaces in the data"],
     correctIndex: 1,
     explanation:
       "Clusters are groups of data points that are closer to each other than to other points. They suggest natural groupings in the data.",
@@ -819,12 +695,7 @@ const quizQuestions = [
   },
   {
     question: "Why is spotting patterns in data important?",
-    options: [
-      "It makes graphs look pretty",
-      "It helps us understand and predict",
-      "It's not important",
-      "It only matters for scientists",
-    ],
+    options: ["It makes graphs look pretty", "It helps us understand and predict", "It's not important", "It only matters for scientists"],
     correctIndex: 1,
     explanation:
       "Spotting patterns (trends, clusters, outliers) helps us understand what's happening in the data and make predictions about future observations.",
@@ -832,7 +703,7 @@ const quizQuestions = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Main export                                                        */
+/*  Main                                                               */
 /* ------------------------------------------------------------------ */
 
 export default function L5_PatternsActivity() {

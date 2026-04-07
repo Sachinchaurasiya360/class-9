@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { Layers, Sparkles, SlidersHorizontal } from "lucide-react";
+import { Layers, Sparkles, SlidersHorizontal, Palette, Play, RotateCcw } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
@@ -20,7 +20,37 @@ function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
 }
 
-/* 2D loss function with single minimum for contour tab */
+const THEMES = [
+  { name: "Coral",    node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint",     node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky",      node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+  { name: "Sunset",   node: "#ffb88c", glow: "#ffd0b3", accent: "#ff6b6b" },
+];
+
+const INK = "#2b2a35";
+
+function ThemePicker({ idx, setIdx }: { idx: number; setIdx: (i: number) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Palette className="w-4 h-4 text-foreground/60" />
+      <span className="font-hand text-sm font-bold">Theme:</span>
+      <div className="flex gap-1.5">
+        {THEMES.map((t, i) => (
+          <button
+            key={t.name}
+            onClick={() => { playClick(); setIdx(i); }}
+            title={t.name}
+            className={`w-6 h-6 rounded-full border-2 transition-transform ${idx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+            style={{ background: t.node }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* 2D loss function */
 function loss2D(x: number, y: number): number {
   return 2.5 * (x - 0.5) * (x - 0.5) + 3.5 * (y - 0.45) * (y - 0.45) + 0.6 * (x - 0.5) * (y - 0.45);
 }
@@ -32,9 +62,7 @@ function grad2D(x: number, y: number): [number, number] {
   ];
 }
 
-/* 2D loss with local minimum for noise-helps tab */
 function lossLocal(x: number, y: number): number {
-  /* Global min near (0.75, 0.7), local min near (0.3, 0.35) */
   const g1 = 3.0 * (x - 0.75) * (x - 0.75) + 3.0 * (y - 0.7) * (y - 0.7);
   const g2 = 4.0 * (x - 0.3) * (x - 0.3) + 4.0 * (y - 0.35) * (y - 0.35);
   const well1 = -0.8 * Math.exp(-g1 * 8);
@@ -49,14 +77,12 @@ function gradLocal(x: number, y: number): [number, number] {
   return [dx, dy];
 }
 
-/* SVG constants */
-const CW = 400;
-const CH = 340;
-const CPAD = 30;
+const CW = 380;
+const CH = 320;
+const CPAD = 28;
 function toSvgX(x: number): number { return CPAD + x * (CW - 2 * CPAD); }
 function toSvgY(y: number): number { return CPAD + y * (CH - 2 * CPAD); }
 
-/* Contour lines generator */
 function makeContours(fn: (x: number, y: number) => number, levels: number[]): { d: string; level: number }[] {
   const lines: { d: string; level: number }[] = [];
   const res = 50;
@@ -91,8 +117,10 @@ function makeContours(fn: (x: number, y: number) => number, levels: number[]): {
   return lines;
 }
 
+const METHOD_COLORS = ["#6bb6ff", "#ff6b6b", "#4ecdc4"];
+
 /* ------------------------------------------------------------------ */
-/*  Tab 1 -- Three Approaches                                         */
+/*  Tab 1 -- Three Approaches (side-by-side)                          */
 /* ------------------------------------------------------------------ */
 function ThreeApproachesTab() {
   type PathEntry = [number, number];
@@ -101,6 +129,7 @@ function ThreeApproachesTab() {
   const startX = 0.1;
   const startY = 0.85;
   const lr = 0.06;
+  const [themeIdx, setThemeIdx] = useState(2);
 
   const initAgents = useCallback((): AgentState[] => [
     { path: [[startX, startY]], x: startX, y: startY },
@@ -116,8 +145,8 @@ function ThreeApproachesTab() {
 
   const contours = useMemo(() => makeContours(loss2D, [0.05, 0.15, 0.3, 0.5, 0.8, 1.2, 1.8]), []);
 
-  const colors = ["#3b82f6", "#ef4444", "#22c55e"];
   const names = ["Full Batch", "SGD", "Mini-Batch"];
+  const subtitle = ["smooth", "jittery", "balanced"];
 
   const handleRun = useCallback(() => {
     playClick();
@@ -127,20 +156,17 @@ function ThreeApproachesTab() {
     let s = 0;
 
     const tick = () => {
-      /* Full Batch: clean gradient */
       const [gxB, gyB] = grad2D(states[0].x, states[0].y);
       states[0].x = clamp(states[0].x - lr * gxB, 0.01, 0.99);
       states[0].y = clamp(states[0].y - lr * gyB, 0.01, 0.99);
       states[0].path = [...states[0].path, [states[0].x, states[0].y]];
 
-      /* SGD: very noisy gradient */
       const [gxS, gyS] = grad2D(states[1].x, states[1].y);
       const noiseS = 0.6;
       states[1].x = clamp(states[1].x - lr * (gxS + (rand() - 0.5) * noiseS), 0.01, 0.99);
       states[1].y = clamp(states[1].y - lr * (gyS + (rand() - 0.5) * noiseS), 0.01, 0.99);
       states[1].path = [...states[1].path, [states[1].x, states[1].y]];
 
-      /* Mini-Batch: moderate noise */
       const [gxM, gyM] = grad2D(states[2].x, states[2].y);
       const noiseM = 0.2;
       states[2].x = clamp(states[2].x - lr * (gxM + (rand() - 0.5) * noiseM), 0.01, 0.99);
@@ -175,67 +201,92 @@ function ThreeApproachesTab() {
   }, []);
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Watch three methods descend simultaneously. Full Batch is smooth, SGD is noisy, Mini-Batch is in between.
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
+        Three methods race to the minimum. Compare their paths side-by-side!
       </p>
 
-      {/* Legend */}
-      <div className="flex gap-4 justify-center">
-        {names.map((n, i) => (
-          <div key={n} className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full" style={{ background: colors[i] }} />
-            <span className="text-xs text-slate-600">{n}</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {agents.map((a, i) => (
+          <div key={i} className="card-sketchy p-2 notebook-grid">
+            <p className="font-hand text-xs text-center font-bold mb-1" style={{ color: METHOD_COLORS[i] }}>
+              {names[i]} <span className="text-muted-foreground font-normal">({subtitle[i]})</span>
+            </p>
+            <svg viewBox={`0 0 ${CW} ${CH}`} className="w-full">
+              <defs>
+                <radialGradient id={`ta-ball-${i}`} cx="35%" cy="30%">
+                  <stop offset="0%" stopColor="#fff" stopOpacity="0.85" />
+                  <stop offset="100%" stopColor={METHOD_COLORS[i]} />
+                </radialGradient>
+              </defs>
+
+              {contours.map((c, ci) => (
+                <path key={ci} d={c.d} fill="none" stroke={INK} strokeWidth={0.8} opacity={0.18 + ci * 0.07} />
+              ))}
+
+              {/* Min marker */}
+              <circle cx={toSvgX(0.5)} cy={toSvgY(0.45)} r={6} fill="none" stroke={THEMES[themeIdx].accent} strokeWidth={2} strokeDasharray="3 2" className="wobble" />
+
+              {/* Path */}
+              {a.path.length > 1 && (
+                <polyline
+                  points={a.path.map(([px, py]) => `${toSvgX(px).toFixed(1)},${toSvgY(py).toFixed(1)}`).join(" ")}
+                  fill="none" stroke={METHOD_COLORS[i]} strokeWidth={2.2} strokeLinejoin="round" strokeLinecap="round"
+                  className="signal-flow"
+                  style={{ color: METHOD_COLORS[i], opacity: 0.85 }}
+                />
+              )}
+
+              {/* Trail dots */}
+              {a.path.map(([px, py], pi) => (
+                pi < a.path.length - 1 ? (
+                  <circle key={pi} cx={toSvgX(px)} cy={toSvgY(py)} r={2} fill={METHOD_COLORS[i]} opacity={0.4 + 0.01 * pi} />
+                ) : null
+              ))}
+
+              {/* Current ball */}
+              <circle
+                cx={toSvgX(a.x)} cy={toSvgY(a.y)}
+                r={9} fill={`url(#ta-ball-${i})`} stroke={INK} strokeWidth={2}
+                className="pulse-glow"
+                style={{ color: METHOD_COLORS[i] }}
+              />
+            </svg>
+            <p className="font-hand text-[10px] text-center mt-1">loss: <strong>{loss2D(a.x, a.y).toFixed(3)}</strong></p>
           </div>
         ))}
       </div>
 
-      <svg viewBox={`0 0 ${CW} ${CH}`} className="w-full max-w-[440px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        {contours.map((c, i) => (
-          <path key={i} d={c.d} fill="none" stroke="#6366f1" strokeWidth={0.7} opacity={0.25 + i * 0.07} />
-        ))}
-
-        {/* Min marker */}
-        <circle cx={toSvgX(0.5)} cy={toSvgY(0.45)} r={4} fill="none" stroke="#22c55e" strokeWidth={1.5} strokeDasharray="3 2" />
-
-        {/* Paths */}
-        {agents.map((a, i) => (
-          <g key={i}>
-            {a.path.length > 1 && (
-              <polyline
-                points={a.path.map(([px, py]) => `${toSvgX(px).toFixed(1)},${toSvgY(py).toFixed(1)}`).join(" ")}
-                fill="none" stroke={colors[i]} strokeWidth={1.5} opacity={0.7} strokeLinejoin="round"
-              />
-            )}
-            <circle
-              cx={toSvgX(a.x)} cy={toSvgY(a.y)}
-              r={6} fill={colors[i]} stroke="#fff" strokeWidth={2}
-            />
-          </g>
-        ))}
-      </svg>
-
-      <div className="text-center text-xs text-slate-500">Step: {step} / 60</div>
+      <div className="text-center font-hand text-sm font-bold">Step: {step} / 60</div>
 
       <div className="flex gap-2 justify-center">
         <button
           onClick={handleRun}
           disabled={running}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40"
         >
+          <Play className="w-4 h-4 inline mr-1" />
           {running ? "Running..." : "Run All"}
         </button>
-        <button onClick={handleReset} className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35]"
+        >
+          <RotateCcw className="w-4 h-4 inline mr-1" />
           Reset
         </button>
       </div>
 
       <InfoBox variant="blue" title="Three Strategies">
-        <strong>Full Batch:</strong> uses all data per step — smooth but slow.
+        <strong>Full Batch:</strong> uses all data per step  smooth but slow.
         <br />
-        <strong>SGD:</strong> uses one sample — fast but noisy.
+        <strong>SGD:</strong> uses one sample  fast but noisy.
         <br />
-        <strong>Mini-Batch:</strong> uses a small group — the best of both worlds.
+        <strong>Mini-Batch:</strong> uses a small group  the best of both worlds.
       </InfoBox>
     </div>
   );
@@ -250,6 +301,7 @@ function NoiseHelpsTab() {
 
   const startX = 0.15;
   const startY = 0.2;
+  const [themeIdx, setThemeIdx] = useState(0);
 
   const initTrails = useCallback((): TrailState[] => [
     { path: [[startX, startY]], x: startX, y: startY },
@@ -274,13 +326,11 @@ function NoiseHelpsTab() {
     let s = 0;
 
     const tick = () => {
-      /* Full Batch: clean gradient => gets stuck in local min */
       const [gxB, gyB] = gradLocal(states[0].x, states[0].y);
       states[0].x = clamp(states[0].x - lr * gxB, 0.01, 0.99);
       states[0].y = clamp(states[0].y - lr * gyB, 0.01, 0.99);
       states[0].path = [...states[0].path, [states[0].x, states[0].y]];
 
-      /* SGD: noisy gradient => escapes local min */
       const [gxS, gyS] = gradLocal(states[1].x, states[1].y);
       const noise = 0.8;
       states[1].x = clamp(states[1].x - lr * (gxS + (rand() - 0.5) * noise), 0.01, 0.99);
@@ -314,72 +364,100 @@ function NoiseHelpsTab() {
     return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
   }, []);
 
-  const colors = ["#3b82f6", "#ef4444"];
+  const colors = ["#6bb6ff", "#ff6b6b"];
   const names = ["Full Batch (stuck)", "SGD (escapes)"];
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
         This landscape has a local minimum (small dip) and a global minimum (deepest valley). Watch how SGD&apos;s noise helps escape the trap!
       </p>
 
-      <div className="flex gap-4 justify-center">
+      <div className="flex gap-3 justify-center flex-wrap">
         {names.map((n, i) => (
-          <div key={n} className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full" style={{ background: colors[i] }} />
-            <span className="text-xs text-slate-600">{n}</span>
+          <div key={n} className="flex items-center gap-1.5 px-2 py-1 rounded-lg border-2 border-foreground bg-background">
+            <div className="w-3 h-3 rounded-full border border-foreground" style={{ background: colors[i] }} />
+            <span className="font-hand text-xs font-bold">{n}</span>
           </div>
         ))}
       </div>
 
-      <svg viewBox={`0 0 ${CW} ${CH}`} className="w-full max-w-[440px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        {contours.map((c, i) => (
-          <path key={i} d={c.d} fill="none" stroke="#6366f1" strokeWidth={0.7} opacity={0.25 + i * 0.07} />
-        ))}
+      <div className="card-sketchy p-4 notebook-grid">
+        <svg viewBox={`0 0 ${CW + 40} ${CH + 20}`} className="w-full max-w-[480px] mx-auto">
+          <defs>
+            {colors.map((c, i) => (
+              <radialGradient key={i} id={`nh-ball-${i}`} cx="35%" cy="30%">
+                <stop offset="0%" stopColor="#fff" stopOpacity="0.85" />
+                <stop offset="100%" stopColor={c} />
+              </radialGradient>
+            ))}
+          </defs>
 
-        {/* Local min marker */}
-        <circle cx={toSvgX(0.3)} cy={toSvgY(0.35)} r={5} fill="none" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="3 2" />
-        <text x={toSvgX(0.3)} y={toSvgY(0.35) - 10} textAnchor="middle" className="text-[8px] fill-amber-600 font-medium">local</text>
+          <g transform="translate(20,10)">
+            {contours.map((c, i) => (
+              <path key={i} d={c.d} fill="none" stroke={INK} strokeWidth={0.9} opacity={0.22 + i * 0.07} />
+            ))}
 
-        {/* Global min marker */}
-        <circle cx={toSvgX(0.75)} cy={toSvgY(0.7)} r={5} fill="none" stroke="#22c55e" strokeWidth={1.5} strokeDasharray="3 2" />
-        <text x={toSvgX(0.75)} y={toSvgY(0.7) - 10} textAnchor="middle" className="text-[8px] fill-green-600 font-medium">global</text>
+            {/* Local min marker */}
+            <circle cx={toSvgX(0.3)} cy={toSvgY(0.35)} r={7} fill="none" stroke="#f59e0b" strokeWidth={2} strokeDasharray="3 2" />
+            <text x={toSvgX(0.3)} y={toSvgY(0.35) - 12} textAnchor="middle" fill="#f59e0b" fontFamily="Kalam" className="text-[10px] font-bold">local</text>
 
-        {/* Trails */}
-        {trails.map((t, i) => (
-          <g key={i}>
-            {t.path.length > 1 && (
-              <polyline
-                points={t.path.map(([px, py]) => `${toSvgX(px).toFixed(1)},${toSvgY(py).toFixed(1)}`).join(" ")}
-                fill="none" stroke={colors[i]} strokeWidth={1.5} opacity={0.6} strokeLinejoin="round"
-              />
-            )}
-            <circle cx={toSvgX(t.x)} cy={toSvgY(t.y)} r={6} fill={colors[i]} stroke="#fff" strokeWidth={2} />
+            {/* Global min marker */}
+            <circle cx={toSvgX(0.75)} cy={toSvgY(0.7)} r={7} fill="none" stroke="#22c55e" strokeWidth={2} strokeDasharray="3 2" className="wobble" />
+            <text x={toSvgX(0.75)} y={toSvgY(0.7) - 12} textAnchor="middle" fill="#22c55e" fontFamily="Kalam" className="text-[10px] font-bold">global</text>
+
+            {trails.map((t, i) => (
+              <g key={i}>
+                {t.path.length > 1 && (
+                  <polyline
+                    points={t.path.map(([px, py]) => `${toSvgX(px).toFixed(1)},${toSvgY(py).toFixed(1)}`).join(" ")}
+                    fill="none" stroke={colors[i]} strokeWidth={2} opacity={0.65} strokeLinejoin="round" strokeLinecap="round"
+                    className="signal-flow"
+                    style={{ color: colors[i] }}
+                  />
+                )}
+                <circle
+                  cx={toSvgX(t.x)} cy={toSvgY(t.y)}
+                  r={9} fill={`url(#nh-ball-${i})`} stroke={INK} strokeWidth={2}
+                  className="pulse-glow"
+                  style={{ color: colors[i] }}
+                />
+              </g>
+            ))}
           </g>
-        ))}
-      </svg>
+        </svg>
+      </div>
 
-      <div className="flex gap-4 justify-center text-xs">
+      <div className="flex gap-4 justify-center text-xs font-hand flex-wrap">
         <span>Batch loss: <strong className="text-blue-600">{lossLocal(trails[0].x, trails[0].y).toFixed(3)}</strong></span>
         <span>SGD loss: <strong className="text-red-600">{lossLocal(trails[1].x, trails[1].y).toFixed(3)}</strong></span>
-        <span className="text-slate-400">Step: {step}/100</span>
+        <span className="text-muted-foreground">Step: {step}/100</span>
       </div>
 
       <div className="flex gap-2 justify-center">
         <button
           onClick={handleRun}
           disabled={running}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40"
         >
+          <Play className="w-4 h-4 inline mr-1" />
           {running ? "Running..." : "Run"}
         </button>
-        <button onClick={handleReset} className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35]"
+        >
+          <RotateCcw className="w-4 h-4 inline mr-1" />
           Restart
         </button>
       </div>
 
       <InfoBox variant="amber" title="Noise as a Feature">
-        SGD&apos;s randomness is not a bug — it is a feature! The noisy updates help the model escape local minima and explore more of the loss landscape, often finding a better global solution.
+        SGD&apos;s randomness is not a bug  it is a feature! The noisy updates help the model escape local minima and explore more of the loss landscape, often finding a better global solution.
       </InfoBox>
     </div>
   );
@@ -393,13 +471,14 @@ function BatchSizeTab() {
   const batchOptions = [1, 4, 8, 16, 32, 64];
   const [batchIdx, setBatchIdx] = useState(2);
   const batchSize = batchOptions[batchIdx];
+  const [themeIdx, setThemeIdx] = useState(3);
+  const theme = THEMES[themeIdx];
 
   const [losses, setLosses] = useState<number[]>([]);
   const [running, setRunning] = useState(false);
   const [wallTime, setWallTime] = useState(0);
   const animRef = useRef<number | null>(null);
 
-  /* Simulate training */
   const handleRun = useCallback(() => {
     playClick();
     setRunning(true);
@@ -449,69 +528,80 @@ function BatchSizeTab() {
     if (animRef.current) cancelAnimationFrame(animRef.current);
   }, []);
 
-  /* Chart */
-  const chartW = 460;
-  const chartH = 200;
+  const chartW = 480;
+  const chartH = 220;
   const maxLoss = 2.5;
 
   const finalLoss = losses.length > 0 ? losses[losses.length - 1] : null;
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
         Adjust batch size and run training. Smaller batches are noisier but each step is faster. Find the sweet spot!
       </p>
 
-      {/* Batch size slider */}
-      <div className="flex items-center gap-3 justify-center">
-        <span className="text-xs text-slate-500">Batch size:</span>
+      <div className="card-sketchy p-3 flex items-center gap-3 justify-center flex-wrap">
+        <span className="font-hand text-sm font-bold">Batch size:</span>
         <input
           type="range" min={0} max={batchOptions.length - 1} step={1}
           value={batchIdx}
           onChange={(e) => { setBatchIdx(Number(e.target.value)); playPop(); }}
-          className="w-48 accent-indigo-600"
+          className="w-48 accent-accent-coral"
           disabled={running}
         />
-        <span className="text-sm font-bold text-indigo-700">
+        <span className="font-hand text-base font-bold" style={{ color: theme.node }}>
           {batchSize}{batchSize === 1 ? " (SGD)" : batchSize === N ? " (Full Batch)" : ""}
         </span>
       </div>
 
-      {/* Loss chart */}
-      <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full max-w-[500px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        <text x={chartW / 2} y={16} textAnchor="middle" className="text-[10px] fill-slate-500 font-medium">Loss over training steps</text>
+      <div className="card-sketchy p-4 notebook-grid">
+        <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full max-w-[560px] mx-auto">
+          <text x={chartW / 2} y={16} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">Loss over training steps</text>
 
-        {/* Axes */}
-        <line x1={40} y1={chartH - 30} x2={chartW - 20} y2={chartH - 30} stroke="#cbd5e1" strokeWidth={1} />
-        <line x1={40} y1={25} x2={40} y2={chartH - 30} stroke="#cbd5e1" strokeWidth={1} />
+          <line x1={42} y1={chartH - 32} x2={chartW - 22} y2={chartH - 32} stroke={INK} strokeWidth={2} />
+          <line x1={42} y1={26} x2={42} y2={chartH - 32} stroke={INK} strokeWidth={2} />
 
-        {losses.length > 1 && (
-          <polyline
-            points={losses.map((l, i) => {
-              const sx = 40 + (i / Math.max(losses.length - 1, 1)) * (chartW - 60);
-              const sy = 25 + (1 - clamp(l, 0, maxLoss) / maxLoss) * (chartH - 55);
-              return `${sx.toFixed(1)},${sy.toFixed(1)}`;
-            }).join(" ")}
-            fill="none" stroke="#6366f1" strokeWidth={2}
-          />
-        )}
+          {losses.length > 1 && (
+            <polyline
+              points={losses.map((l, i) => {
+                const sx = 42 + (i / Math.max(losses.length - 1, 1)) * (chartW - 64);
+                const sy = 26 + (1 - clamp(l, 0, maxLoss) / maxLoss) * (chartH - 60);
+                return `${sx.toFixed(1)},${sy.toFixed(1)}`;
+              }).join(" ")}
+              fill="none" stroke={theme.node} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+            />
+          )}
 
-        <text x={chartW / 2} y={chartH - 8} textAnchor="middle" className="text-[9px] fill-slate-400">Steps</text>
-      </svg>
+          {/* Final ball pulse */}
+          {losses.length > 1 && (() => {
+            const i = losses.length - 1;
+            const sx = 42 + (i / Math.max(losses.length - 1, 1)) * (chartW - 64);
+            const sy = 26 + (1 - clamp(losses[i], 0, maxLoss) / maxLoss) * (chartH - 60);
+            return (
+              <circle cx={sx} cy={sy} r={7} fill={theme.glow} stroke={INK} strokeWidth={2} className="pulse-glow" style={{ color: theme.node }} />
+            );
+          })()}
 
-      {/* Stats */}
-      <div className="flex gap-4 justify-center flex-wrap">
-        <div className="text-center bg-white border border-slate-200 rounded-lg px-3 py-2">
-          <p className="text-[10px] text-slate-500 font-medium">Wall-Clock Time</p>
-          <p className="text-sm font-bold text-slate-700">{wallTime} units</p>
+          <text x={chartW / 2} y={chartH - 10} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[10px] font-bold">Steps</text>
+        </svg>
+      </div>
+
+      <div className="flex gap-3 justify-center flex-wrap">
+        <div className="card-sketchy px-3 py-2 text-center">
+          <p className="font-hand text-[11px] font-bold text-muted-foreground">Wall-Clock Time</p>
+          <p className="font-hand text-base font-bold">{wallTime} units</p>
         </div>
-        <div className="text-center bg-white border border-slate-200 rounded-lg px-3 py-2">
-          <p className="text-[10px] text-slate-500 font-medium">Final Loss</p>
-          <p className="text-sm font-bold text-indigo-600">{finalLoss !== null ? finalLoss.toFixed(4) : "---"}</p>
+        <div className="card-sketchy px-3 py-2 text-center">
+          <p className="font-hand text-[11px] font-bold text-muted-foreground">Final Loss</p>
+          <p className="font-hand text-base font-bold" style={{ color: theme.node }}>{finalLoss !== null ? finalLoss.toFixed(4) : "---"}</p>
         </div>
-        <div className="text-center bg-white border border-slate-200 rounded-lg px-3 py-2">
-          <p className="text-[10px] text-slate-500 font-medium">Steps</p>
-          <p className="text-sm font-bold text-slate-700">{losses.length}</p>
+        <div className="card-sketchy px-3 py-2 text-center">
+          <p className="font-hand text-[11px] font-bold text-muted-foreground">Steps</p>
+          <p className="font-hand text-base font-bold">{losses.length}</p>
         </div>
       </div>
 
@@ -519,11 +609,16 @@ function BatchSizeTab() {
         <button
           onClick={handleRun}
           disabled={running}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40"
         >
+          <Play className="w-4 h-4 inline mr-1" />
           {running ? "Training..." : "Run"}
         </button>
-        <button onClick={handleReset} className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35]"
+        >
+          <RotateCcw className="w-4 h-4 inline mr-1" />
           Reset
         </button>
       </div>
@@ -620,15 +715,15 @@ export default function L25_SGDvsBatchActivity() {
       lessonNumber={4}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Enter the world of computer vision — how computers see images!"
+      nextLessonHint="Next: Enter the world of computer vision  how computers see images!"
       story={
         <StorySection
           paragraphs={[
             "Aru looked at her mountain of homework problems and sighed.",
             "Aru: \"Do I really have to check ALL my homework answers before I can fix a single mistake?\"",
-            "Byte: \"Great question! With Full Batch, yes — you look at everything first, then make one careful correction. But with SGD, you fix your approach after each single problem!\"",
+            "Byte: \"Great question! With Full Batch, yes  you look at everything first, then make one careful correction. But with SGD, you fix your approach after each single problem!\"",
             "Aru: \"SGD sounds faster. But wouldn't I make wild corrections from just one problem?\"",
-            "Byte: \"That's the tradeoff! Mini-Batch is the sweet spot — you look at a small group of problems, get a decent idea of your mistakes, and correct. Fast AND stable!\"",
+            "Byte: \"That's the tradeoff! Mini-Batch is the sweet spot  you look at a small group of problems, get a decent idea of your mistakes, and correct. Fast AND stable!\"",
           ]}
           conceptTitle="SGD vs Batch"
           conceptSummary="Full Batch uses all data per update (smooth but slow), SGD uses one sample (fast but noisy), and Mini-Batch uses a small group (balanced). Mini-batch gradient descent is the standard approach in modern deep learning."

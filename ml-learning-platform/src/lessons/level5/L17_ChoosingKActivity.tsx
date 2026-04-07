@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { TrendingDown, SplitSquareHorizontal, Crosshair } from "lucide-react";
+import { TrendingDown, SplitSquareHorizontal, Crosshair, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
@@ -23,6 +23,14 @@ function gaussNoise(rand: () => number, std: number): number {
 }
 
 interface Pt { x: number; y: number }
+
+const INK = "#2b2a35";
+
+const THEMES = [
+  { name: "Coral", colors: ["#ff6b6b", "#4ecdc4", "#ffd93d", "#b18cf2", "#6bb6ff", "#ffb88c", "#f49ac1", "#94a3b8"] },
+  { name: "Sky", colors: ["#6bb6ff", "#b18cf2", "#ffd93d", "#ff6b6b", "#4ecdc4", "#ffb88c", "#f49ac1", "#94a3b8"] },
+  { name: "Sunset", colors: ["#ffb88c", "#ff6b6b", "#ffd93d", "#4ecdc4", "#b18cf2", "#6bb6ff", "#f49ac1", "#94a3b8"] },
+];
 
 function dist(a: Pt, b: Pt): number {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
@@ -84,12 +92,13 @@ const ELBOW_DATA = generateDataset(200, [
   { x: 2.5, y: 7.5 }, { x: 7.5, y: 7.5 }, { x: 5, y: 2.5 },
 ]);
 
-const COLORS = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
-
 /* ------------------------------------------------------------------ */
 /*  Tab 1 -- The Elbow Method                                          */
 /* ------------------------------------------------------------------ */
 function ElbowTab() {
+  const [themeIdx, setThemeIdx] = useState(0);
+  const COLORS = THEMES[themeIdx].colors;
+
   const elbowResults = useMemo(() => {
     return Array.from({ length: 8 }, (_, i) => {
       const k = i + 1;
@@ -103,12 +112,12 @@ function ElbowTab() {
   const [revealed, setRevealed] = useState(false);
   const correctK = 3;
 
-  const chartW = 440;
-  const chartH = 200;
-  const padL = 50;
-  const padR = 20;
-  const padT = 20;
-  const padB = 35;
+  const chartW = 480;
+  const chartH = 240;
+  const padL = 56;
+  const padR = 24;
+  const padT = 28;
+  const padB = 42;
   const plotW = chartW - padL - padR;
   const plotH = chartH - padT - padB;
 
@@ -123,11 +132,7 @@ function ElbowTab() {
 
   const handleCheck = useCallback(() => {
     if (userGuess === null) return;
-    if (userGuess === correctK) {
-      playSuccess();
-    } else {
-      playError();
-    }
+    if (userGuess === correctK) playSuccess(); else playError();
     setRevealed(true);
   }, [userGuess]);
 
@@ -137,78 +142,124 @@ function ElbowTab() {
     setRevealed(false);
   }, []);
 
+  // Build path "d" for animated draw-line
+  const pathD = inertias
+    .map((v, i) => `${i === 0 ? "M" : "L"}${toX(i + 1)},${toY(v)}`)
+    .join(" ");
+
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        We ran K-Means for K=1 to K=8. Click where you think the "elbow" is — the point where adding more clusters stops helping much.
+      <div className="card-sketchy p-3 flex items-center justify-center gap-3">
+        <Palette className="w-4 h-4 text-foreground/60" />
+        <span className="font-hand text-sm font-bold">Theme:</span>
+        <div className="flex gap-1.5">
+          {THEMES.map((t, i) => (
+            <button key={t.name} onClick={() => { playClick(); setThemeIdx(i); }}
+              className={`w-6 h-6 rounded-full border-2 ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+              style={{ background: t.colors[0] }} />
+          ))}
+        </div>
+      </div>
+
+      <p className="font-hand text-sm text-center text-foreground">
+        We ran K-Means for K=1 to K=8. Click where you think the "elbow" is  the point where adding more clusters stops helping much.
       </p>
 
-      <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full max-w-[480px] mx-auto">
-        {/* Grid lines */}
-        {inertias.map((_, i) => (
-          <line key={`gx-${i}`} x1={toX(i + 1)} y1={padT} x2={toX(i + 1)} y2={padT + plotH} stroke="#e2e8f0" strokeWidth={0.5} />
-        ))}
-        {/* Axes */}
-        <line x1={padL} y1={padT + plotH} x2={padL + plotW} y2={padT + plotH} stroke="#334155" strokeWidth={1.5} />
-        <line x1={padL} y1={padT} x2={padL} y2={padT + plotH} stroke="#334155" strokeWidth={1.5} />
-        {/* Axis labels */}
-        <text x={padL + plotW / 2} y={chartH - 2} textAnchor="middle" className="text-[11px] fill-slate-600 font-medium">K (number of clusters)</text>
-        <text x={12} y={padT + plotH / 2} textAnchor="middle" transform={`rotate(-90, 12, ${padT + plotH / 2})`} className="text-[11px] fill-slate-600 font-medium">Inertia</text>
-        {/* Line */}
-        {inertias.map((val, i) => (
-          <g key={i}>
-            {i > 0 && (
-              <line x1={toX(i)} y1={toY(inertias[i - 1])} x2={toX(i + 1)} y2={toY(val)}
-                stroke="#6366f1" strokeWidth={2} />
-            )}
-            {/* Clickable dots */}
-            <circle cx={toX(i + 1)} cy={toY(val)} r={userGuess === i + 1 ? 10 : 6}
-              fill={
-                revealed && i + 1 === correctK ? "#22c55e"
-                : revealed && userGuess === i + 1 && userGuess !== correctK ? "#ef4444"
-                : userGuess === i + 1 ? "#f59e0b"
-                : "#6366f1"
-              }
-              stroke="#fff" strokeWidth={2}
-              className="cursor-pointer transition-all duration-300"
-              onClick={() => handleGuess(i + 1)} />
-            {/* K label */}
-            <text x={toX(i + 1)} y={padT + plotH + 16} textAnchor="middle" className="text-[10px] fill-slate-500">{i + 1}</text>
-          </g>
-        ))}
-        {/* User guess highlight */}
-        {revealed && (
-          <g>
-            <line x1={toX(correctK)} y1={padT} x2={toX(correctK)} y2={padT + plotH}
-              stroke="#22c55e" strokeWidth={1.5} strokeDasharray="4 3" />
-            <text x={toX(correctK) + 5} y={padT + 12} className="text-[9px] fill-green-600 font-bold">Elbow!</text>
-          </g>
-        )}
-      </svg>
+      <div className="card-sketchy p-3 notebook-grid">
+        <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full max-w-[560px] mx-auto">
+          <defs>
+            <linearGradient id="l17-line" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={COLORS[0]} />
+              <stop offset="50%" stopColor={COLORS[2]} />
+              <stop offset="100%" stopColor={COLORS[1]} />
+            </linearGradient>
+            <radialGradient id="l17-dot-elbow" cx="35%" cy="30%">
+              <stop offset="0%" stopColor="#fff" stopOpacity={0.9} />
+              <stop offset="100%" stopColor={COLORS[2]} />
+            </radialGradient>
+          </defs>
+
+          {/* Axes */}
+          <line x1={padL} y1={padT + plotH} x2={padL + plotW} y2={padT + plotH} stroke={INK} strokeWidth={2} />
+          <line x1={padL} y1={padT} x2={padL} y2={padT + plotH} stroke={INK} strokeWidth={2} />
+          <text x={padL + plotW / 2} y={chartH - 8} textAnchor="middle"
+            fontFamily="Kalam" fill={INK} className="text-[12px] font-bold">K (number of clusters)</text>
+          <text x={16} y={padT + plotH / 2} textAnchor="middle"
+            transform={`rotate(-90, 16, ${padT + plotH / 2})`}
+            fontFamily="Kalam" fill={INK} className="text-[12px] font-bold">Inertia</text>
+
+          {/* Gradient line (animated draw) */}
+          <path d={pathD} fill="none" stroke="url(#l17-line)" strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" className="draw-line" />
+
+          {/* Dots */}
+          {inertias.map((val, i) => {
+            const k = i + 1;
+            const isCorrect = revealed && k === correctK;
+            const isWrong = revealed && userGuess === k && k !== correctK;
+            const isPicked = userGuess === k && !revealed;
+            const fill = isCorrect ? "url(#l17-dot-elbow)"
+              : isWrong ? COLORS[0]
+              : isPicked ? COLORS[2]
+              : COLORS[3];
+            return (
+              <g key={i}>
+                <circle cx={toX(k)} cy={toY(val)} r={isPicked || isCorrect ? 12 : 7}
+                  fill={fill} stroke={INK} strokeWidth={2.5}
+                  className={`cursor-pointer ${isCorrect ? "pulse-glow" : ""}`}
+                  style={isCorrect ? { color: COLORS[2] } : undefined}
+                  onClick={() => handleGuess(k)} />
+                <text x={toX(k)} y={padT + plotH + 18} textAnchor="middle"
+                  fontFamily="Kalam" fill={INK} className="text-[11px] font-bold">{k}</text>
+              </g>
+            );
+          })}
+
+          {/* Sparks on elbow when correct */}
+          {revealed && (
+            <>
+              <line x1={toX(correctK)} y1={padT} x2={toX(correctK)} y2={padT + plotH}
+                stroke={COLORS[1]} strokeWidth={2} strokeDasharray="5 4" />
+              <text x={toX(correctK) + 6} y={padT + 14} fontFamily="Kalam" fill={INK}
+                className="text-[11px] font-bold">Elbow!</text>
+              <g>
+                {Array.from({ length: 8 }).map((_, k) => {
+                  const angle = (k / 8) * Math.PI * 2;
+                  return (
+                    <line key={k}
+                      x1={toX(correctK)} y1={toY(inertias[correctK - 1])}
+                      x2={toX(correctK) + Math.cos(angle) * 28}
+                      y2={toY(inertias[correctK - 1]) + Math.sin(angle) * 28}
+                      stroke={COLORS[2]} strokeWidth={2.5} strokeLinecap="round"
+                      className="spark" style={{ animationDelay: `${k * 0.05}s` }} />
+                  );
+                })}
+              </g>
+            </>
+          )}
+        </svg>
+      </div>
 
       <div className="flex gap-2 justify-center">
         <button onClick={handleCheck} disabled={userGuess === null || revealed}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm">
+          className="btn-sketchy text-sm disabled:opacity-40 disabled:cursor-not-allowed">
           Check My Answer
         </button>
-        <button onClick={handleReset}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button onClick={handleReset} className="btn-sketchy-outline text-sm">
           Reset
         </button>
       </div>
 
       {revealed && (
-        <div className={`text-center text-sm font-medium rounded-lg py-2 px-4 border ${
-          userGuess === correctK ? "bg-green-50 border-green-200 text-green-700" : "bg-amber-50 border-amber-200 text-amber-700"
-        }`}>
+        <div className={`card-sketchy p-3 text-center font-hand text-sm`}
+          style={{ background: userGuess === correctK ? "#e6fff8" : "#fff8e6" }}>
           {userGuess === correctK
-            ? "Correct! K=3 is the elbow — after that, adding more clusters barely reduces inertia."
+            ? "Correct! K=3 is the elbow  after that, adding more clusters barely reduces inertia."
             : `Not quite! The elbow is at K=3. After K=3, the inertia drop flattens out significantly.`}
         </div>
       )}
 
       <InfoBox variant="blue" title="The Elbow Method">
-        Plot inertia vs K. The "elbow" is where the curve bends sharply — beyond that point, adding more clusters gives diminishing returns. That is your best K.
+        Plot inertia vs K. The "elbow" is where the curve bends sharply  beyond that point, adding more clusters gives diminishing returns. That is your best K.
       </InfoBox>
     </div>
   );
@@ -219,9 +270,11 @@ function ElbowTab() {
 /* ------------------------------------------------------------------ */
 function QualityTab() {
   const [separation, setSeparation] = useState(50);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const COLORS = THEMES[themeIdx].colors;
 
   const { pts, labels, centroids, inertia, silhouette } = useMemo(() => {
-    const spread = 1 + (100 - separation) * 0.04; // 1 (tight) to 5 (overlapping)
+    const spread = 1 + (100 - separation) * 0.04;
     const baseCenters: Pt[] = [{ x: 3, y: 7 }, { x: 7, y: 7 }, { x: 5, y: 3 }];
     const rand = mulberry32(55);
     const pts: Pt[] = [];
@@ -232,7 +285,6 @@ function QualityTab() {
     }
     const result = runKMeans(pts, 3, 777);
 
-    // Simplified silhouette
     const sils = pts.map((p, i) => {
       const myC = result.labels[i];
       const same = pts.filter((_, j) => result.labels[j] === myC && j !== i);
@@ -255,69 +307,84 @@ function QualityTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600 text-center">
+      <div className="card-sketchy p-3 flex items-center justify-center gap-3">
+        <Palette className="w-4 h-4 text-foreground/60" />
+        <span className="font-hand text-sm font-bold">Theme:</span>
+        <div className="flex gap-1.5">
+          {THEMES.map((t, i) => (
+            <button key={t.name} onClick={() => { playClick(); setThemeIdx(i); }}
+              className={`w-6 h-6 rounded-full border-2 ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+              style={{ background: t.colors[0] }} />
+          ))}
+        </div>
+      </div>
+
+      <p className="font-hand text-sm text-center text-foreground">
         Drag the slider to change how well-separated the clusters are. Watch the metrics change!
       </p>
 
-      {/* Slider */}
-      <div className="space-y-1 max-w-md mx-auto">
+      <div className="card-sketchy p-3 max-w-md mx-auto">
         <input type="range" min={0} max={100} value={separation}
           onChange={(e) => setSeparation(Number(e.target.value))}
-          className="w-full accent-indigo-600" />
-        <div className="flex justify-between text-[10px] text-slate-400">
+          className="w-full accent-accent-coral" />
+        <div className="flex justify-between font-hand text-[10px] text-muted-foreground">
           <span>Overlapping</span>
           <span>Well-separated</span>
         </div>
       </div>
 
-      {/* Two panels */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Scatter plot */}
-        <div className="border border-slate-200 rounded-lg p-2 bg-white">
-          <p className="text-xs font-bold text-center text-slate-700 mb-1">Cluster View</p>
-          <svg viewBox="0 0 180 180" className="w-full">
-            <rect x={10} y={10} width={160} height={160} fill="#f8fafc" rx={4} stroke="#e2e8f0" />
+        <div className="card-sketchy p-2 notebook-grid">
+          <p className="font-hand text-xs font-bold text-center text-foreground mb-1">Cluster View</p>
+          <svg viewBox="0 0 200 200" className="w-full">
+            <defs>
+              {COLORS.slice(0, 3).map((c, i) => (
+                <radialGradient key={i} id={`l17q-${i}`} cx="35%" cy="30%">
+                  <stop offset="0%" stopColor="#fff" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor={c} />
+                </radialGradient>
+              ))}
+            </defs>
+            <rect x={8} y={8} width={184} height={184} fill="none" stroke={INK} strokeWidth={2} rx={4} />
             {pts.map((p, i) => {
-              const sx = 10 + (Math.max(0, Math.min(10, p.x)) / 10) * 160;
-              const sy = 10 + (1 - Math.max(0, Math.min(10, p.y)) / 10) * 160;
+              const sx = 8 + (Math.max(0, Math.min(10, p.x)) / 10) * 184;
+              const sy = 8 + (1 - Math.max(0, Math.min(10, p.y)) / 10) * 184;
               return (
-                <circle key={i} cx={sx} cy={sy} r={4}
-                  fill={COLORS[labels[i]]} stroke="#fff" strokeWidth={0.5}
-                  className="transition-all duration-300" />
+                <circle key={i} cx={sx} cy={sy} r={5}
+                  fill={`url(#l17q-${labels[i]})`} stroke={INK} strokeWidth={1.5}
+                  style={{ transition: "all 0.3s" }} />
               );
             })}
             {centroids.map((c, ci) => {
-              const sx = 10 + (Math.max(0, Math.min(10, c.x)) / 10) * 160;
-              const sy = 10 + (1 - Math.max(0, Math.min(10, c.y)) / 10) * 160;
+              const sx = 8 + (Math.max(0, Math.min(10, c.x)) / 10) * 184;
+              const sy = 8 + (1 - Math.max(0, Math.min(10, c.y)) / 10) * 184;
               return (
-                <circle key={`c-${ci}`} cx={sx} cy={sy} r={6}
-                  fill={COLORS[ci]} stroke="#1e293b" strokeWidth={1.5} />
+                <circle key={`c-${ci}`} cx={sx} cy={sy} r={9}
+                  fill={`url(#l17q-${ci})`} stroke={INK} strokeWidth={2.5}
+                  className="pulse-glow" style={{ color: COLORS[ci] }} />
               );
             })}
           </svg>
         </div>
 
-        {/* Metrics */}
-        <div className="border border-slate-200 rounded-lg p-3 bg-white flex flex-col justify-center gap-3">
+        <div className="card-sketchy p-3 flex flex-col justify-center gap-3">
           <div>
-            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">Inertia</p>
-            <p className="text-lg font-bold text-slate-800">{inertia.toFixed(1)}</p>
-            <div className="w-full h-2 bg-slate-100 rounded-full mt-1">
-              <div className="h-2 bg-blue-500 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(100, (inertia / 200) * 100)}%` }} />
+            <p className="font-hand text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Inertia</p>
+            <p className="font-hand text-xl font-bold text-foreground">{inertia.toFixed(1)}</p>
+            <div className="w-full h-2.5 bg-muted rounded-full mt-1 border border-foreground">
+              <div className="h-full rounded-full transition-all duration-300"
+                style={{ width: `${Math.min(100, (inertia / 200) * 100)}%`, background: COLORS[0] }} />
             </div>
-            <p className="text-[9px] text-slate-400 mt-0.5">Lower is tighter</p>
+            <p className="font-hand text-[10px] text-muted-foreground mt-0.5">Lower is tighter</p>
           </div>
           <div>
-            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wide">Silhouette Score</p>
-            <p className={`text-lg font-bold ${silhouette > 0.5 ? "text-green-600" : silhouette > 0.25 ? "text-amber-600" : "text-red-600"}`}>
-              {silhouette.toFixed(2)}
-            </p>
-            <div className="w-full h-2 bg-slate-100 rounded-full mt-1">
-              <div className={`h-2 rounded-full transition-all duration-300 ${silhouette > 0.5 ? "bg-green-500" : silhouette > 0.25 ? "bg-amber-500" : "bg-red-500"}`}
-                style={{ width: `${Math.max(0, silhouette) * 100}%` }} />
+            <p className="font-hand text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Silhouette Score</p>
+            <p className="font-hand text-xl font-bold text-foreground">{silhouette.toFixed(2)}</p>
+            <div className="w-full h-2.5 bg-muted rounded-full mt-1 border border-foreground">
+              <div className="h-full rounded-full transition-all duration-300"
+                style={{ width: `${Math.max(0, silhouette) * 100}%`, background: silhouette > 0.5 ? COLORS[1] : silhouette > 0.25 ? COLORS[2] : COLORS[0] }} />
             </div>
-            <p className="text-[9px] text-slate-400 mt-0.5">Higher is better (0-1)</p>
+            <p className="font-hand text-[10px] text-muted-foreground mt-0.5">Higher is better (0-1)</p>
           </div>
         </div>
       </div>
@@ -352,6 +419,8 @@ function YourTurnTab() {
   const [chosenK, setChosenK] = useState(3);
   const [result, setResult] = useState<{ centroids: Pt[]; labels: number[]; inertia: number } | null>(null);
   const [showElbow, setShowElbow] = useState(false);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const COLORS = THEMES[themeIdx].colors;
 
   const data = useMemo(() => {
     const ds = DATASETS[dsIdx];
@@ -380,37 +449,49 @@ function YourTurnTab() {
   const naturalK = DATASETS[dsIdx].naturalK;
   const kDiff = result ? Math.abs(chosenK - naturalK) : null;
 
-  const chartW = 300;
-  const chartH = 100;
-  const padL = 35;
-  const padB = 20;
-  const pW = chartW - padL - 10;
-  const pH = chartH - padB - 10;
+  const chartW = 320;
+  const chartH = 130;
+  const padL = 38;
+  const padB = 24;
+  const pW = chartW - padL - 12;
+  const pH = chartH - padB - 14;
   const maxI = Math.max(...elbowData.map((r) => r.inertia));
 
   return (
     <div className="space-y-4">
+      <div className="card-sketchy p-3 flex items-center justify-center gap-3">
+        <Palette className="w-4 h-4 text-foreground/60" />
+        <span className="font-hand text-sm font-bold">Theme:</span>
+        <div className="flex gap-1.5">
+          {THEMES.map((t, i) => (
+            <button key={t.name} onClick={() => { playClick(); setThemeIdx(i); }}
+              className={`w-6 h-6 rounded-full border-2 ${themeIdx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+              style={{ background: t.colors[0] }} />
+          ))}
+        </div>
+      </div>
+
       {/* Dataset picker */}
       <div className="flex gap-2 justify-center flex-wrap">
         {DATASETS.map((ds, i) => (
           <button key={ds.label}
             onClick={() => { playClick(); setDsIdx(i); setResult(null); setShowElbow(false); }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-300 ${
-              dsIdx === i ? "bg-indigo-600 text-white border-indigo-600 shadow" : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"
+            className={`px-3 py-1.5 rounded-lg font-hand text-xs font-bold border-2 border-foreground transition-all ${
+              dsIdx === i ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]" : "bg-background hover:bg-accent-yellow/40"
             }`}>
             {ds.label}
           </button>
         ))}
       </div>
 
-      {/* K slider */}
-      <div className="flex items-center gap-3 justify-center">
-        <span className="text-xs font-medium text-slate-600">Your K:</span>
+      {/* K picker */}
+      <div className="flex items-center gap-2 justify-center flex-wrap">
+        <span className="font-hand text-sm font-bold text-foreground">Your K:</span>
         {[2, 3, 4, 5, 6].map((v) => (
           <button key={v}
             onClick={() => { playClick(); setChosenK(v); setResult(null); setShowElbow(false); }}
-            className={`w-8 h-8 rounded-full text-sm font-bold border transition-all duration-300 ${
-              chosenK === v ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"
+            className={`w-9 h-9 rounded-full font-hand text-sm font-bold border-2 border-foreground transition-all ${
+              chosenK === v ? "bg-accent-yellow shadow-[2px_2px_0_#2b2a35]" : "bg-background hover:bg-accent-yellow/40"
             }`}>
             {v}
           </button>
@@ -418,93 +499,96 @@ function YourTurnTab() {
       </div>
 
       <div className="flex gap-2 justify-center">
-        <button onClick={handleRun}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 shadow-sm">
-          Run K-Means
-        </button>
+        <button onClick={handleRun} className="btn-sketchy text-sm">Run K-Means</button>
         {result && (
-          <button onClick={handleShowElbow}
-            className="px-4 py-2 rounded-lg text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 transition-all duration-300 shadow-sm">
-            Show Elbow Plot
-          </button>
+          <button onClick={handleShowElbow} className="btn-sketchy-outline text-sm">Show Elbow Plot</button>
         )}
       </div>
 
-      {/* Results area */}
       <div className={`grid ${showElbow ? "grid-cols-2" : "grid-cols-1"} gap-3`}>
-        {/* Scatter */}
-        <div className="border border-slate-200 rounded-lg p-2 bg-white">
-          <p className="text-xs font-bold text-center text-slate-700 mb-1">{DATASETS[dsIdx].label}</p>
-          <svg viewBox="0 0 200 200" className="w-full max-w-[220px] mx-auto">
-            <rect x={10} y={10} width={180} height={180} fill="#f8fafc" rx={4} stroke="#e2e8f0" />
+        <div className="card-sketchy p-2 notebook-grid">
+          <p className="font-hand text-xs font-bold text-center text-foreground mb-1">{DATASETS[dsIdx].label}</p>
+          <svg viewBox="0 0 220 220" className="w-full max-w-[240px] mx-auto">
+            <defs>
+              {COLORS.map((c, i) => (
+                <radialGradient key={i} id={`l17y-${i}`} cx="35%" cy="30%">
+                  <stop offset="0%" stopColor="#fff" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor={c} />
+                </radialGradient>
+              ))}
+            </defs>
+            <rect x={8} y={8} width={204} height={204} fill="none" stroke={INK} strokeWidth={2} rx={4} />
             {data.map((p, i) => {
-              const sx = 10 + (Math.max(0, Math.min(10, p.x)) / 10) * 180;
-              const sy = 10 + (1 - Math.max(0, Math.min(10, p.y)) / 10) * 180;
-              const color = result ? COLORS[result.labels[i] % COLORS.length] : "#94a3b8";
+              const sx = 8 + (Math.max(0, Math.min(10, p.x)) / 10) * 204;
+              const sy = 8 + (1 - Math.max(0, Math.min(10, p.y)) / 10) * 204;
+              const fill = result ? `url(#l17y-${result.labels[i] % COLORS.length})` : "#cbd5e1";
               return (
-                <circle key={i} cx={sx} cy={sy} r={4}
-                  fill={color} stroke="#fff" strokeWidth={0.5}
-                  className="transition-all duration-500" />
+                <circle key={i} cx={sx} cy={sy} r={5}
+                  fill={fill} stroke={INK} strokeWidth={1.5}
+                  style={{ transition: "all 0.5s" }} />
               );
             })}
             {result && result.centroids.map((c, ci) => {
-              const sx = 10 + (Math.max(0, Math.min(10, c.x)) / 10) * 180;
-              const sy = 10 + (1 - Math.max(0, Math.min(10, c.y)) / 10) * 180;
+              const sx = 8 + (Math.max(0, Math.min(10, c.x)) / 10) * 204;
+              const sy = 8 + (1 - Math.max(0, Math.min(10, c.y)) / 10) * 204;
               return (
-                <g key={`c-${ci}`}>
-                  <circle cx={sx} cy={sy} r={7} fill={COLORS[ci % COLORS.length]} stroke="#1e293b" strokeWidth={1.5} />
-                  <line x1={sx - 3} y1={sy} x2={sx + 3} y2={sy} stroke="#fff" strokeWidth={1.5} />
-                  <line x1={sx} y1={sy - 3} x2={sx} y2={sy + 3} stroke="#fff" strokeWidth={1.5} />
-                </g>
+                <circle key={`c-${ci}`} cx={sx} cy={sy} r={10}
+                  fill={`url(#l17y-${ci % COLORS.length})`} stroke={INK} strokeWidth={2.5}
+                  className="pulse-glow" style={{ color: COLORS[ci % COLORS.length] }} />
               );
             })}
           </svg>
         </div>
 
-        {/* Elbow plot */}
         {showElbow && (
-          <div className="border border-slate-200 rounded-lg p-2 bg-white">
-            <p className="text-xs font-bold text-center text-slate-700 mb-1">Elbow Plot</p>
+          <div className="card-sketchy p-2 notebook-grid">
+            <p className="font-hand text-xs font-bold text-center text-foreground mb-1">Elbow Plot</p>
             <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full">
-              <line x1={padL} y1={10} x2={padL} y2={10 + pH} stroke="#334155" strokeWidth={1} />
-              <line x1={padL} y1={10 + pH} x2={padL + pW} y2={10 + pH} stroke="#334155" strokeWidth={1} />
-              <text x={padL + pW / 2} y={chartH - 2} textAnchor="middle" className="text-[9px] fill-slate-500">K</text>
+              <defs>
+                <linearGradient id="l17y-line" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor={COLORS[0]} />
+                  <stop offset="100%" stopColor={COLORS[1]} />
+                </linearGradient>
+              </defs>
+              <line x1={padL} y1={12} x2={padL} y2={12 + pH} stroke={INK} strokeWidth={2} />
+              <line x1={padL} y1={12 + pH} x2={padL + pW} y2={12 + pH} stroke={INK} strokeWidth={2} />
+              <text x={padL + pW / 2} y={chartH - 6} textAnchor="middle"
+                fontFamily="Kalam" fill={INK} className="text-[10px] font-bold">K</text>
+              <path d={elbowData.map((r, i) => `${i === 0 ? "M" : "L"}${padL + (i / 6) * pW},${12 + (1 - r.inertia / maxI) * pH}`).join(" ")}
+                fill="none" stroke="url(#l17y-line)" strokeWidth={3} strokeLinecap="round" />
               {elbowData.map((r, i) => {
                 const ex = padL + (i / 6) * pW;
-                const ey = 10 + (1 - r.inertia / maxI) * pH;
+                const ey = 12 + (1 - r.inertia / maxI) * pH;
+                const isNat = i + 1 === naturalK;
+                const isChosen = i + 1 === chosenK;
                 return (
                   <g key={i}>
-                    {i > 0 && (
-                      <line x1={padL + ((i - 1) / 6) * pW} y1={10 + (1 - elbowData[i - 1].inertia / maxI) * pH}
-                        x2={ex} y2={ey} stroke="#6366f1" strokeWidth={1.5} />
-                    )}
-                    <circle cx={ex} cy={ey} r={i + 1 === chosenK ? 6 : 3}
-                      fill={i + 1 === naturalK ? "#22c55e" : i + 1 === chosenK ? "#f59e0b" : "#6366f1"}
-                      stroke="#fff" strokeWidth={1} />
-                    <text x={ex} y={10 + pH + 12} textAnchor="middle" className="text-[8px] fill-slate-500">{i + 1}</text>
+                    <circle cx={ex} cy={ey} r={isChosen ? 8 : 5}
+                      fill={isNat ? COLORS[1] : isChosen ? COLORS[2] : COLORS[0]}
+                      stroke={INK} strokeWidth={2}
+                      className={isNat ? "pulse-glow" : ""}
+                      style={isNat ? { color: COLORS[1] } : undefined} />
+                    <text x={ex} y={12 + pH + 14} textAnchor="middle"
+                      fontFamily="Kalam" fill={INK} className="text-[9px] font-bold">{i + 1}</text>
                   </g>
                 );
               })}
             </svg>
             <div className="flex gap-3 justify-center mt-1">
-              <span className="flex items-center gap-1 text-[9px] text-slate-500">
-                <span className="inline-block w-2 h-2 rounded-full bg-amber-500" /> Your K
+              <span className="flex items-center gap-1 font-hand text-[10px] text-foreground">
+                <span className="inline-block w-2.5 h-2.5 rounded-full border border-foreground" style={{ background: COLORS[2] }} /> Your K
               </span>
-              <span className="flex items-center gap-1 text-[9px] text-slate-500">
-                <span className="inline-block w-2 h-2 rounded-full bg-green-500" /> Best K
+              <span className="flex items-center gap-1 font-hand text-[10px] text-foreground">
+                <span className="inline-block w-2.5 h-2.5 rounded-full border border-foreground" style={{ background: COLORS[1] }} /> Best K
               </span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Score */}
       {result && (
-        <div className={`text-center text-sm font-medium rounded-lg py-2 px-4 border ${
-          kDiff === 0 ? "bg-green-50 border-green-200 text-green-700"
-          : kDiff === 1 ? "bg-amber-50 border-amber-200 text-amber-700"
-          : "bg-red-50 border-red-200 text-red-700"
-        }`}>
+        <div className="card-sketchy p-3 text-center font-hand text-sm"
+          style={{ background: kDiff === 0 ? "#e6fff8" : kDiff === 1 ? "#fff8e6" : "#ffe8e8" }}>
           {kDiff === 0
             ? `Perfect! K=${chosenK} matches the natural number of clusters!`
             : kDiff === 1
@@ -544,7 +628,7 @@ const quizQuestions = [
       "There are too many clusters",
     ],
     correctIndex: 2,
-    explanation: "A high silhouette score means each point is close to its own cluster center and far from other clusters — well-separated groups.",
+    explanation: "A high silhouette score means each point is close to its own cluster center and far from other clusters  well-separated groups.",
   },
   {
     question: "If you set K too high, what happens?",
@@ -605,18 +689,18 @@ export default function L17_ChoosingKActivity() {
       lessonNumber={3}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Discover the Perceptron — the building block of neural networks!"
+      nextLessonHint="Next: Discover the Perceptron  the building block of neural networks!"
       story={
         <StorySection
           paragraphs={[
             "Aru stared at the clusters Byte had found. Something was bugging her.",
             "Aru: \"But how do I know how many groups to make? What if I pick the wrong number?\"",
-            "Byte: \"Great question! We try K=1, 2, 3... and measure how tight the clusters are. When the improvement slows down — that's the elbow! That's the best K.\"",
+            "Byte: \"Great question! We try K=1, 2, 3... and measure how tight the clusters are. When the improvement slows down  that's the elbow! That's the best K.\"",
             "Aru: \"So you literally look for a bend in a graph?\"",
             "Byte: \"Exactly! It's called the Elbow Method. Simple, visual, and surprisingly effective. Let me show you!\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="The Elbow Method plots cluster tightness (inertia) against K. The 'elbow' — where the curve bends — indicates the optimal number of clusters. The Silhouette Score further validates cluster quality by measuring separation between groups."
+          conceptSummary="The Elbow Method plots cluster tightness (inertia) against K. The 'elbow'  where the curve bends  indicates the optimal number of clusters. The Silhouette Score further validates cluster quality by measuring separation between groups."
         />
       }
     />

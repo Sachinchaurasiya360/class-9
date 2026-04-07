@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { ArrowDown, Gauge, Map } from "lucide-react";
+import { ArrowDown, Gauge, Map, Palette, RotateCcw, Play, Sparkles } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
 import InfoBox from "../../components/InfoBox";
 import StorySection from "../../components/StorySection";
@@ -10,7 +10,37 @@ function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
 }
 
-/* 1D loss curve: a smooth polynomial with one minimum near x=0.6 */
+const THEMES = [
+  { name: "Coral",    node: "#ff6b6b", glow: "#ff8a8a", accent: "#ffd93d" },
+  { name: "Mint",     node: "#4ecdc4", glow: "#7ee0d8", accent: "#ffd93d" },
+  { name: "Lavender", node: "#b18cf2", glow: "#c9adf7", accent: "#ffd93d" },
+  { name: "Sky",      node: "#6bb6ff", glow: "#94caff", accent: "#ffd93d" },
+  { name: "Sunset",   node: "#ffb88c", glow: "#ffd0b3", accent: "#ff6b6b" },
+];
+
+const INK = "#2b2a35";
+
+function ThemePicker({ idx, setIdx }: { idx: number; setIdx: (i: number) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Palette className="w-4 h-4 text-foreground/60" />
+      <span className="font-hand text-sm font-bold">Theme:</span>
+      <div className="flex gap-1.5">
+        {THEMES.map((t, i) => (
+          <button
+            key={t.name}
+            onClick={() => { playClick(); setIdx(i); }}
+            title={t.name}
+            className={`w-6 h-6 rounded-full border-2 transition-transform ${idx === i ? "scale-125 border-foreground" : "border-foreground/30"}`}
+            style={{ background: t.node }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* 1D loss curve: smooth polynomial with one minimum near x=0.6 */
 function lossFn(x: number): number {
   const t = x - 0.6;
   return 2.5 * t * t * t * t - 1.2 * t * t + 0.5 * t + 1.0;
@@ -21,130 +51,238 @@ function lossGrad(x: number): number {
   return 4 * 2.5 * t * t * t - 2 * 1.2 * t + 0.5;
 }
 
-/* Map x [0,1] to SVG coords */
-const W = 460;
-const H = 260;
-const PAD = 40;
-function xToSvg(x: number): number {
-  return PAD + x * (W - 2 * PAD);
-}
+/* SVG mapping */
+const W = 480;
+const H = 280;
+const PAD = 44;
+function xToSvg(x: number): number { return PAD + x * (W - 2 * PAD); }
 function yToSvg(y: number): number {
-  const minY = 0.3;
-  const maxY = 2.0;
-  const norm = (y - minY) / (maxY - minY);
-  return PAD + (1 - norm) * (H - 2 * PAD);
+  const minY = 0.3, maxY = 2.0;
+  return PAD + (1 - (y - minY) / (maxY - minY)) * (H - 2 * PAD);
 }
 
 function curvePath(): string {
   const pts: string[] = [];
-  for (let i = 0; i <= 100; i++) {
-    const x = i / 100;
-    const sx = xToSvg(x);
-    const sy = yToSvg(lossFn(x));
-    pts.push(`${i === 0 ? "M" : "L"}${sx.toFixed(1)},${sy.toFixed(1)}`);
+  for (let i = 0; i <= 120; i++) {
+    const x = i / 120;
+    pts.push(`${i === 0 ? "M" : "L"}${xToSvg(x).toFixed(1)},${yToSvg(lossFn(x)).toFixed(1)}`);
   }
   return pts.join(" ");
+}
+
+/* Curve "ground" filled area */
+function curveAreaPath(): string {
+  return `${curvePath()} L${xToSvg(1).toFixed(1)},${(H - PAD).toFixed(1)} L${xToSvg(0).toFixed(1)},${(H - PAD).toFixed(1)} Z`;
 }
 
 /* ------------------------------------------------------------------ */
 /*  Tab 1 -- Roll Down the Hill                                        */
 /* ------------------------------------------------------------------ */
 function RollDownTab() {
-  const [ballX, setBallX] = useState(0.1);
+  const [ballX, setBallX] = useState(0.08);
   const [steps, setSteps] = useState(0);
+  const [themeIdx, setThemeIdx] = useState(0);
+  const [speed, setSpeed] = useState(1.0);
+  const [autoRun, setAutoRun] = useState(false);
+  const [burstKey, setBurstKey] = useState(0);
   const lr = 0.1;
+  const theme = THEMES[themeIdx];
 
   const handleStep = useCallback(() => {
     playClick();
-    setBallX((prev) => {
-      const grad = lossGrad(prev);
-      return clamp(prev - lr * grad, 0.01, 0.99);
-    });
+    setBallX((prev) => clamp(prev - lr * lossGrad(prev), 0.01, 0.99));
     setSteps((s) => s + 1);
   }, []);
 
   const handleReset = useCallback(() => {
     playPop();
-    setBallX(0.1);
+    setBallX(0.08);
     setSteps(0);
+    setAutoRun(false);
   }, []);
 
   const ballY = lossFn(ballX);
   const grad = lossGrad(ballX);
   const converged = Math.abs(grad) < 0.05;
 
+  const prevConv = useRef(false);
   useEffect(() => {
-    if (converged && steps > 0) playSuccess();
+    if (converged && !prevConv.current && steps > 0) {
+      playSuccess();
+      setBurstKey((k) => k + 1);
+    }
+    prevConv.current = converged;
   }, [converged, steps]);
 
-  /* tangent line segment */
-  const tangentLen = 0.08;
+  // auto-run
+  useEffect(() => {
+    if (!autoRun || converged) return;
+    const id = setInterval(handleStep, 1000 / speed);
+    return () => clearInterval(id);
+  }, [autoRun, converged, handleStep, speed]);
+
+  /* tangent line segment (gradient slope) */
+  const tangentLen = 0.09;
   const tx1 = ballX - tangentLen;
   const ty1 = ballY - grad * tangentLen;
   const tx2 = ballX + tangentLen;
   const ty2 = ballY + grad * tangentLen;
 
+  /* arrow direction */
+  const arrowDx = grad > 0 ? -22 : 22;
+
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Click <strong>Step</strong> to move the ball downhill following the gradient. Reach the bottom!
+    <div className="space-y-5">
+      {/* Toolbar */}
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+        <div className="flex items-center gap-2">
+          <span className="font-hand text-sm font-bold">Speed:</span>
+          <input
+            type="range" min={0.5} max={4} step={0.1} value={speed}
+            onChange={(e) => setSpeed(parseFloat(e.target.value))}
+            className="w-24 accent-accent-coral"
+          />
+        </div>
+        <button
+          onClick={() => { playClick(); setAutoRun((v) => !v); }}
+          disabled={converged}
+          className={`px-3 py-1 rounded-lg font-hand text-sm font-bold border-2 border-foreground transition-all disabled:opacity-50 ${autoRun ? "bg-accent-coral text-white shadow-[2px_2px_0_#2b2a35]" : "bg-background"}`}
+        >
+          {autoRun ? "■ Pause" : "▶ Auto"}
+        </button>
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
+        Click <strong>Step</strong> to roll the ball downhill following the gradient. Reach the bottom!
       </p>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[500px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        {/* Curve */}
-        <path d={curvePath()} fill="none" stroke="#6366f1" strokeWidth={2.5} />
+      {/* The hillside */}
+      <div className="card-sketchy p-4 notebook-grid">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[560px] mx-auto">
+          <defs>
+            <radialGradient id="gd-ball" cx="35%" cy="30%">
+              <stop offset="0%" stopColor={theme.glow} />
+              <stop offset="100%" stopColor={theme.node} />
+            </radialGradient>
+            <linearGradient id="gd-hill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor={theme.node} stopOpacity="0.18" />
+              <stop offset="100%" stopColor={theme.node} stopOpacity="0.02" />
+            </linearGradient>
+            <marker id="gd-arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+              <path d="M0,0 L10,4 L0,8 Z" fill={theme.node} />
+            </marker>
+          </defs>
 
-        {/* Tangent line */}
-        <line
-          x1={xToSvg(tx1)} y1={yToSvg(ty1)}
-          x2={xToSvg(tx2)} y2={yToSvg(ty2)}
-          stroke="#ef4444" strokeWidth={1.5} strokeDasharray="4 3"
-        />
+          {/* Filled hill area */}
+          <path d={curveAreaPath()} fill="url(#gd-hill)" />
 
-        {/* Direction arrow */}
-        {!converged && (
-          <polygon
-            points={`${xToSvg(ballX) + (grad > 0 ? -18 : 18)},${yToSvg(ballY) - 6} ${xToSvg(ballX) + (grad > 0 ? -8 : 8)},${yToSvg(ballY) - 10} ${xToSvg(ballX) + (grad > 0 ? -8 : 8)},${yToSvg(ballY) - 2}`}
-            fill="#22c55e"
+          {/* Curve */}
+          <path d={curvePath()} fill="none" stroke={INK} strokeWidth={2.8} strokeLinecap="round" />
+          <path d={curvePath()} fill="none" stroke={theme.node} strokeWidth={1.2} strokeLinecap="round" strokeDasharray="2 4" opacity={0.5} className="wobble" />
+
+          {/* Minimum marker */}
+          <g>
+            <circle cx={xToSvg(0.6)} cy={yToSvg(lossFn(0.6))} r={9} fill="none" stroke={theme.accent} strokeWidth={2} strokeDasharray="3 2" />
+            <text x={xToSvg(0.6)} y={yToSvg(lossFn(0.6)) + 24} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[10px] font-bold">
+              min
+            </text>
+          </g>
+
+          {/* Tangent line */}
+          <line
+            x1={xToSvg(tx1)} y1={yToSvg(ty1)}
+            x2={xToSvg(tx2)} y2={yToSvg(ty2)}
+            stroke={theme.accent} strokeWidth={2.5} strokeDasharray="5 3" strokeLinecap="round"
           />
-        )}
 
-        {/* Ball */}
-        <circle
-          cx={xToSvg(ballX)} cy={yToSvg(ballY)}
-          r={8} fill="#f59e0b" stroke="#b45309" strokeWidth={2}
-          className="transition-all duration-300"
-        />
+          {/* Direction arrow */}
+          {!converged && (
+            <line
+              x1={xToSvg(ballX)} y1={yToSvg(ballY) - 22}
+              x2={xToSvg(ballX) + arrowDx} y2={yToSvg(ballY) - 22}
+              stroke={theme.node} strokeWidth={3} markerEnd="url(#gd-arrow)" strokeLinecap="round"
+            />
+          )}
 
-        {/* Labels */}
-        <text x={W / 2} y={H - 6} textAnchor="middle" className="text-[10px] fill-slate-500">Parameter value</text>
-        <text x={14} y={H / 2} textAnchor="middle" transform={`rotate(-90,14,${H / 2})`} className="text-[10px] fill-slate-500">Loss</text>
+          {/* Ball */}
+          <g>
+            {converged && (
+              <>
+                <circle cx={xToSvg(ballX)} cy={yToSvg(ballY)} r={12} fill="none" stroke={theme.accent} strokeWidth={3} className="fire-ring" />
+                <circle cx={xToSvg(ballX)} cy={yToSvg(ballY)} r={12} fill="none" stroke={theme.node} strokeWidth={2} className="fire-ring" style={{ animationDelay: "0.4s" }} />
+              </>
+            )}
+            <circle
+              cx={xToSvg(ballX)} cy={yToSvg(ballY)}
+              r={12} fill="url(#gd-ball)" stroke={INK} strokeWidth={2.5}
+              className="pulse-glow"
+              style={{ color: theme.node }}
+            />
 
-        {/* Loss readout */}
-        <text x={W - PAD} y={PAD - 8} textAnchor="end" className="text-[11px] fill-slate-700 font-semibold">
-          Loss: {ballY.toFixed(3)}
-        </text>
-        <text x={PAD} y={PAD - 8} className="text-[11px] fill-slate-700 font-semibold">
-          Step: {steps}
-        </text>
-      </svg>
+            {/* Spark burst on convergence */}
+            {converged && (
+              <g key={burstKey}>
+                {Array.from({ length: 8 }).map((_, i) => {
+                  const angle = (i / 8) * Math.PI * 2;
+                  return (
+                    <line
+                      key={i}
+                      x1={xToSvg(ballX)} y1={yToSvg(ballY)}
+                      x2={xToSvg(ballX) + Math.cos(angle) * 32}
+                      y2={yToSvg(ballY) + Math.sin(angle) * 32}
+                      stroke={theme.accent} strokeWidth={2.5} strokeLinecap="round"
+                      className="spark"
+                      style={{ animationDelay: `${i * 0.05}s` }}
+                    />
+                  );
+                })}
+              </g>
+            )}
+          </g>
 
-      <div className="flex gap-2 justify-center">
+          {/* Axis labels */}
+          <text x={W / 2} y={H - 8} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">Parameter value</text>
+          <text x={14} y={H / 2} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[11px] font-bold" transform={`rotate(-90,14,${H / 2})`}>Loss</text>
+
+          {/* Readouts */}
+          <text x={W - PAD} y={PAD - 10} textAnchor="end" fill={INK} fontFamily="Kalam" className="text-[12px] font-bold">
+            Loss: {ballY.toFixed(3)}
+          </text>
+          <text x={PAD} y={PAD - 10} fill={INK} fontFamily="Kalam" className="text-[12px] font-bold">
+            Step: {steps}
+          </text>
+          <text x={W / 2} y={PAD - 10} textAnchor="middle" fill={theme.node} fontFamily="Kalam" className="text-[12px] font-bold">
+            grad = {grad.toFixed(2)}
+          </text>
+        </svg>
+      </div>
+
+      {/* Controls */}
+      <div className="flex gap-2 justify-center flex-wrap">
         <button
           onClick={handleStep}
           disabled={converged}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className={`px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground transition-all disabled:opacity-40 disabled:cursor-not-allowed ${converged ? "bg-accent-mint" : "bg-accent-yellow shadow-[2px_2px_0_#2b2a35] hover:translate-x-[-1px] hover:translate-y-[-1px]"}`}
         >
+          <Play className="w-4 h-4 inline mr-1" />
           {converged ? "Converged!" : "Step"}
         </button>
-        <button onClick={handleReset} className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35]"
+        >
+          <RotateCcw className="w-4 h-4 inline mr-1" />
           Reset
         </button>
       </div>
 
       {converged && (
-        <div className="text-center text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg py-2 px-4">
-          The ball reached the minimum in {steps} steps!
+        <div className="card-sketchy p-3 text-center bg-accent-mint/30 animate-fadeIn">
+          <p className="font-hand text-base font-bold">
+            <Sparkles className="w-4 h-4 inline mr-1" />
+            The ball reached the minimum in {steps} steps!
+          </p>
         </div>
       )}
 
@@ -167,7 +305,8 @@ interface BallState {
 function LRExplorerTab() {
   const rates = [0.01, 0.1, 0.5];
   const labels = ["Small (0.01)", "Medium (0.1)", "Large (0.5)"];
-  const colors = ["#3b82f6", "#22c55e", "#ef4444"];
+  const colors = ["#6bb6ff", "#4ecdc4", "#ff6b6b"];
+  const [themeIdx, setThemeIdx] = useState(1);
 
   const initBalls = useCallback((): BallState[] =>
     rates.map(() => ({ x: 0.1, trail: [0.1], losses: [lossFn(0.1)] })),
@@ -199,73 +338,94 @@ function LRExplorerTab() {
     setStep(0);
   }, [initBalls]);
 
-  /* Loss chart dimensions */
-  const LCW = 460;
-  const LCH = 100;
+  const LCW = 480;
+  const LCH = 110;
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Three balls with different learning rates start at the same point. Click <strong>Step All</strong> to see how each behaves.
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
+        Three balls with different learning rates start at the same point. Click <strong>Step All</strong> to compare!
       </p>
 
-      {/* Main curve */}
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[500px] mx-auto bg-slate-50 rounded-xl border border-slate-200">
-        <path d={curvePath()} fill="none" stroke="#94a3b8" strokeWidth={2} />
+      <div className="card-sketchy p-4 notebook-grid">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-[560px] mx-auto">
+          <defs>
+            {colors.map((c, i) => (
+              <radialGradient key={i} id={`lr-ball-${i}`} cx="35%" cy="30%">
+                <stop offset="0%" stopColor="#fff" stopOpacity="0.8" />
+                <stop offset="100%" stopColor={c} />
+              </radialGradient>
+            ))}
+          </defs>
 
-        {balls.map((b, i) => (
-          <g key={i}>
-            {/* Trail dots */}
-            {b.trail.map((tx, j) => {
-              const cx = clamp(tx, 0, 1);
-              return (
-                <circle key={j} cx={xToSvg(cx)} cy={yToSvg(lossFn(cx))} r={3} fill={colors[i]} opacity={0.3 + 0.05 * j} />
-              );
-            })}
-            {/* Current ball */}
-            <circle
-              cx={xToSvg(clamp(b.x, 0, 1))} cy={yToSvg(lossFn(clamp(b.x, 0, 1)))}
-              r={7} fill={colors[i]} stroke="#fff" strokeWidth={2}
-              className="transition-all duration-300"
-            />
-          </g>
-        ))}
+          <path d={curvePath()} fill="none" stroke={INK} strokeWidth={2.8} strokeLinecap="round" />
+          <path d={curvePath()} fill="none" stroke={THEMES[themeIdx].node} strokeWidth={1.2} strokeDasharray="2 4" opacity={0.4} className="wobble" />
 
-        {/* Legend */}
-        {labels.map((l, i) => (
-          <g key={l}>
-            <circle cx={PAD + 10} cy={PAD + 10 + i * 16} r={5} fill={colors[i]} />
-            <text x={PAD + 22} y={PAD + 14 + i * 16} className="text-[9px] fill-slate-600">{l}</text>
-          </g>
-        ))}
-      </svg>
+          {/* Min marker */}
+          <circle cx={xToSvg(0.6)} cy={yToSvg(lossFn(0.6))} r={8} fill="none" stroke={THEMES[themeIdx].accent} strokeWidth={2} strokeDasharray="3 2" />
 
-      {/* Loss curves */}
-      <svg viewBox={`0 0 ${LCW} ${LCH}`} className="w-full max-w-[500px] mx-auto bg-white rounded-xl border border-slate-200">
-        <text x={LCW / 2} y={12} textAnchor="middle" className="text-[9px] fill-slate-500 font-medium">Loss over steps</text>
-        {balls.map((b, i) => {
-          if (b.losses.length < 2) return null;
-          const maxL = 2.0;
-          const minL = 0.3;
-          const maxSteps = Math.max(step, 1);
-          const pts = b.losses.map((l, j) => {
-            const sx = 30 + (j / maxSteps) * (LCW - 50);
-            const sy = 20 + (1 - (clamp(l, minL, maxL) - minL) / (maxL - minL)) * (LCH - 30);
-            return `${sx.toFixed(1)},${sy.toFixed(1)}`;
-          });
-          return <polyline key={i} points={pts.join(" ")} fill="none" stroke={colors[i]} strokeWidth={1.5} />;
-        })}
-      </svg>
+          {balls.map((b, i) => (
+            <g key={i}>
+              {b.trail.map((tx, j) => {
+                const cx = clamp(tx, 0, 1);
+                return (
+                  <circle key={j} cx={xToSvg(cx)} cy={yToSvg(lossFn(cx))} r={3} fill={colors[i]} opacity={0.25 + 0.05 * j} />
+                );
+              })}
+              <circle
+                cx={xToSvg(clamp(b.x, 0, 1))} cy={yToSvg(lossFn(clamp(b.x, 0, 1)))}
+                r={9} fill={`url(#lr-ball-${i})`} stroke={INK} strokeWidth={2}
+                className="pulse-glow"
+                style={{ color: colors[i] }}
+              />
+            </g>
+          ))}
 
-      <div className="flex gap-2 justify-center">
+          {/* Legend */}
+          {labels.map((l, i) => (
+            <g key={l}>
+              <circle cx={PAD + 10} cy={PAD + 10 + i * 16} r={5} fill={colors[i]} stroke={INK} strokeWidth={1} />
+              <text x={PAD + 22} y={PAD + 14 + i * 16} fill={INK} fontFamily="Kalam" className="text-[10px] font-bold">{l}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+
+      {/* Loss curves over steps */}
+      <div className="card-sketchy p-3">
+        <svg viewBox={`0 0 ${LCW} ${LCH}`} className="w-full max-w-[560px] mx-auto">
+          <text x={LCW / 2} y={14} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[11px] font-bold">Loss over steps</text>
+          {balls.map((b, i) => {
+            if (b.losses.length < 2) return null;
+            const maxL = 2.0, minL = 0.3;
+            const maxSteps = Math.max(step, 1);
+            const pts = b.losses.map((l, j) => {
+              const sx = 30 + (j / maxSteps) * (LCW - 50);
+              const sy = 22 + (1 - (clamp(l, minL, maxL) - minL) / (maxL - minL)) * (LCH - 32);
+              return `${sx.toFixed(1)},${sy.toFixed(1)}`;
+            });
+            return <polyline key={i} points={pts.join(" ")} fill="none" stroke={colors[i]} strokeWidth={2} strokeLinecap="round" />;
+          })}
+        </svg>
+      </div>
+
+      <div className="flex gap-2 justify-center flex-wrap">
         <button
           onClick={handleStepAll}
           disabled={step >= 30}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40"
         >
           Step All ({step}/30)
         </button>
-        <button onClick={handleReset} className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35]"
+        >
+          <RotateCcw className="w-4 h-4 inline mr-1" />
           Reset
         </button>
       </div>
@@ -292,13 +452,14 @@ function grad2D(x: number, y: number): [number, number] {
 }
 
 function Contour2DTab() {
-  const CW = 400;
-  const CH = 340;
+  const CW = 420;
+  const CH = 360;
   const [path, setPath] = useState<[number, number][]>([]);
   const [running, setRunning] = useState(false);
+  const [themeIdx, setThemeIdx] = useState(2);
   const animRef = useRef<number | null>(null);
+  const theme = THEMES[themeIdx];
 
-  /* Generate contour lines */
   const contours = useMemo(() => {
     const lines: { d: string; level: number }[] = [];
     const levels = [0.05, 0.15, 0.3, 0.5, 0.8, 1.2, 1.8];
@@ -377,9 +538,7 @@ function Contour2DTab() {
   }, [path]);
 
   useEffect(() => {
-    return () => {
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-    };
+    return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
   }, []);
 
   const handleReset = useCallback(() => {
@@ -390,55 +549,75 @@ function Contour2DTab() {
   }, []);
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-600">
-        Click on the contour map to place a starting point, then click <strong>Run</strong> to watch gradient descent find the minimum.
+    <div className="space-y-5">
+      <div className="card-sketchy p-3 flex flex-wrap items-center justify-center gap-3">
+        <ThemePicker idx={themeIdx} setIdx={setThemeIdx} />
+      </div>
+
+      <p className="font-hand text-sm text-center text-muted-foreground">
+        Click on the contour map to place a starting point, then <strong>Run</strong> gradient descent.
       </p>
 
-      <svg
-        viewBox={`0 0 ${CW} ${CH}`}
-        className="w-full max-w-[440px] mx-auto bg-slate-50 rounded-xl border border-slate-200 cursor-crosshair"
-        onClick={handleClick}
-      >
-        {/* Contour lines */}
-        {contours.map((c, i) => (
-          <path key={i} d={c.d} fill="none" stroke="#6366f1" strokeWidth={0.8} opacity={0.3 + i * 0.08} />
-        ))}
+      <div className="card-sketchy p-4 notebook-grid">
+        <svg
+          viewBox={`0 0 ${CW} ${CH}`}
+          className="w-full max-w-[480px] mx-auto cursor-crosshair"
+          onClick={handleClick}
+        >
+          <defs>
+            <radialGradient id="ct-ball" cx="35%" cy="30%">
+              <stop offset="0%" stopColor={theme.glow} />
+              <stop offset="100%" stopColor={theme.node} />
+            </radialGradient>
+          </defs>
 
-        {/* Minimum marker */}
-        <circle cx={30 + 0.5 * (CW - 60)} cy={30 + 0.4 * (CH - 60)} r={5} fill="none" stroke="#22c55e" strokeWidth={1.5} strokeDasharray="3 2" />
-        <text x={30 + 0.5 * (CW - 60)} y={30 + 0.4 * (CH - 60) - 10} textAnchor="middle" className="text-[8px] fill-green-600 font-medium">min</text>
+          {contours.map((c, i) => (
+            <path key={i} d={c.d} fill="none" stroke={theme.node} strokeWidth={1.2} opacity={0.25 + i * 0.08} />
+          ))}
 
-        {/* Path */}
-        {path.length > 1 && (
-          <polyline
-            points={path.map(([px, py]) => `${(30 + px * (CW - 60)).toFixed(1)},${(30 + py * (CH - 60)).toFixed(1)}`).join(" ")}
-            fill="none" stroke="#f59e0b" strokeWidth={2} strokeLinejoin="round"
-          />
-        )}
+          {/* Minimum marker */}
+          <circle cx={30 + 0.5 * (CW - 60)} cy={30 + 0.4 * (CH - 60)} r={9} fill="none" stroke={theme.accent} strokeWidth={2.5} strokeDasharray="3 2" className="wobble" />
+          <text x={30 + 0.5 * (CW - 60)} y={30 + 0.4 * (CH - 60) - 14} textAnchor="middle" fill={INK} fontFamily="Kalam" className="text-[10px] font-bold">min</text>
 
-        {/* Path dots */}
-        {path.map(([px, py], i) => (
-          <circle
-            key={i}
-            cx={30 + px * (CW - 60)} cy={30 + py * (CH - 60)}
-            r={i === path.length - 1 ? 6 : 2.5}
-            fill={i === path.length - 1 ? "#f59e0b" : "#fbbf24"}
-            stroke={i === path.length - 1 ? "#b45309" : "none"}
-            strokeWidth={1.5}
-          />
-        ))}
-      </svg>
+          {/* Path */}
+          {path.length > 1 && (
+            <polyline
+              points={path.map(([px, py]) => `${(30 + px * (CW - 60)).toFixed(1)},${(30 + py * (CH - 60)).toFixed(1)}`).join(" ")}
+              fill="none" stroke={theme.accent} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round"
+              className="signal-flow"
+              style={{ color: theme.accent }}
+            />
+          )}
 
-      <div className="flex gap-2 justify-center">
+          {path.map(([px, py], i) => (
+            <circle
+              key={i}
+              cx={30 + px * (CW - 60)} cy={30 + py * (CH - 60)}
+              r={i === path.length - 1 ? 9 : 3}
+              fill={i === path.length - 1 ? "url(#ct-ball)" : theme.glow}
+              stroke={INK}
+              strokeWidth={i === path.length - 1 ? 2.5 : 1}
+              className={i === path.length - 1 ? "pulse-glow" : ""}
+              style={i === path.length - 1 ? { color: theme.node } : undefined}
+            />
+          ))}
+        </svg>
+      </div>
+
+      <div className="flex gap-2 justify-center flex-wrap">
         <button
           onClick={handleRun}
           disabled={path.length === 0 || running}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-accent-yellow shadow-[2px_2px_0_#2b2a35] disabled:opacity-40"
         >
+          <Play className="w-4 h-4 inline mr-1" />
           {running ? "Running..." : "Run"}
         </button>
-        <button onClick={handleReset} className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all duration-300">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 rounded-lg font-hand text-sm font-bold border-2 border-foreground bg-background shadow-[2px_2px_0_#2b2a35]"
+        >
+          <RotateCcw className="w-4 h-4 inline mr-1" />
           Reset
         </button>
       </div>
@@ -521,15 +700,15 @@ export default function L22_GradientDescentActivity() {
       lessonNumber={1}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Master learning rate and momentum — the speed controls of training!"
+      nextLessonHint="Next: Master learning rate and momentum  the speed controls of training!"
       story={
         <StorySection
           paragraphs={[
             "Aru stood on a grassy hillside, blindfolded, trying to find her way to the bottom of the valley.",
             "Aru: \"Byte, I can't see anything! How do I find the lowest point?\"",
-            "Byte: \"Feel which way the ground slopes under your feet. Then take a step downhill. Keep doing that until the ground feels flat — that means you've reached the bottom!\"",
+            "Byte: \"Feel which way the ground slopes under your feet. Then take a step downhill. Keep doing that until the ground feels flat  that means you've reached the bottom!\"",
             "Aru: \"So I just keep going in the steepest downhill direction?\"",
-            "Byte: \"Exactly! That's gradient descent — finding the lowest point of a loss function by following the slope. Every machine learning model uses this to learn!\"",
+            "Byte: \"Exactly! That's gradient descent  finding the lowest point of a loss function by following the slope. Every machine learning model uses this to learn!\"",
           ]}
           conceptTitle="Gradient Descent"
           conceptSummary="Gradient descent is an optimization algorithm that finds the minimum of a function by repeatedly moving in the direction of steepest descent (opposite to the gradient). It is the backbone of how ML models learn from data."

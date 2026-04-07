@@ -6,6 +6,8 @@ import StorySection from "../../components/StorySection";
 import SVGGrid from "../../components/SVGGrid";
 import { playClick, playPop } from "../../utils/sounds";
 
+const INK = "#2b2a35";
+
 /* ------------------------------------------------------------------ */
 /*  Seeded PRNG                                                        */
 /* ------------------------------------------------------------------ */
@@ -65,7 +67,7 @@ function knnClassify(data: DataPoint[], query: { x: number; y: number }, k: numb
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Find the Neighbors                                        */
+/*  Tab 1  Find the Neighbors                                        */
 /* ------------------------------------------------------------------ */
 
 function FindTheNeighbors() {
@@ -100,8 +102,8 @@ function FindTheNeighbors() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Click anywhere on the plot to place a point. KNN will classify it!</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Click anywhere on the plot to place a point. KNN will classify it!</h3>
 
         {/* K slider */}
         <div className="flex items-center gap-3 max-w-xs mx-auto">
@@ -119,36 +121,72 @@ function FindTheNeighbors() {
           <SVGGrid xMin={0} xMax={10} yMin={0} yMax={10} xLabel="Feature 1" yLabel="Feature 2">
             {({ toSvgX, toSvgY }) => (
               <g onClick={(e) => handlePlot(toSvgX, toSvgY, e as unknown as React.MouseEvent<SVGSVGElement>)} style={{ cursor: "crosshair" }}>
+                <defs>
+                  <radialGradient id="knn-q" cx="35%" cy="30%">
+                    <stop offset="0%" stopColor="#fff3a0" />
+                    <stop offset="100%" stopColor="#ffd93d" />
+                  </radialGradient>
+                </defs>
                 {/* Clickable background */}
                 <rect x={45} y={20} width={435} height={290} fill="transparent" />
 
-                {/* Neighbor lines */}
+                {/* Animated radius circle */}
+                {result && query && (() => {
+                  const farthest = result.neighbors[result.neighbors.length - 1];
+                  const r = euclidean(query, data[farthest]);
+                  const svgR = (r / 10) * 435;
+                  return (
+                    <>
+                      <circle cx={toSvgX(query.x)} cy={toSvgY(query.y)} r={svgR}
+                        fill={CLASS_COLORS[result.cls] + "1a"}
+                        stroke={CLASS_COLORS[result.cls]} strokeWidth={2} strokeDasharray="6 4"
+                        className="pulse-glow" style={{ color: CLASS_COLORS[result.cls] }} />
+                    </>
+                  );
+                })()}
+
+                {/* Neighbor lines (signal-flow) */}
                 {result && query && result.neighbors.map((ni) => (
                   <line
                     key={`line-${ni}`}
                     x1={toSvgX(query.x)} y1={toSvgY(query.y)}
                     x2={toSvgX(data[ni].x)} y2={toSvgY(data[ni].y)}
-                    stroke="#a855f7" strokeWidth={1.5} strokeDasharray="4 3" opacity={0.7}
+                    stroke={CLASS_COLORS[data[ni].cls]} strokeWidth={2.5} strokeLinecap="round"
+                    className="signal-flow"
+                    style={{ color: CLASS_COLORS[data[ni].cls] }}
                   />
                 ))}
 
                 {/* Data points */}
-                {data.map((p, i) => (
-                  <circle
-                    key={i}
-                    cx={toSvgX(p.x)} cy={toSvgY(p.y)} r={6}
-                    fill={CLASS_COLORS[p.cls]}
-                    stroke={result?.neighbors.includes(i) ? "#a855f7" : "#334155"}
-                    strokeWidth={result?.neighbors.includes(i) ? 3 : 1}
-                    opacity={0.85}
-                  />
-                ))}
+                {data.map((p, i) => {
+                  const isN = result?.neighbors.includes(i);
+                  return (
+                    <g key={i}>
+                      <circle
+                        cx={toSvgX(p.x)} cy={toSvgY(p.y)} r={isN ? 8 : 6}
+                        fill={CLASS_COLORS[p.cls]}
+                        stroke={INK}
+                        strokeWidth={isN ? 2.5 : 1.5}
+                        className={isN ? "pulse-glow" : ""}
+                        style={isN ? { color: CLASS_COLORS[p.cls] } : undefined}
+                      />
+                      {isN && (
+                        <line x1={toSvgX(p.x)} y1={toSvgY(p.y) - 14}
+                          x2={toSvgX(p.x)} y2={toSvgY(p.y) - 22}
+                          stroke="#ffd93d" strokeWidth={2.5} className="spark" />
+                      )}
+                    </g>
+                  );
+                })}
 
-                {/* Query point */}
+                {/* Query point with glow */}
                 {query && (
                   <g>
-                    <circle cx={toSvgX(query.x)} cy={toSvgY(query.y)} r={9} fill="#22c55e" stroke="#166534" strokeWidth={2} />
-                    <text x={toSvgX(query.x)} y={toSvgY(query.y) + 3.5} textAnchor="middle" className="text-[8px] fill-white font-bold">?</text>
+                    <circle cx={toSvgX(query.x)} cy={toSvgY(query.y)} r={12}
+                      fill="url(#knn-q)" stroke={INK} strokeWidth={2.5}
+                      className="pulse-glow" style={{ color: "#ffd93d" }} />
+                    <text x={toSvgX(query.x)} y={toSvgY(query.y) + 4} textAnchor="middle"
+                      fontFamily="Kalam" className="text-[12px] font-bold" fill={INK}>?</text>
                   </g>
                 )}
               </g>
@@ -163,7 +201,7 @@ function FindTheNeighbors() {
               Classification: <span style={{ color: CLASS_COLORS[result.cls] }}>{CLASS_LABELS[result.cls]}</span>
             </p>
             <p className="text-xs text-slate-500">
-              {k} nearest neighbors voted — majority is {CLASS_LABELS[result.cls]}
+              {k} nearest neighbors voted  majority is {CLASS_LABELS[result.cls]}
             </p>
           </div>
         )}
@@ -184,7 +222,7 @@ function FindTheNeighbors() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — K Changes Everything                                       */
+/*  Tab 2  K Changes Everything                                       */
 /* ------------------------------------------------------------------ */
 
 function KChangesEverything() {
@@ -204,8 +242,8 @@ function KChangesEverything() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">See how changing K changes the classification of the same point</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">See how changing K changes the classification of the same point</h3>
 
         {/* K slider */}
         <div className="flex items-center gap-3 max-w-xs mx-auto">
@@ -231,7 +269,8 @@ function KChangesEverything() {
                   return (
                     <circle
                       cx={toSvgX(fixedQuery.x)} cy={toSvgY(fixedQuery.y)} r={svgRadius}
-                      fill={CLASS_COLORS[result.cls] + "15"} stroke={CLASS_COLORS[result.cls]} strokeWidth={1.5} strokeDasharray="5 3"
+                      fill={CLASS_COLORS[result.cls] + "1a"} stroke={CLASS_COLORS[result.cls]} strokeWidth={2} strokeDasharray="6 4"
+                      className="pulse-glow" style={{ color: CLASS_COLORS[result.cls] }}
                     />
                   );
                 })()}
@@ -289,14 +328,14 @@ function KChangesEverything() {
       </div>
 
       <InfoBox variant="amber" title="Choosing K">
-        A <strong>small K</strong> (like 1) is sensitive to noise — one odd neighbor changes everything. A <strong>large K</strong> is more stable but might include points from far away. Finding the right K is key to good KNN performance!
+        A <strong>small K</strong> (like 1) is sensitive to noise  one odd neighbor changes everything. A <strong>large K</strong> is more stable but might include points from far away. Finding the right K is key to good KNN performance!
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Distance Matters                                           */
+/*  Tab 3  Distance Matters                                           */
 /* ------------------------------------------------------------------ */
 
 function DistanceMatters() {
@@ -328,8 +367,8 @@ function DistanceMatters() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-slate-700">Compare Euclidean vs Manhattan distance — move the query point!</h3>
+      <div className="card-sketchy notebook-grid p-5 space-y-4">
+        <h3 className="font-hand text-sm font-bold text-foreground text-center">Compare Euclidean vs Manhattan distance  move the query point!</h3>
 
         {/* Position sliders */}
         <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -526,11 +565,11 @@ export default function L12_KNNActivity() {
         <StorySection
           paragraphs={[
             "Aru just moved to a new school and was wondering which friend group she would fit into.",
-            "Byte: To figure out which group you'd fit in, look at the K closest kids to you — the ones sitting nearest in the cafeteria, or who share your interests.",
+            "Byte: To figure out which group you'd fit in, look at the K closest kids to you  the ones sitting nearest in the cafeteria, or who share your interests.",
             "Aru: So if most of the kids near me like art, I'd probably like art too?",
-            "Byte: Exactly! Whatever most of your nearest neighbors like, you'll probably like too. That's KNN — K-Nearest Neighbors. You look at K nearby examples and go with the majority vote!",
+            "Byte: Exactly! Whatever most of your nearest neighbors like, you'll probably like too. That's KNN  K-Nearest Neighbors. You look at K nearby examples and go with the majority vote!",
             "Aru: What if I pick too many neighbors? Like, everyone in the whole school?",
-            "Byte: Then you'd just go with whatever's most popular overall — you'd lose the local flavor. That's why choosing the right K matters!",
+            "Byte: Then you'd just go with whatever's most popular overall  you'd lose the local flavor. That's why choosing the right K matters!",
           ]}
           conceptTitle="Key Concept"
           conceptSummary="K-Nearest Neighbors (KNN) classifies a new data point by finding the K closest existing data points and using majority voting. The choice of K and the distance metric (how we measure 'closest') both affect the result."
