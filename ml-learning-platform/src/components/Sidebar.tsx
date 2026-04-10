@@ -1,8 +1,11 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Lock } from "lucide-react";
 import { useProgress, isLessonUnlocked } from "../utils/progress";
 import { useDueCount } from "../utils/reviewDeck";
-import { NavLink, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Cpu,
   Binary,
@@ -179,13 +182,13 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
-  const location = useLocation();
+  const pathname = usePathname();
   const progress = useProgress();
   const dueCount = useDueCount();
 
   // Determine which level the current route is in, and auto-expand it
   const currentLevelIdx = LEVELS.findIndex((l) =>
-    l.lessons.some((ls) => ls.path === location.pathname)
+    l.lessons.some((ls) => ls.path === pathname)
   );
 
   const [expandedLevels, setExpandedLevels] = useState<Record<number, boolean>>(() => {
@@ -203,6 +206,8 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
   function toggleLevel(idx: number) {
     setExpandedLevels((prev) => ({ ...prev, [idx]: !prev[idx] }));
   }
+
+  const isReviewActive = pathname === "/review";
 
   return (
     <>
@@ -239,19 +244,17 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
 
         {/* Navigation */}
         <nav className={`p-3 space-y-1 ${collapsed ? "px-2" : ""}`}>
-          <NavLink
-            to="/review"
+          <Link
+            href="/review"
             onClick={onClose}
             title={collapsed ? `Review (${dueCount} due)` : undefined}
-            className={({ isActive }) =>
-              `flex items-center rounded-lg text-sm font-hand transition-all mb-2 ${
-                collapsed ? "justify-center px-0 py-2.5" : "gap-2 px-2.5 py-2"
-              } ${
-                isActive
-                  ? "bg-accent-coral text-background border-2 border-foreground font-bold shadow-[2px_2px_0_#2b2a35]"
-                  : "text-foreground/80 hover:bg-accent-mint/30 hover:text-foreground border-2 border-transparent"
-              }`
-            }
+            className={`flex items-center rounded-lg text-sm font-hand transition-all mb-2 ${
+              collapsed ? "justify-center px-0 py-2.5" : "gap-2 px-2.5 py-2"
+            } ${
+              isReviewActive
+                ? "bg-accent-coral text-background border-2 border-foreground font-bold shadow-[2px_2px_0_#2b2a35]"
+                : "text-foreground/80 hover:bg-accent-mint/30 hover:text-foreground border-2 border-transparent"
+            }`}
           >
             <Brain className="w-4 h-4 shrink-0" />
             {!collapsed && <span>Review Deck</span>}
@@ -263,11 +266,11 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
                 {dueCount}
               </span>
             )}
-          </NavLink>
+          </Link>
 
           {LEVELS.map((level, idx) => {
             const isExpanded = expandedLevels[idx] ?? false;
-            const hasActivePage = level.lessons.some((ls) => ls.path === location.pathname);
+            const hasActivePage = level.lessons.some((ls) => ls.path === pathname);
 
             return (
               <div key={level.level}>
@@ -297,6 +300,7 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
                   <div className={`space-y-0.5 ${!collapsed ? "mt-1 ml-1 border-l-2 border-dashed border-foreground/20 pl-2" : ""}`}>
                     {level.lessons.map((lesson) => {
                       const unlocked = isLessonUnlocked(lesson.path, progress);
+                      const isActive = pathname === lesson.path;
                       if (!unlocked) {
                         return (
                           <div
@@ -314,26 +318,24 @@ export default function Sidebar({ isOpen, onClose, collapsed, onToggleCollapse }
                         );
                       }
                       return (
-                        <NavLink
+                        <Link
                           key={lesson.path}
-                          to={lesson.path}
+                          href={lesson.path}
                           onClick={onClose}
                           title={collapsed ? lesson.label : undefined}
-                          className={({ isActive }) =>
-                            `flex items-center rounded-lg text-sm font-hand transition-all ${
-                              collapsed ? "justify-center px-0 py-2.5" : "gap-2 px-2.5 py-2"
-                            } ${
-                              isActive
-                                ? "bg-accent-coral text-background border-2 border-foreground font-bold shadow-[2px_2px_0_#2b2a35]"
-                                : "text-foreground/80 hover:bg-accent-mint/30 hover:text-foreground"
-                            }`
-                          }
+                          className={`flex items-center rounded-lg text-sm font-hand transition-all ${
+                            collapsed ? "justify-center px-0 py-2.5" : "gap-2 px-2.5 py-2"
+                          } ${
+                            isActive
+                              ? "bg-accent-coral text-background border-2 border-foreground font-bold shadow-[2px_2px_0_#2b2a35]"
+                              : "text-foreground/80 hover:bg-accent-mint/30 hover:text-foreground"
+                          }`}
                         >
                           <span className="shrink-0 flex items-center justify-center">{lesson.icon}</span>
                           {!collapsed && (
                             <span className="flex-1 leading-tight wrap-break-word">{lesson.label}</span>
                           )}
-                        </NavLink>
+                        </Link>
                       );
                     })}
                   </div>

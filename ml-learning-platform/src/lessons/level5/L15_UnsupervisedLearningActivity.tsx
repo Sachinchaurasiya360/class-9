@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback } from "react";
 import { Layers, ToggleLeft, LayoutGrid, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

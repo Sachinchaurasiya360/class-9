@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Clock, Milestone, Sparkles, Trophy } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

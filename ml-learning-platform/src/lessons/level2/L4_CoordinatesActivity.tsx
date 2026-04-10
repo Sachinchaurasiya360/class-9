@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback, useRef } from "react";
 import { Crosshair, Target, BarChart3, Trash2, RefreshCw } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

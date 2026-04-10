@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import { Split, BookOpen, TestTube, Trophy } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

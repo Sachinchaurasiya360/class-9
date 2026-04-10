@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback } from "react";
 import { TrendingUp, Circle, AlertCircle, RefreshCw, Check } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

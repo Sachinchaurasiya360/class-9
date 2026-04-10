@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback } from "react";
 import { Grid3X3, Scale, BarChart3, RotateCcw } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

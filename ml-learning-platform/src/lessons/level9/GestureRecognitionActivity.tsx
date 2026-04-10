@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Sparkles, Camera, RotateCcw, Trophy, Hand, Gamepad2 } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

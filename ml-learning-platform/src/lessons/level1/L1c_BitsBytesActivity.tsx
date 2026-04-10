@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import { ToggleLeft, HardDrive, Smartphone } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

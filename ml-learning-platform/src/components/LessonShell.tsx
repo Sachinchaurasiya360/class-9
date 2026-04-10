@@ -1,5 +1,7 @@
+"use client";
+
 import { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { usePathname, useRouter } from "next/navigation";
 import { BookOpen, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import QuizCard from "./QuizCard";
 import PredictionGate from "./PredictionGate";
@@ -51,15 +53,15 @@ export default function LessonShell({ title, level, lessonNumber, tabs, quiz, ne
   ];
   const [activeTab, setActiveTab] = useState(allTabs[0].id);
 
-  const location = useLocation();
-  const navigate = useNavigate();
-  const currentIdx = ALL_LESSONS.indexOf(location.pathname);
+  const pathname = usePathname() ?? "";
+  const router = useRouter();
+  const currentIdx = ALL_LESSONS.indexOf(pathname);
   const prevPath = currentIdx > 0 ? ALL_LESSONS[currentIdx - 1] : null;
   const nextPath = currentIdx < ALL_LESSONS.length - 1 ? ALL_LESSONS[currentIdx + 1] : null;
 
   const progress = useProgress();
   const tabIds = allTabs.map((t) => t.id);
-  const lessonPath = location.pathname;
+  const lessonPath = pathname;
   const nextLessonReady = nextPath ? isLessonUnlocked(nextPath, progress) : false;
 
   const extras = getLessonExtras(lessonPath);
@@ -162,7 +164,7 @@ export default function LessonShell({ title, level, lessonNumber, tabs, quiz, ne
       <div className="flex items-center justify-between pt-5 border-t-2 border-dashed border-foreground/30">
         {prevPath ? (
           <button
-            onClick={() => { playClick(); navigate(prevPath); }}
+            onClick={() => { playClick(); router.push(prevPath); }}
             className="btn-sketchy-outline text-sm"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -176,7 +178,7 @@ export default function LessonShell({ title, level, lessonNumber, tabs, quiz, ne
             onClick={() => {
               if (!nextLessonReady) return;
               playClick();
-              navigate(nextPath);
+              router.push(nextPath);
             }}
             disabled={!nextLessonReady}
             title={!nextLessonReady ? "Finish the Challenge tab to unlock the next lesson" : undefined}
@@ -192,7 +194,7 @@ export default function LessonShell({ title, level, lessonNumber, tabs, quiz, ne
             className="px-4 py-2.5 rounded-lg font-hand text-sm font-bold text-foreground border-2 border-foreground"
             style={{ background: "var(--accent-mint)", boxShadow: "2px 2px 0 #2b2a35" }}
           >
-            🎉 You've completed all lessons!
+            You've completed all lessons!
           </div>
         )}
       </div>

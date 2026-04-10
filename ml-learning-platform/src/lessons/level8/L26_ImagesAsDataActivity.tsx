@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback } from "react";
 import { Grid3X3, ZoomIn, Palette, Eraser, Heart } from "lucide-react";
 

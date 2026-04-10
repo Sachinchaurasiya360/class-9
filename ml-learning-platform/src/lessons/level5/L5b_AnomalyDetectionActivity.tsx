@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import { AlertOctagon, ShieldAlert, Activity } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

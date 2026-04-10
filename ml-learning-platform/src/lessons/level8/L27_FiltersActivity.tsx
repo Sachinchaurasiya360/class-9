@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { ScanLine, Wrench, Layers, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

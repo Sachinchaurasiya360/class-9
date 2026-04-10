@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { SlidersHorizontal, Zap, TrendingDown, Palette, Play, RotateCcw } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

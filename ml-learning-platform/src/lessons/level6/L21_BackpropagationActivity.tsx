@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { ArrowLeftRight, Link2, Play, RotateCcw, Shuffle, Pause } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

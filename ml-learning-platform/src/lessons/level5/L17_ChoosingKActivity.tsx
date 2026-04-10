@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback } from "react";
 import { TrendingDown, SplitSquareHorizontal, Crosshair, Palette } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

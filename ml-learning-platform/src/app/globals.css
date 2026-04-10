@@ -1,0 +1,230 @@
+@import url("https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Kalam:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap");
+@import "tailwindcss";
+
+/* ---------- Theme tokens (sketchy notebook) ---------- */
+@theme {
+  --color-background: #fdfbf6;
+  --color-foreground: #2b2a35;
+  --color-muted: #f3efe6;
+  --color-muted-foreground: #6b6776;
+
+  --color-accent-coral: #ff6b6b;
+  --color-accent-mint: #4ecdc4;
+  --color-accent-yellow: #ffd93d;
+  --color-accent-lav: #b18cf2;
+  --color-accent-sky: #6bb6ff;
+  --color-accent-peach: #ffb88c;
+
+  --font-hand: "Kalam", "Patrick Hand", cursive;
+  --font-sans: "Nunito", system-ui, -apple-system, sans-serif;
+}
+
+/* ---------- Base ---------- */
+:root {
+  --accent-coral: #ff6b6b;
+  --accent-mint: #4ecdc4;
+  --accent-yellow: #ffd93d;
+  --accent-lav: #b18cf2;
+  --accent-sky: #6bb6ff;
+  --foreground: #2b2a35;
+}
+
+html, body {
+  margin: 0;
+  background: #fdfbf6;
+  color: #2b2a35;
+  font-family: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- Notebook grid background ---------- */
+.notebook-grid {
+  background-image:
+    linear-gradient(to right, rgba(43, 42, 53, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(43, 42, 53, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.notebook-paper {
+  background-color: #fdfbf6;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 31px,
+    rgba(107, 182, 255, 0.18) 31px,
+    rgba(107, 182, 255, 0.18) 32px
+  );
+}
+
+/* ---------- Sketchy buttons ---------- */
+.btn-sketchy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: "Kalam", cursive;
+  font-weight: 700;
+  color: #2b2a35;
+  background: #ffd93d;
+  border: 2.5px solid #2b2a35;
+  border-radius: 14px 18px 12px 16px / 16px 12px 18px 14px;
+  padding: 0.6rem 1.2rem;
+  box-shadow: 3px 3px 0 #2b2a35;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s;
+  cursor: pointer;
+}
+.btn-sketchy:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 #2b2a35;
+  background: #ffe066;
+}
+.btn-sketchy:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #2b2a35;
+}
+
+.btn-sketchy-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: "Kalam", cursive;
+  font-weight: 700;
+  color: #2b2a35;
+  background: #fdfbf6;
+  border: 2.5px solid #2b2a35;
+  border-radius: 14px 18px 12px 16px / 16px 12px 18px 14px;
+  padding: 0.6rem 1.2rem;
+  box-shadow: 3px 3px 0 #2b2a35;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s;
+  cursor: pointer;
+}
+.btn-sketchy-outline:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 #2b2a35;
+  background: #fff;
+}
+.btn-sketchy-outline:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #2b2a35;
+}
+
+/* ---------- Sketchy card ---------- */
+.card-sketchy {
+  background: #fff;
+  border: 2.5px solid #2b2a35;
+  border-radius: 18px 22px 16px 20px / 20px 16px 22px 18px;
+  box-shadow: 4px 4px 0 #2b2a35;
+}
+
+/* ---------- Marker highlights ---------- */
+.marker-highlight-yellow {
+  background: linear-gradient(120deg, transparent 2%, #ffd93d 2%, #ffd93d 98%, transparent 98%);
+  background-size: 100% 60%;
+  background-repeat: no-repeat;
+  background-position: 0 88%;
+  padding: 0 0.15em;
+}
+.marker-highlight-coral {
+  background: linear-gradient(120deg, transparent 2%, rgba(255, 107, 107, 0.55) 2%, rgba(255, 107, 107, 0.55) 98%, transparent 98%);
+  background-size: 100% 60%;
+  background-repeat: no-repeat;
+  background-position: 0 88%;
+  padding: 0 0.15em;
+}
+.marker-highlight-mint {
+  background: linear-gradient(120deg, transparent 2%, rgba(78, 205, 196, 0.55) 2%, rgba(78, 205, 196, 0.55) 98%, transparent 98%);
+  background-size: 100% 60%;
+  background-repeat: no-repeat;
+  background-position: 0 88%;
+  padding: 0 0.15em;
+}
+
+.chalk-text {
+  color: #fdfbf6;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* ---------- Animations ---------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  40%      { transform: translateX(4px); }
+  60%      { transform: translateX(-3px); }
+  80%      { transform: translateX(3px); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-10px) rotate(3deg); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-4deg); }
+  50%      { transform: rotate(4deg); }
+}
+
+.animate-fadeIn { animation: fadeIn 0.35s ease-out; }
+.animate-shake  { animation: shake 0.4s ease-in-out; }
+.animate-float  { animation: float 5s ease-in-out infinite; }
+.animate-wiggle { animation: wiggle 2.5s ease-in-out infinite; }
+
+.float-delay-1 { animation-delay: 0.6s; }
+.float-delay-2 { animation-delay: 1.2s; }
+.float-delay-3 { animation-delay: 1.8s; }
+.float-delay-4 { animation-delay: 2.4s; }
+
+/* ---------- Font helper (works alongside @theme above) ---------- */
+.font-hand { font-family: "Kalam", "Patrick Hand", cursive; }
+
+/* ---------- Perceptron / neural animation utilities ---------- */
+@keyframes signal-flow {
+  0%   { stroke-dashoffset: 40; }
+  100% { stroke-dashoffset: 0; }
+}
+.signal-flow {
+  stroke-dasharray: 6 4;
+  animation: signal-flow 1.2s linear infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 currentColor); opacity: 1; }
+  50%      { filter: drop-shadow(0 0 12px currentColor); opacity: 0.92; }
+}
+.pulse-glow { animation: pulse-glow 1.4s ease-in-out infinite; }
+
+@keyframes fire-ring {
+  0%   { r: 28; opacity: 0.9; }
+  100% { r: 60; opacity: 0; }
+}
+.fire-ring { animation: fire-ring 1.1s ease-out infinite; transform-origin: center; }
+
+@keyframes spark {
+  0%   { transform: scale(0.3) rotate(0deg); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: scale(1.2) rotate(180deg); opacity: 0; }
+}
+.spark { animation: spark 0.9s ease-out forwards; transform-origin: center; }
+
+@keyframes shake-x {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-6px); }
+  75%      { transform: translateX(6px); }
+}
+.shake-x { animation: shake-x 0.35s ease-in-out 3; }
+
+@keyframes wobble-rot {
+  0%, 100% { transform: rotate(-1deg); }
+  50%      { transform: rotate(1deg); }
+}
+.wobble { animation: wobble-rot 2.5s ease-in-out infinite; transform-origin: center; }
+
+@keyframes draw-line {
+  from { stroke-dashoffset: 300; }
+  to   { stroke-dashoffset: 0; }
+}
+.draw-line {
+  stroke-dasharray: 300;
+  animation: draw-line 0.8s ease-out forwards;
+}

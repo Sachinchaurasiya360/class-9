@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import { Tags, Table2, Wand2 } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

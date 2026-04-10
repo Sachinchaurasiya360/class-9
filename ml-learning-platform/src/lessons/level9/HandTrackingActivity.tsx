@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Hand, Camera, Pause, Play, RotateCcw, Palette, Hash } from "lucide-react";
 import LessonShell from "../../components/LessonShell";

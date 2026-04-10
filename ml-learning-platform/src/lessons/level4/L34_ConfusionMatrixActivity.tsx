@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import { Grid3X3, Sliders, AlertCircle } from "lucide-react";
 import LessonShell from "../../components/LessonShell";
