@@ -25,6 +25,12 @@ import {
   Users,
   Award,
   Sparkles,
+  Globe,
+  Code2,
+  Shield,
+  Cloud,
+  Smartphone,
+  Lock,
 } from "lucide-react";
 
 /* ================================================================== */
@@ -50,6 +56,125 @@ const T = {
   heading: "'Bricolage Grotesque', 'Outfit', sans-serif",
   body: "'Outfit', system-ui, sans-serif",
 };
+
+/* ================================================================== */
+/*  LEARNING TRACKS                                                    */
+/* ================================================================== */
+
+const TRACKS = [
+  {
+    badge: "School",
+    level: "Class 8-12",
+    title: "AI & Machine Learning",
+    desc: 'From "What is a machine?" to building neural networks. Fun, visual, story-driven lessons that make complex concepts click.',
+    coverage: "Covers CBSE, ICSE & State Boards",
+    lessons: "9 Levels · 45 Lessons",
+    color: T.primary,
+    colorLight: T.primaryLight,
+    gradient: `linear-gradient(90deg, ${T.primary}, rgba(29,192,113,0.3))`,
+    href: "/level1/machines",
+    icon: BookOpen,
+    comingSoon: false,
+  },
+  {
+    badge: "Engineering",
+    level: "B.Tech CSE",
+    title: "Core Computer Science",
+    desc: "DSA, Networks, OS, DBMS, and OOP. Interactive visualizations and step-by-step algorithm tracing for deep understanding.",
+    coverage: "Covers GATE, Placements & Semester Exams",
+    lessons: "5 Subjects · 150+ Lessons",
+    color: "#E76F51",
+    colorLight: "rgba(231,111,81,0.1)",
+    gradient: "linear-gradient(90deg, #E76F51, #8B5CF6)",
+    href: "/engineering",
+    icon: GraduationCap,
+    comingSoon: false,
+  },
+  {
+    badge: "Full Stack",
+    level: "Beginner → Advanced",
+    title: "Web Development",
+    desc: "HTML, CSS, JavaScript, React, Node.js, and databases. Build real projects from landing pages to full-stack apps.",
+    coverage: "Frontend + Backend + Deployment",
+    lessons: "6 Modules · 120+ Lessons",
+    color: "#3B82F6",
+    colorLight: "rgba(59,130,246,0.1)",
+    gradient: "linear-gradient(90deg, #3B82F6, #06B6D4)",
+    href: "/web-dev",
+    icon: Globe,
+    comingSoon: true,
+  },
+  {
+    badge: "Analytics",
+    level: "Intermediate",
+    title: "Data Science & ML",
+    desc: "Python, Pandas, statistics, and machine learning pipelines. From data wrangling to model deployment with real datasets.",
+    coverage: "Industry-ready Data Skills",
+    lessons: "5 Modules · 100+ Lessons",
+    color: "#8B5CF6",
+    colorLight: "rgba(139,92,246,0.1)",
+    gradient: "linear-gradient(90deg, #8B5CF6, #EC4899)",
+    href: "/data-science",
+    icon: BarChart3,
+    comingSoon: true,
+  },
+  {
+    badge: "Problem Solving",
+    level: "All Levels",
+    title: "Competitive Programming",
+    desc: "Master problem-solving patterns, time complexity, and contest strategies. Practice with curated problems from Codeforces & LeetCode.",
+    coverage: "ICPC, CodeChef, LeetCode Prep",
+    lessons: "8 Tracks · 200+ Problems",
+    color: "#F59E0B",
+    colorLight: "rgba(245,158,11,0.1)",
+    gradient: "linear-gradient(90deg, #F59E0B, #EF4444)",
+    href: "/competitive",
+    icon: Code2,
+    comingSoon: true,
+  },
+  {
+    badge: "Security",
+    level: "Intermediate",
+    title: "Cybersecurity",
+    desc: "Network security, ethical hacking, cryptography, and secure coding. Hands-on labs with real-world attack and defense scenarios.",
+    coverage: "CEH, CompTIA Security+ Aligned",
+    lessons: "6 Modules · 80+ Lessons",
+    color: "#EF4444",
+    colorLight: "rgba(239,68,68,0.1)",
+    gradient: "linear-gradient(90deg, #EF4444, #F97316)",
+    href: "/cybersecurity",
+    icon: Shield,
+    comingSoon: true,
+  },
+  {
+    badge: "DevOps",
+    level: "Intermediate",
+    title: "Cloud & DevOps",
+    desc: "Docker, Kubernetes, CI/CD, AWS, and infrastructure as code. Learn to deploy, scale, and monitor production systems.",
+    coverage: "AWS, GCP & Azure Pathways",
+    lessons: "5 Modules · 90+ Lessons",
+    color: "#06B6D4",
+    colorLight: "rgba(6,182,212,0.1)",
+    gradient: "linear-gradient(90deg, #06B6D4, #3B82F6)",
+    href: "/cloud-devops",
+    icon: Cloud,
+    comingSoon: true,
+  },
+  {
+    badge: "Mobile",
+    level: "Beginner → Advanced",
+    title: "Mobile Development",
+    desc: "React Native and Flutter for cross-platform apps. Build, test, and publish apps to the App Store and Play Store.",
+    coverage: "iOS + Android Cross-Platform",
+    lessons: "4 Modules · 70+ Lessons",
+    color: "#6366F1",
+    colorLight: "rgba(99,102,241,0.1)",
+    gradient: "linear-gradient(90deg, #6366F1, #A855F7)",
+    href: "/mobile-dev",
+    icon: Smartphone,
+    comingSoon: true,
+  },
+];
 
 /* ================================================================== */
 /*  PANDA LOGO                                                         */
@@ -186,9 +311,10 @@ const AUDIENCE = [
 const PRICING_PLANS = [
   {
     name: "Free",
-    price: "₹0",
-    period: "forever",
-    subtitle: "Get started",
+    monthlyPrice: "₹0",
+    yearlyPrice: "₹0",
+    period: { monthly: "forever", yearly: "forever" },
+    subtitle: { monthly: "No credit card needed", yearly: "No credit card needed" },
     accent: "#1DC071",
     features: [
       "3 lessons per subject",
@@ -201,9 +327,10 @@ const PRICING_PLANS = [
   },
   {
     name: "Engineering",
-    price: "₹249",
-    period: "/month",
-    subtitle: "₹149/mo billed annually",
+    monthlyPrice: "₹249",
+    yearlyPrice: "₹149",
+    period: { monthly: "/month", yearly: "/month" },
+    subtitle: { monthly: "or ₹149/mo billed yearly", yearly: "₹1,788 billed annually" },
     accent: "#3B82F6",
     features: [
       "Full Engineering track (DSA, CN, OS, DBMS, OOP)",
@@ -218,9 +345,10 @@ const PRICING_PLANS = [
   },
   {
     name: "School",
-    price: "₹449",
-    period: "/month",
-    subtitle: "₹299/mo billed annually",
+    monthlyPrice: "₹449",
+    yearlyPrice: "₹299",
+    period: { monthly: "/month", yearly: "/month" },
+    subtitle: { monthly: "or ₹299/mo billed yearly", yearly: "₹3,588 billed annually" },
     accent: "#8B5CF6",
     features: [
       "Full School track (AI/ML, Class 8-12)",
@@ -241,6 +369,212 @@ const STATS = [
   { value: "1000+", label: "Visualizations", icon: Sparkles },
   { value: "195+", label: "Quizzes", icon: Award },
 ];
+
+/* ================================================================== */
+/*  PRICING SECTION (with monthly / yearly toggle)                     */
+/* ================================================================== */
+
+function PricingSection({ headingFont }: { headingFont: React.CSSProperties }) {
+  const [yearly, setYearly] = useState(true);
+
+  return (
+    <section
+      id="pricing"
+      className="py-20 sm:py-28"
+      style={{ background: T.bgSection }}
+    >
+      <div className="max-w-6xl mx-auto px-5 sm:px-8">
+        <Reveal>
+          <div className="text-center mb-12">
+            <div
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-5"
+              style={{ background: T.primaryLight, color: T.primary }}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              PRICING
+            </div>
+            <h2
+              className="text-3xl sm:text-[40px] font-bold tracking-tight"
+              style={{ ...headingFont, color: T.text }}
+            >
+              Simple, Transparent Pricing
+            </h2>
+            <p
+              className="mt-4 text-lg max-w-xl mx-auto"
+              style={{ color: T.textSecondary }}
+            >
+              Start free. Upgrade when you&apos;re ready. 2-day free trial on
+              all paid plans.
+            </p>
+
+            {/* ---- Toggle ---- */}
+            <div className="mt-8 inline-flex items-center gap-1 p-1 rounded-full" style={{ background: T.border }}>
+              <button
+                onClick={() => setYearly(false)}
+                className="px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200"
+                style={{
+                  background: !yearly ? T.card : "transparent",
+                  color: !yearly ? T.text : T.textMuted,
+                  boxShadow: !yearly ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+                }}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setYearly(true)}
+                className="px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2"
+                style={{
+                  background: yearly ? T.card : "transparent",
+                  color: yearly ? T.text : T.textMuted,
+                  boxShadow: yearly ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+                }}
+              >
+                Yearly
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: T.primaryLight, color: T.primary }}
+                >
+                  Save 40%
+                </span>
+              </button>
+            </div>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.1}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {PRICING_PLANS.map((plan) => {
+              const price = yearly ? plan.yearlyPrice : plan.monthlyPrice;
+              const period = yearly ? plan.period.yearly : plan.period.monthly;
+              const subtitle = yearly ? plan.subtitle.yearly : plan.subtitle.monthly;
+
+              return (
+                <div
+                  key={plan.name}
+                  className="rounded-3xl p-[1.5px] transition-transform duration-200 hover:translate-y-[-2px]"
+                  style={{
+                    background: plan.popular
+                      ? `linear-gradient(135deg, ${plan.accent}, #8B5CF6, ${T.primary})`
+                      : T.border,
+                  }}
+                >
+                  <div
+                    className="rounded-3xl p-6 sm:p-8 h-full flex flex-col"
+                    style={{ background: T.card }}
+                  >
+                    {plan.popular && (
+                      <div
+                        className="text-[10px] font-bold uppercase tracking-wider text-center py-1 px-3 rounded-full mb-4 self-center"
+                        style={{
+                          background: `${plan.accent}15`,
+                          color: plan.accent,
+                        }}
+                      >
+                        Most Popular
+                      </div>
+                    )}
+
+                    <h3
+                      className="text-lg font-bold mb-1"
+                      style={{ ...headingFont, color: T.text }}
+                    >
+                      {plan.name}
+                    </h3>
+
+                    <div className="flex items-baseline gap-1 mb-1">
+                      <span
+                        className="text-3xl font-extrabold transition-all duration-300"
+                        style={{ ...headingFont, color: T.text }}
+                        key={price}
+                      >
+                        {price}
+                      </span>
+                      <span
+                        className="text-sm font-semibold"
+                        style={{ color: T.textMuted }}
+                      >
+                        {period}
+                      </span>
+                    </div>
+
+                    {yearly && plan.monthlyPrice !== "₹0" && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className="text-sm line-through"
+                          style={{ color: T.textMuted }}
+                        >
+                          {plan.monthlyPrice}/mo
+                        </span>
+                      </div>
+                    )}
+
+                    <p
+                      className="text-xs mb-6"
+                      style={{ color: T.textMuted }}
+                    >
+                      {subtitle}
+                    </p>
+
+                    <ul className="space-y-3 mb-8 flex-1" role="list">
+                      {plan.features.map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-2.5"
+                        >
+                          <Check
+                            className="w-3.5 h-3.5 shrink-0 mt-0.5"
+                            style={{ color: plan.accent }}
+                          />
+                          <span
+                            className="text-sm font-medium"
+                            style={{ color: T.textSecondary }}
+                          >
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Link
+                      href="/level1/machines"
+                      className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                      style={{
+                        background: plan.popular ? plan.accent : "transparent",
+                        color: plan.popular ? "#fff" : plan.accent,
+                        border: plan.popular
+                          ? "none"
+                          : `1.5px solid ${plan.accent}40`,
+                        boxShadow: plan.popular
+                          ? `0 4px 16px ${plan.accent}30`
+                          : "none",
+                      }}
+                    >
+                      {plan.cta}
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 text-center space-y-2">
+            <p
+              className="text-sm font-medium"
+              style={{ color: T.textSecondary }}
+            >
+              Engineering Lifetime Access:{" "}
+              <span className="font-bold" style={{ color: T.text }}>
+                &#8377;2,999
+              </span>{" "}
+              one-time payment
+            </p>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
 
 /* ================================================================== */
 /*  REVEAL ON SCROLL                                                   */
@@ -1266,160 +1600,111 @@ export default function LandingPage() {
                 className="mt-4 text-lg max-w-xl mx-auto"
                 style={{ color: T.textSecondary }}
               >
-                Two structured learning tracks designed for different stages of
-                your CS journey.
+                Multiple learning tracks designed for every stage of your
+                computer science journey.
               </p>
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-            {/* School Track */}
-            <Reveal delay={0.1}>
-              <div
-                className="relative rounded-3xl p-8 sm:p-10 transition-all duration-300 group overflow-hidden h-full hover:shadow-xl hover:shadow-[rgba(29,192,113,0.08)] hover:translate-y-[-2px]"
-                style={{
-                  background: T.card,
-                  border: `1px solid ${T.border}`,
-                }}
-              >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
+            {TRACKS.map((track, i) => (
+              <Reveal key={track.title} delay={0.1 + i * 0.07}>
                 <div
-                  className="absolute top-0 left-0 right-0 h-[3px] rounded-t-3xl"
+                  className="relative rounded-3xl p-7 sm:p-8 transition-all duration-300 group overflow-hidden h-full hover:translate-y-[-2px]"
                   style={{
-                    background: `linear-gradient(90deg, ${T.primary}, rgba(29,192,113,0.3))`,
+                    background: T.card,
+                    border: `1px solid ${T.border}`,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
                   }}
-                />
-
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-5 text-sm">
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-bold"
-                      style={{
-                        background: T.primaryLight,
-                        color: T.primary,
-                      }}
-                    >
-                      School
-                    </span>
-                    <span style={{ color: T.textMuted }}>
-                      Class 8-12
-                    </span>
-                  </div>
-
-                  <h3
-                    className="text-2xl font-bold mb-3"
-                    style={{ ...headingFont, color: T.text }}
-                  >
-                    AI &amp; Machine Learning
-                  </h3>
-
-                  <p
-                    className="leading-relaxed mb-6"
-                    style={{ color: T.textSecondary }}
-                  >
-                    From &ldquo;What is a machine?&rdquo; to building neural
-                    networks. Fun, visual, story-driven lessons that make
-                    complex concepts click.
-                  </p>
-
-                  <p
-                    className="text-sm font-medium mb-4"
-                    style={{ color: T.textMuted }}
-                  >
-                    Covers CBSE, ICSE &amp; State Boards
-                  </p>
-
-                  <div
-                    className="text-sm font-medium mb-6"
-                    style={{ color: T.textMuted }}
-                  >
-                    9 Levels &middot; 45 Lessons
-                  </div>
-
-                  <Link
-                    href="/level1/machines"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:shadow-lg hover:shadow-[rgba(29,192,113,0.2)]"
-                    style={{ background: T.primary }}
-                  >
-                    Start School Track
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-            </Reveal>
-
-            {/* Engineering Track */}
-            <Reveal delay={0.2}>
-              <div
-                className="relative rounded-3xl p-8 sm:p-10 transition-all duration-300 group overflow-hidden h-full hover:shadow-xl hover:shadow-[rgba(231,111,81,0.08)] hover:translate-y-[-2px]"
-                style={{
-                  background: T.card,
-                  border: `1px solid ${T.border}`,
-                }}
-              >
-                <div
-                  className="absolute top-0 left-0 right-0 h-[3px] rounded-t-3xl"
-                  style={{
-                    background: "linear-gradient(90deg, #E76F51, #8B5CF6)",
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = `0 12px 32px ${track.color}14`;
                   }}
-                />
-
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-5 text-sm">
-                    <span
-                      className="px-3 py-1 rounded-full text-xs font-bold"
-                      style={{
-                        background: "rgba(231,111,81,0.1)",
-                        color: "#E76F51",
-                      }}
-                    >
-                      Engineering
-                    </span>
-                    <span style={{ color: T.textMuted }}>
-                      B.Tech CSE
-                    </span>
-                  </div>
-
-                  <h3
-                    className="text-2xl font-bold mb-3"
-                    style={{ ...headingFont, color: T.text }}
-                  >
-                    Core Computer Science
-                  </h3>
-
-                  <p
-                    className="leading-relaxed mb-6"
-                    style={{ color: T.textSecondary }}
-                  >
-                    DSA, Networks, OS, DBMS, and OOP. Interactive
-                    visualizations and step-by-step algorithm tracing for deep
-                    understanding.
-                  </p>
-
-                  <p
-                    className="text-sm font-medium mb-4"
-                    style={{ color: T.textMuted }}
-                  >
-                    Covers GATE, Placements &amp; Semester Exams
-                  </p>
-
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)";
+                  }}
+                >
                   <div
-                    className="text-sm font-medium mb-6"
-                    style={{ color: T.textMuted }}
-                  >
-                    5 Subjects &middot; 150+ Lessons
-                  </div>
+                    className="absolute top-0 left-0 right-0 h-[3px] rounded-t-3xl"
+                    style={{ background: track.gradient }}
+                  />
 
-                  <Link
-                    href="/engineering"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:shadow-lg hover:shadow-[rgba(231,111,81,0.2)]"
-                    style={{ background: "#E76F51" }}
-                  >
-                    Start Engineering Track
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <div className="relative">
+                    <div className="flex items-center gap-2 mb-4 text-sm">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                        style={{
+                          background: track.colorLight,
+                          color: track.color,
+                        }}
+                      >
+                        <track.icon className="w-3 h-3" />
+                        {track.badge}
+                      </span>
+                      <span style={{ color: T.textMuted }}>
+                        {track.level}
+                      </span>
+                    </div>
+
+                    <h3
+                      className="text-xl font-bold mb-2"
+                      style={{ ...headingFont, color: T.text }}
+                    >
+                      {track.title}
+                    </h3>
+
+                    <p
+                      className="text-sm leading-relaxed mb-5"
+                      style={{ color: T.textSecondary }}
+                    >
+                      {track.desc}
+                    </p>
+
+                    <p
+                      className="text-xs font-medium mb-3"
+                      style={{ color: T.textMuted }}
+                    >
+                      {track.coverage}
+                    </p>
+
+                    <div
+                      className="text-xs font-medium mb-5"
+                      style={{ color: T.textMuted }}
+                    >
+                      {track.lessons}
+                    </div>
+
+                    {track.comingSoon ? (
+                      <span
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold cursor-default"
+                        style={{
+                          background: T.bgSection,
+                          color: T.textMuted,
+                          border: `1px solid ${T.border}`,
+                        }}
+                      >
+                        <Lock className="w-3.5 h-3.5" />
+                        Coming Soon
+                      </span>
+                    ) : (
+                      <Link
+                        href={track.href}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200"
+                        style={{ background: track.color }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.boxShadow = `0 6px 16px ${track.color}33`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.boxShadow = "none";
+                        }}
+                      >
+                        Start Learning
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Reveal>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
@@ -1429,6 +1714,13 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <Reveal>
             <div className="text-center mb-16">
+              <div
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-5"
+                style={{ background: T.primaryLight, color: T.primary }}
+              >
+                <Check className="w-3.5 h-3.5" />
+                ALL 5 SUBJECTS LIVE
+              </div>
               <h2
                 className="text-3xl sm:text-[40px] font-bold tracking-tight"
                 style={{ ...headingFont, color: T.text }}
@@ -1439,8 +1731,8 @@ export default function LandingPage() {
                 className="mt-4 text-lg max-w-xl mx-auto"
                 style={{ color: T.textSecondary }}
               >
-                Five core engineering subjects, each with comprehensive visual
-                lessons.
+                All five core engineering subjects are here — ready to explore
+                with interactive visualizations.
               </p>
             </div>
           </Reveal>
@@ -1618,148 +1910,7 @@ export default function LandingPage() {
       </section>
 
       {/* ==================== PRICING ==================== */}
-      <section
-        id="pricing"
-        className="py-20 sm:py-28"
-        style={{ background: T.bgSection }}
-      >
-        <div className="max-w-6xl mx-auto px-5 sm:px-8">
-          <Reveal>
-            <div className="text-center mb-16">
-              <h2
-                className="text-3xl sm:text-[40px] font-bold tracking-tight"
-                style={{ ...headingFont, color: T.text }}
-              >
-                Simple, Transparent Pricing
-              </h2>
-              <p
-                className="mt-4 text-lg max-w-xl mx-auto"
-                style={{ color: T.textSecondary }}
-              >
-                Start free. Upgrade when you&apos;re ready. 2-day free trial on
-                all paid plans.
-              </p>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {PRICING_PLANS.map((plan) => (
-                <div
-                  key={plan.name}
-                  className="rounded-3xl p-[1.5px]"
-                  style={{
-                    background: plan.popular
-                      ? `linear-gradient(135deg, ${plan.accent}, #8B5CF6, ${T.primary})`
-                      : T.border,
-                  }}
-                >
-                  <div
-                    className="rounded-3xl p-6 sm:p-8 h-full flex flex-col"
-                    style={{ background: T.card }}
-                  >
-                    {plan.popular && (
-                      <div
-                        className="text-[10px] font-bold uppercase tracking-wider text-center py-1 px-3 rounded-full mb-4 self-center"
-                        style={{
-                          background: `${plan.accent}15`,
-                          color: plan.accent,
-                        }}
-                      >
-                        Most Popular
-                      </div>
-                    )}
-
-                    <h3
-                      className="text-lg font-bold mb-1"
-                      style={{ ...headingFont, color: T.text }}
-                    >
-                      {plan.name}
-                    </h3>
-
-                    <div className="flex items-baseline gap-1 mb-1">
-                      <span
-                        className="text-3xl font-extrabold"
-                        style={{ ...headingFont, color: T.text }}
-                      >
-                        {plan.price}
-                      </span>
-                      <span
-                        className="text-sm font-semibold"
-                        style={{ color: T.textMuted }}
-                      >
-                        {plan.period}
-                      </span>
-                    </div>
-
-                    <p
-                      className="text-xs mb-6"
-                      style={{ color: T.textMuted }}
-                    >
-                      {plan.subtitle}
-                    </p>
-
-                    <ul className="space-y-3 mb-8 flex-1" role="list">
-                      {plan.features.map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-start gap-2.5"
-                        >
-                          <Check
-                            className="w-3.5 h-3.5 shrink-0 mt-0.5"
-                            style={{ color: plan.accent }}
-                          />
-                          <span
-                            className="text-sm font-medium"
-                            style={{ color: T.textSecondary }}
-                          >
-                            {feature}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Link
-                      href="/level1/machines"
-                      className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
-                      style={{
-                        background: plan.popular ? plan.accent : "transparent",
-                        color: plan.popular ? "#fff" : plan.accent,
-                        border: plan.popular
-                          ? "none"
-                          : `1.5px solid ${plan.accent}40`,
-                        boxShadow: plan.popular
-                          ? `0 4px 16px ${plan.accent}30`
-                          : "none",
-                      }}
-                    >
-                      {plan.cta}
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 text-center space-y-2">
-              <p
-                className="text-sm font-medium"
-                style={{ color: T.textSecondary }}
-              >
-                Engineering Lifetime Access:{" "}
-                <span className="font-bold" style={{ color: T.text }}>
-                  &#8377;2,999
-                </span>{" "}
-                one-time payment
-              </p>
-              <p className="text-xs" style={{ color: T.textMuted }}>
-                Pay via Dodo Payments &middot; UPI, cards, net banking,
-                international &middot; Cancel anytime
-              </p>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+      <PricingSection headingFont={headingFont} />
 
       {/* ==================== FOOTER ==================== */}
       <footer

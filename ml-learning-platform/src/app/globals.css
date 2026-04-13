@@ -295,6 +295,164 @@ html, body {
 }
 .hero-tree-node { animation: hero-tree-bfs 3.5s ease-in-out infinite; }
 
+/* ================================================================== */
+/*  Engineering Track — Clean, professional design (no sketchy)       */
+/* ================================================================== */
+
+/* ---------- Engineering theme tokens ---------- */
+:root {
+  --eng-bg: #f8fafc;
+  --eng-surface: #ffffff;
+  --eng-border: #e2e8f0;
+  --eng-text: #0f172a;
+  --eng-text-muted: #64748b;
+  --eng-primary: #3b82f6;
+  --eng-primary-light: rgba(59, 130, 246, 0.1);
+  --eng-primary-dark: #2563eb;
+  --eng-success: #10b981;
+  --eng-warning: #f59e0b;
+  --eng-danger: #ef4444;
+  --eng-accent-cn: #3b82f6;
+  --eng-accent-dsa: #e76f51;
+  --eng-accent-os: #10b981;
+  --eng-accent-dbms: #f59e0b;
+  --eng-accent-oop: #8b5cf6;
+  --eng-radius: 10px;
+  --eng-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --eng-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --eng-shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+  --eng-font: "Outfit", "Bricolage Grotesque", system-ui, -apple-system, sans-serif;
+}
+
+/* ---------- Engineering card ---------- */
+.card-eng {
+  background: var(--eng-surface);
+  border: 1px solid var(--eng-border);
+  border-radius: var(--eng-radius);
+  box-shadow: var(--eng-shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-eng:hover {
+  box-shadow: var(--eng-shadow-md);
+  border-color: #cbd5e1;
+}
+
+/* ---------- Engineering buttons ---------- */
+.btn-eng {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--eng-font);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #fff;
+  background: var(--eng-primary);
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.2rem;
+  box-shadow: var(--eng-shadow);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  cursor: pointer;
+}
+.btn-eng:hover {
+  background: var(--eng-primary-dark);
+  box-shadow: var(--eng-shadow-md);
+  transform: translateY(-1px);
+}
+.btn-eng:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-eng-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--eng-font);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--eng-primary);
+  background: var(--eng-surface);
+  border: 1.5px solid var(--eng-primary);
+  border-radius: 8px;
+  padding: 0.55rem 1.2rem;
+  box-shadow: var(--eng-shadow);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  cursor: pointer;
+}
+.btn-eng-outline:hover {
+  background: var(--eng-primary-light);
+  box-shadow: var(--eng-shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn-eng-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--eng-font);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--eng-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  transition: background 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+}
+.btn-eng-ghost:hover {
+  background: #f1f5f9;
+  color: var(--eng-text);
+}
+
+/* ---------- Engineering info box ---------- */
+.info-eng {
+  background: var(--eng-primary-light);
+  border-left: 3px solid var(--eng-primary);
+  border-radius: 0 var(--eng-radius) var(--eng-radius) 0;
+  padding: 1rem 1.25rem;
+  font-family: var(--eng-font);
+}
+
+/* ---------- Engineering tag / badge ---------- */
+.tag-eng {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--eng-font);
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 5px;
+}
+
+/* ---------- Engineering animations ---------- */
+@keyframes eng-fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes eng-slideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes eng-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+@keyframes eng-packet-flow {
+  0%   { stroke-dashoffset: 20; }
+  100% { stroke-dashoffset: 0; }
+}
+.eng-fadeIn { animation: eng-fadeIn 0.3s ease-out; }
+.eng-slideIn { animation: eng-slideIn 0.3s ease-out; }
+.eng-pulse { animation: eng-pulse 1.5s ease-in-out infinite; }
+.eng-packet-flow {
+  stroke-dasharray: 5 5;
+  animation: eng-packet-flow 0.8s linear infinite;
+}
+
 /* Graph BFS wave highlight */
 @keyframes hero-graph-bfs {
   0%, 100% { fill: rgba(236,72,153,0.06); stroke: rgba(236,72,153,0.25); stroke-width: 2; }
