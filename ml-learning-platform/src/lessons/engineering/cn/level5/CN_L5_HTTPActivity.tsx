@@ -24,7 +24,7 @@ import type {
 } from "@/components/engineering/EngineeringLessonShell";
 
 /* ================================================================== */
-/*  Tab 1 — HTTP Request / Response Visualizer                         */
+/*  Tab 1 - HTTP Request / Response Visualizer                         */
 /* ================================================================== */
 
 const METHODS = ["GET", "POST", "PUT", "DELETE"] as const;
@@ -258,7 +258,7 @@ function HTTPRequestTab() {
 }
 
 /* ================================================================== */
-/*  Tab 2 — HTTP Methods & Status Codes                                 */
+/*  Tab 2 - HTTP Methods & Status Codes                                 */
 /* ================================================================== */
 
 interface MethodDef {
@@ -273,9 +273,9 @@ interface MethodDef {
 const HTTP_METHODS: MethodDef[] = [
   { method: "GET", desc: "Retrieve a resource. Should not change server state.", idempotent: true, safe: true, body: false, color: "#3b82f6" },
   { method: "POST", desc: "Submit data to create a new resource. Not idempotent.", idempotent: false, safe: false, body: true, color: "#10b981" },
-  { method: "PUT", desc: "Replace an entire resource. Idempotent — same request gives same result.", idempotent: true, safe: false, body: true, color: "#f59e0b" },
+  { method: "PUT", desc: "Replace an entire resource. Idempotent - same request gives same result.", idempotent: true, safe: false, body: true, color: "#f59e0b" },
   { method: "PATCH", desc: "Partially update a resource. Only sends the changed fields.", idempotent: false, safe: false, body: true, color: "#8b5cf6" },
-  { method: "DELETE", desc: "Remove a resource. Idempotent — deleting twice has same effect.", idempotent: true, safe: false, body: false, color: "#ef4444" },
+  { method: "DELETE", desc: "Remove a resource. Idempotent - deleting twice has same effect.", idempotent: true, safe: false, body: false, color: "#ef4444" },
   { method: "HEAD", desc: "Same as GET but returns only headers, no body. Used for checking if resource exists.", idempotent: true, safe: true, body: false, color: "#64748b" },
   { method: "OPTIONS", desc: "Returns allowed methods for a resource. Used in CORS preflight requests.", idempotent: true, safe: true, body: false, color: "#06b6d4" },
 ];
@@ -455,7 +455,7 @@ function PropertyBadge({ label, value }: { label: string; value: boolean }) {
 }
 
 /* ================================================================== */
-/*  Tab 3 — HTTP Versions Comparison                                    */
+/*  Tab 3 - HTTP Versions Comparison                                    */
 /* ================================================================== */
 
 function HTTPVersionsTab() {
@@ -510,7 +510,7 @@ function HTTPVersionsTab() {
         <div className="eng-fadeIn">
           <div className="card-eng p-5" style={{ marginBottom: 16 }}>
             <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "0.95rem", color: "var(--eng-text)", margin: "0 0 8px" }}>
-              HTTP/1.1 — Head-of-Line Blocking
+              HTTP/1.1 - Head-of-Line Blocking
             </h4>
             <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.82rem", color: "var(--eng-text-muted)", margin: "0 0 16px", lineHeight: 1.5 }}>
               In HTTP/1.1, requests are sent one at a time per connection. A slow response blocks all subsequent requests on that connection. Browsers open 6-8 parallel connections as a workaround.
@@ -569,7 +569,7 @@ function HTTPVersionsTab() {
         <div className="eng-fadeIn">
           <div className="card-eng p-5" style={{ marginBottom: 16 }}>
             <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "0.95rem", color: "var(--eng-text)", margin: "0 0 8px" }}>
-              HTTP/2 — Multiplexed Streams
+              HTTP/2 - Multiplexed Streams
             </h4>
             <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.82rem", color: "var(--eng-text-muted)", margin: "0 0 16px", lineHeight: 1.5 }}>
               HTTP/2 uses a single TCP connection with multiplexed streams. Multiple requests and responses can be in-flight simultaneously, interleaved as binary frames.
@@ -628,10 +628,10 @@ function HTTPVersionsTab() {
         <div className="eng-fadeIn">
           <div className="card-eng p-5" style={{ marginBottom: 16 }}>
             <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "0.95rem", color: "var(--eng-text)", margin: "0 0 8px" }}>
-              HTTP/3 — QUIC over UDP
+              HTTP/3 - QUIC over UDP
             </h4>
             <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.82rem", color: "var(--eng-text-muted)", margin: "0 0 16px", lineHeight: 1.5 }}>
-              HTTP/3 replaces TCP with QUIC (built on UDP). Each stream is independent — packet loss on one stream does not block others. Connection setup is faster (0-RTT possible).
+              HTTP/3 replaces TCP with QUIC (built on UDP). Each stream is independent - packet loss on one stream does not block others. Connection setup is faster (0-RTT possible).
             </p>
 
             <svg viewBox="0 0 700 200" style={{ width: "100%", maxWidth: 700, display: "block", margin: "0 auto" }}>
@@ -777,13 +777,12 @@ export default function CN_L5_HTTPActivity() {
 
   return (
     <EngineeringLessonShell
-      title="HTTP — HyperText Transfer Protocol"
+      title="HTTP - HyperText Transfer Protocol"
       level={5}
       lessonNumber={2}
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="SMTP, FTP & Email Protocols"
-      gateRelevance="2-3 marks"
       placementRelevance="High"
     />
   );

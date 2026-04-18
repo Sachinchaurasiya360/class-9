@@ -18,7 +18,7 @@ import { LineChart } from "@/components/viz/data-viz";
 import { playClick, playPop, playSuccess, playError } from "../../utils/sounds";
 
 /* ------------------------------------------------------------------ */
-/*  Riku — red panda mascot dialogue helper                            */
+/*  Riku - red panda mascot dialogue helper                            */
 /* ------------------------------------------------------------------ */
 function RikuSays({ children }: { children: ReactNode }) {
   return (
@@ -160,7 +160,7 @@ function ConvLayerTab() {
 
       <InfoBox variant="amber" title="Different Filters, Different Responses">
         A horizontal edge filter responds strongly to horizontal stripes but weakly to vertical
-        ones — and vice versa. The CNN learns to use many filters so it can detect all kinds of
+        ones - and vice versa. The CNN learns to use many filters so it can detect all kinds of
         patterns!
       </InfoBox>
     </div>
@@ -688,10 +688,10 @@ export default function L29_MiniCNNActivity() {
       story={
         <StorySection
           paragraphs={[
-            "Aru sat back and looked at everything she had learned — pixels, filters, stride, padding, pooling.",
+            "Aru sat back and looked at everything she had learned - pixels, filters, stride, padding, pooling.",
             "Aru: \"So we have filters, pooling, and neural network layers... can we combine them all?\"",
-            "Byte: \"Yes! That's a CNN — Convolutional Neural Network. Image goes in, conv layer finds features, pooling shrinks it down, then we flatten it and pass it through a dense layer to get a prediction!\"",
-            "Aru: \"So it's like an assembly line — each stage does one job, and by the end, the computer understands what's in the image?\"",
+            "Byte: \"Yes! That's a CNN - Convolutional Neural Network. Image goes in, conv layer finds features, pooling shrinks it down, then we flatten it and pass it through a dense layer to get a prediction!\"",
+            "Aru: \"So it's like an assembly line - each stage does one job, and by the end, the computer understands what's in the image?\"",
             "Byte: \"Exactly! Let's build one together and watch it learn.\"",
           ]}
           conceptTitle="Key Concept"

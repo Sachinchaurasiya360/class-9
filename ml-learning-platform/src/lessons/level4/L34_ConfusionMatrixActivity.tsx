@@ -20,7 +20,7 @@ const PEACH = "#ffb88c";
 const PAPER = "#fffdf5";
 
 /* ------------------------------------------------------------------ */
-/*  Riku — local dialogue helper                                       */
+/*  Riku - local dialogue helper                                       */
 /* ------------------------------------------------------------------ */
 
 function RikuSays({ children }: { children: React.ReactNode }) {
@@ -65,7 +65,7 @@ const PRESETS: Preset[] = [
     fp: 3,
     fn: 7,
     takeaway:
-      "High accuracy, but those 3 FPs are real emails stuck in spam — one of them might be the job offer you were waiting for.",
+      "High accuracy, but those 3 FPs are real emails stuck in spam - one of them might be the job offer you were waiting for.",
     color: SKY,
   },
   {
@@ -89,7 +89,7 @@ const PRESETS: Preset[] = [
     fp: 10,
     fn: 5,
     takeaway:
-      "The 10 False Positives are real purchases flagged as fraud — a minor annoyance. The 5 False Negatives are actual fraud getting through. Cost: real money.",
+      "The 10 False Positives are real purchases flagged as fraud - a minor annoyance. The 5 False Negatives are actual fraud getting through. Cost: real money.",
     color: YELLOW,
   },
 ];
@@ -145,7 +145,7 @@ function FourOutcomesTab() {
       </div>
 
       <InfoBox variant="blue">
-        This 2×2 grid is called a <b>confusion matrix</b> — because it shows you
+        This 2×2 grid is called a <b>confusion matrix</b> - because it shows you
         exactly where your model gets confused.
       </InfoBox>
     </div>
@@ -161,7 +161,7 @@ function BuildMatrixTab() {
   const [noiseLevel, setNoiseLevel] = useState(1); // 0 = clean, 1 = normal, 2 = chaos
 
   // Labelled dataset: class 1 = "positive" (e.g. cat). We'll classify by
-  // x-coordinate with a movable threshold — then count how predictions
+  // x-coordinate with a movable threshold - then count how predictions
   // match truth.
   const basePoints = useMemo<Point[]>(
     () => generateClassification2D(50, 23),
@@ -218,17 +218,17 @@ function BuildMatrixTab() {
   return (
     <div className="space-y-4">
       <p className="font-hand text-base text-foreground text-center">
-        Move the threshold. The matrix IS the report card — live.
+        Move the threshold. The matrix IS the report card - live.
       </p>
 
       <RikuSays>
         Watch what happens: slide the threshold left and the model calls
         everything "positive". Slide it right and it calls everything
-        "negative". The sweet spot is somewhere in the middle — and the matrix
+        "negative". The sweet spot is somewhere in the middle - and the matrix
         tells you exactly where you are.
       </RikuSays>
 
-      {/* Scatter — points coloured by outcome */}
+      {/* Scatter - points coloured by outcome */}
       <div className="card-sketchy p-4" style={{ background: PAPER }}>
         <p className="font-hand text-sm font-bold text-foreground text-center mb-2">
           Predictions on 50 test points (vertical line = decision threshold)
@@ -307,7 +307,7 @@ function BuildMatrixTab() {
 
       <InfoBox variant="amber">
         Notice: moving one slider changes every cell at once. The four numbers
-        always add up to 50 — but their balance tells a different story at each
+        always add up to 50 - but their balance tells a different story at each
         position.
       </InfoBox>
     </div>
@@ -339,8 +339,8 @@ const STAKES = [
     tn: 45,
     fp: 6,
     fn: 9,
-    fpCost: "An important email lands in spam — you miss your job offer.",
-    fnCost: "A spam email reaches your inbox — minor annoyance.",
+    fpCost: "An important email lands in spam - you miss your job offer.",
+    fnCost: "A spam email reaches your inbox - minor annoyance.",
     worse: "FP",
     explain: "Better to let some spam through than lose a real email.",
   },
@@ -352,8 +352,8 @@ const STAKES = [
     tn: 68,
     fp: 8,
     fn: 2,
-    fpCost: "A healthy person gets extra tests — scary but treatable.",
-    fnCost: "A sick person is told they're fine — disease grows untreated.",
+    fpCost: "A healthy person gets extra tests - scary but treatable.",
+    fnCost: "A sick person is told they're fine - disease grows untreated.",
     worse: "FN",
     explain: "Missing a real case is FAR worse than a false alarm here.",
   },
@@ -365,8 +365,8 @@ const STAKES = [
     tn: 78,
     fp: 9,
     fn: 1,
-    fpCost: "Alarm goes off when there's no fire — you're annoyed.",
-    fnCost: "Real fire, but no alarm — danger.",
+    fpCost: "Alarm goes off when there's no fire - you're annoyed.",
+    fnCost: "Real fire, but no alarm - danger.",
     worse: "FN",
     explain: "Missing a real fire is dangerous. False alarms are just loud.",
   },
@@ -379,11 +379,11 @@ function StakesTab() {
   return (
     <div className="space-y-4">
       <p className="font-hand text-base text-foreground text-center">
-        Not all mistakes are equal. Some <b>false positives</b> hurt more — sometimes <b>false negatives</b> do.
+        Not all mistakes are equal. Some <b>false positives</b> hurt more - sometimes <b>false negatives</b> do.
       </p>
 
       <RikuSays>
-        The four numbers always tell a story — but the story changes depending
+        The four numbers always tell a story - but the story changes depending
         on what you're predicting. Same matrix, totally different stakes.
       </RikuSays>
 
@@ -452,7 +452,7 @@ function StakesTab() {
       </div>
 
       <InfoBox variant="green">
-        Smart engineers don't just chase high accuracy — they ask "which mistake
+        Smart engineers don't just chase high accuracy - they ask "which mistake
         would hurt my users most?" and tune the model to avoid THOSE.
       </InfoBox>
       <style>{`@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }`}</style>
@@ -482,7 +482,7 @@ const quizQuestions = [
     options: ["True Positive", "False Positive", "True Negative", "False Negative"],
     correctIndex: 3,
     explanation:
-      "Predicted NO (no cancer) but the truth was YES (had cancer). That's a False Negative — and a dangerous one.",
+      "Predicted NO (no cancer) but the truth was YES (had cancer). That's a False Negative - and a dangerous one.",
   },
   {
     question: "Why is a confusion matrix more useful than just 'accuracy'?",
@@ -494,7 +494,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "Accuracy is one number. The confusion matrix splits it into 4 — so you can see if mistakes are mostly false alarms or missed cases.",
+      "Accuracy is one number. The confusion matrix splits it into 4 - so you can see if mistakes are mostly false alarms or missed cases.",
   },
   {
     question: "For a fire alarm, which mistake is WORSE?",
@@ -554,12 +554,12 @@ export default function L34_ConfusionMatrixActivity() {
             "Aru: \"90%! That's amazing, right?\"",
             "Byte: \"Maybe. Let's look closer. Out of 100 photos, your model got 90 right and 10 wrong. But what KIND of wrong?\"",
             "Aru: \"What do you mean?\"",
-            "Byte: \"Did it call dogs 'cats' (false alarm)? Or did it miss real cats (missed catch)? Those are very different mistakes — and depending on the job, one might be way worse than the other.\"",
+            "Byte: \"Did it call dogs 'cats' (false alarm)? Or did it miss real cats (missed catch)? Those are very different mistakes - and depending on the job, one might be way worse than the other.\"",
             "Aru: \"How do I see that?\"",
-            "Byte: \"With a confusion matrix — a 2×2 grid that shows EVERY type of right and wrong answer your model made.\"",
+            "Byte: \"With a confusion matrix - a 2×2 grid that shows EVERY type of right and wrong answer your model made.\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="A confusion matrix is a 2×2 grid that breaks down a model's predictions into four boxes: True Positives, False Positives, True Negatives, and False Negatives. It tells you not just HOW often a model is wrong — but in WHICH way it's wrong, which often matters more."
+          conceptSummary="A confusion matrix is a 2×2 grid that breaks down a model's predictions into four boxes: True Positives, False Positives, True Negatives, and False Negatives. It tells you not just HOW often a model is wrong - but in WHICH way it's wrong, which often matters more."
         />
       }
     />

@@ -40,7 +40,7 @@ function FrameDissectorTab() {
     { name: "Src MAC", bytes: "6 bytes", color: "#3b82f6", width: 6, description: "Source MAC address (48 bits). The hardware address of the sending network interface card (NIC)." },
     { name: "EtherType", bytes: "2 bytes", color: "#0ea5e9", width: 2, description: "Identifies the upper layer protocol. 0x0800 = IPv4, 0x0806 = ARP, 0x86DD = IPv6." },
     { name: "Payload", bytes: "46-1500 bytes", color: "#10b981", width: 20, description: "The actual data from the network layer. Minimum 46 bytes (padded if shorter), maximum 1500 bytes (MTU)." },
-    { name: "FCS", bytes: "4 bytes", color: "#f59e0b", width: 4, description: "Frame Check Sequence — 32-bit CRC computed over the entire frame. Receiver recalculates and compares to detect errors." },
+    { name: "FCS", bytes: "4 bytes", color: "#f59e0b", width: 4, description: "Frame Check Sequence - 32-bit CRC computed over the entire frame. Receiver recalculates and compares to detect errors." },
   ];
 
   const totalWidth = fields.reduce((a, f) => a + f.width, 0);
@@ -246,7 +246,7 @@ function ARPTab() {
   return (
     <div>
       <h3 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "1.15rem", color: "var(--eng-text)", margin: "0 0 8px" }}>
-        ARP — Address Resolution Protocol
+        ARP - Address Resolution Protocol
       </h3>
       <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", color: "var(--eng-text-muted)", margin: "0 0 16px", lineHeight: 1.6 }}>
         ARP resolves IP addresses to MAC addresses on a local network. Watch the broadcast request and unicast reply process.
@@ -706,7 +706,7 @@ const quiz: EngQuizQuestion[] = [
   },
   {
     question: "What is the MAC address FF:FF:FF:FF:FF:FF used for?",
-    options: ["Default gateway", "Loopback address", "Broadcast — all hosts on the LAN", "Multicast group"],
+    options: ["Default gateway", "Loopback address", "Broadcast - all hosts on the LAN", "Multicast group"],
     correctIndex: 2,
     explanation: "FF:FF:FF:FF:FF:FF is the Ethernet broadcast address. Frames sent to this address are received by all hosts on the local network segment.",
   },
@@ -761,7 +761,6 @@ export default function CN_L2_EthernetLANActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="IPv4 Addressing (Network Layer)"
-      gateRelevance="1-2 marks"
       placementRelevance="Low"
     />
   );

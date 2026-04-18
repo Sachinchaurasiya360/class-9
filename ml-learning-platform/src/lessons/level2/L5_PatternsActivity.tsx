@@ -128,7 +128,7 @@ function TrendDetector() {
     <div className="space-y-5">
       <RikuSays>
         Patterns are just things that repeat or trend. Your brain is
-        incredibly good at spotting them — sometimes too good (hence:
+        incredibly good at spotting them - sometimes too good (hence:
         seeing faces in clouds). Let&apos;s train that instinct on real
         scatter plots.
       </RikuSays>
@@ -211,7 +211,7 @@ function TrendDetector() {
 
       <RikuSays>
         Once you&apos;ve spotted a trend, the next question is: can a
-        computer draw the best line through it? Yes — that&apos;s called
+        computer draw the best line through it? Yes - that&apos;s called
         <b> linear regression</b>. Drag the sliders below to try!
       </RikuSays>
 
@@ -219,7 +219,7 @@ function TrendDetector() {
 
       <InfoBox variant="blue">
         A <strong>trend</strong> is the general direction data is heading.
-        Not every point follows the trend perfectly — we&apos;re looking at
+        Not every point follows the trend perfectly - we&apos;re looking at
         the big picture!
       </InfoBox>
     </div>
@@ -322,7 +322,7 @@ function FindClusters() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        Clusters are groups of points that hang out together — like
+        Clusters are groups of points that hang out together - like
         cliques at lunch. Real data rarely labels them for you, so spotting
         them is half the job of a data scientist.
       </RikuSays>
@@ -413,7 +413,7 @@ function FindClusters() {
               </>
             ) : (
               <>
-                Not quite — there are actually {data.numClusters} clusters.
+                Not quite - there are actually {data.numClusters} clusters.
                 Look at the colors!
               </>
             )}
@@ -545,7 +545,7 @@ function OutlierSpotter() {
       <RikuSays>
         Outliers are the weirdos. Sometimes they&apos;re typos, sometimes
         they&apos;re the most interesting thing in the data. Don&apos;t
-        just delete them — investigate!
+        just delete them - investigate!
       </RikuSays>
 
       <div className="card-sketchy p-5 space-y-4">
@@ -613,7 +613,7 @@ function OutlierSpotter() {
 
       <InfoBox variant="green">
         An <strong>outlier</strong> is a data point that is very different
-        from the others. Outliers can be mistakes — or the most interesting
+        from the others. Outliers can be mistakes - or the most interesting
         discoveries! Scientists pay close attention to outliers.
       </InfoBox>
     </div>
@@ -635,7 +635,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "A trend is the overall pattern or direction in the data — whether values tend to go up, go down, or stay flat.",
+      "A trend is the overall pattern or direction in the data - whether values tend to go up, go down, or stay flat.",
   },
   {
     question: "What are clusters in data?",
@@ -710,8 +710,8 @@ export default function L5_PatternsActivity() {
       story={
         <StorySection
           paragraphs={[
-            "It was Monday again, and it was raining — just like the last three Mondays. Aru looked out the window and said, \"It always rains on Monday!\"",
-            "Byte: \"Interesting observation! You just spotted a pattern — something that repeats or follows a trend. But here's the tricky part: is it a real pattern, or just a coincidence?\"",
+            "It was Monday again, and it was raining - just like the last three Mondays. Aru looked out the window and said, \"It always rains on Monday!\"",
+            "Byte: \"Interesting observation! You just spotted a pattern - something that repeats or follows a trend. But here's the tricky part: is it a real pattern, or just a coincidence?\"",
             "Aru: \"How do I tell the difference?\"",
             "Byte: \"By looking at more data! If it rained on 20 out of 24 Mondays, that's a strong pattern. If it only rained on 4, you just got unlucky. Today, I'll teach you three kinds of patterns: trends, clusters, and outliers.\"",
           ]}

@@ -46,7 +46,7 @@ Interactive K-Nearest Neighbors. Click anywhere on the plot to classify a test p
 <KNNViz initialK={5} initialMetric="manhattan" />
 ```
 
-**Algorithm:** brute-force — compute all pairwise distances, sort, take top K, majority vote.
+**Algorithm:** brute-force - compute all pairwise distances, sort, take top K, majority vote.
 
 ---
 
@@ -63,7 +63,7 @@ Side-by-side 2D scatter with decision regions plus a tree diagram. Depth slider 
 <DecisionTreeViz maxDepth={5} />
 ```
 
-**Algorithm:** greedy splits by Gini impurity on a single feature at a time. Simplified for teaching — real trees also prune and handle missing values.
+**Algorithm:** greedy splits by Gini impurity on a single feature at a time. Simplified for teaching - real trees also prune and handle missing values.
 
 ---
 
@@ -116,7 +116,7 @@ Controls: `w₁`, `w₂`, `b`, and `threshold` sliders.
 <LogisticRegressionViz />
 ```
 
-**Algorithm:** sliders set the parameters directly — no training. `P(y=1) = sigmoid(w₁·x + w₂·y + b)`. Decision boundary is the line where `P = threshold`.
+**Algorithm:** sliders set the parameters directly - no training. `P(y=1) = sigmoid(w₁·x + w₂·y + b)`. Decision boundary is the line where `P = threshold`.
 
 ---
 
@@ -128,7 +128,7 @@ Max-margin line, margin band, and highlighted support vectors. Toggle linear/RBF
 | --- | --- | --- | --- |
 | `data` | `Point[]` | `generateClassification2D(32, 19)` | Labelled points |
 
-**Algorithm (simplified):** the linear "SVM" uses the perpendicular bisector of the two class centroids as a proxy for the max-margin line, then calls the two closest points per class the "support vectors". The RBF mode draws a Gaussian decision field, not a real kernel SVM. Both are intentional teaching simplifications — a real libsvm fit would require an O(n²) QP solver that is overkill for a playground.
+**Algorithm (simplified):** the linear "SVM" uses the perpendicular bisector of the two class centroids as a proxy for the max-margin line, then calls the two closest points per class the "support vectors". The RBF mode draws a Gaussian decision field, not a real kernel SVM. Both are intentional teaching simplifications - a real libsvm fit would require an O(n²) QP solver that is overkill for a playground.
 
 ---
 
@@ -163,13 +163,13 @@ Animated descent on a 2D loss surface.
 />
 ```
 
-**Algorithm:** central-difference numeric gradient, `θ ← θ − lr · ∇L`. Loss is rendered as a coarse contour heatmap — real contour tracing (marching squares) was overkill for the educational goal.
+**Algorithm:** central-difference numeric gradient, `θ ← θ − lr · ∇L`. Loss is rendered as a coarse contour heatmap - real contour tracing (marching squares) was overkill for the educational goal.
 
 ---
 
 ## ConfusionMatrixViz
 
-Pure display component — no interaction. Call-site owns the counts.
+Pure display component - no interaction. Call-site owns the counts.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -189,10 +189,10 @@ Derived metrics: accuracy, precision, recall, F1 score.
 
 ## Teaching Simplifications
 
-- **SVM:** not a real QP solver — uses the perpendicular bisector of class centroids as a stand-in for the max-margin hyperplane. Works visually for linearly separable blobs.
+- **SVM:** not a real QP solver - uses the perpendicular bisector of class centroids as a stand-in for the max-margin hyperplane. Works visually for linearly separable blobs.
 - **Logistic Regression:** manual weight sliders, no actual fitting. The point is to let students *feel* how weights push the boundary.
 - **Decision Tree / Random Forest:** splits on a single axis-aligned threshold by Gini impurity. No pruning.
-- **Gradient Descent:** numeric gradient via central differences — fine for smooth 2D toy losses.
+- **Gradient Descent:** numeric gradient via central differences - fine for smooth 2D toy losses.
 - **K-Means:** random init. No k-means++. Fixed max iterations = 20.
 
-These shortcuts are **intentional** — the components are for grade 8–12 intuition building, not production ML.
+These shortcuts are **intentional** - the components are for grade 8–12 intuition building, not production ML.

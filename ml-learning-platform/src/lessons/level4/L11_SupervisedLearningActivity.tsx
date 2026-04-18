@@ -206,7 +206,7 @@ function LabelTheData() {
       </div>
 
       <RikuSays>
-        No labels, no supervised learning. It&apos;s that simple. Bad labels though? Your model inherits the mistakes — garbage in, garbage out.
+        No labels, no supervised learning. It&apos;s that simple. Bad labels though? Your model inherits the mistakes - garbage in, garbage out.
       </RikuSays>
 
       <InfoBox variant="blue" title="What is Labeling?">
@@ -224,7 +224,7 @@ function TrainTestSplit() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        Think of it like studying for a test. You practice on the training set, then the test set is the real exam — questions you&apos;ve never seen before.
+        Think of it like studying for a test. You practice on the training set, then the test set is the real exam - questions you&apos;ve never seen before.
       </RikuSays>
 
       <div className="card-sketchy notebook-grid p-5 space-y-4">
@@ -233,7 +233,7 @@ function TrainTestSplit() {
         </h3>
         <LinearRegressionViz showResiduals showMSE />
         <p className="font-hand text-center text-xs text-muted-foreground">
-          In real life, you&apos;d hold back some of these points as a test set — then check how well the fitted line predicts those unseen values.
+          In real life, you&apos;d hold back some of these points as a test set - then check how well the fitted line predicts those unseen values.
         </p>
       </div>
 
@@ -256,7 +256,7 @@ function SupervisedVsUnsupervised() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        Supervised models get labeled flashcards. Unsupervised models get a pile of data and a magnifying glass. Both are useful — just different jobs.
+        Supervised models get labeled flashcards. Unsupervised models get a pile of data and a magnifying glass. Both are useful - just different jobs.
       </RikuSays>
 
       <div className="card-sketchy notebook-grid p-5 space-y-4">
@@ -268,7 +268,7 @@ function SupervisedVsUnsupervised() {
           {/* Regression */}
           <div className="border border-indigo-200 rounded-xl p-3 bg-indigo-50/30">
             <h4 className="text-xs font-bold text-indigo-700 text-center mb-2">
-              Regression — predicts a continuous value
+              Regression - predicts a continuous value
             </h4>
             <LinearRegressionViz showResiduals={false} showMSE />
           </div>
@@ -276,14 +276,14 @@ function SupervisedVsUnsupervised() {
           {/* Classification */}
           <div className="border border-emerald-200 rounded-xl p-3 bg-emerald-50/30">
             <h4 className="text-xs font-bold text-emerald-700 text-center mb-2">
-              Classification — predicts a category (label)
+              Classification - predicts a category (label)
             </h4>
             <LogisticRegressionViz />
           </div>
         </div>
 
         <p className="font-hand text-center text-xs text-muted-foreground">
-          Both use labels during training — that&apos;s what makes them <em>supervised</em>.
+          Both use labels during training - that&apos;s what makes them <em>supervised</em>.
           Unsupervised learning would see these same points with no labels at all, and try to find structure anyway.
         </p>
       </div>

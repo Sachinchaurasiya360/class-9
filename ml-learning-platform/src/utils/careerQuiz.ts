@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------
- * Career Quiz engine — 15 fun questions that award tag points.
+ * Career Quiz engine - 15 fun questions that award tag points.
  *
  * Pure TypeScript, deterministic scoring. No React or DOM imports.
  * Each answer adds +2 points to every tag listed on the selected option.
@@ -54,7 +54,7 @@ export const CAREER_QUIZ: QuizQuestion[] = [
     question: "In school group projects, you're usually...",
     options: [
       { text: "The one who codes everything so nothing breaks", tags: ["tech", "build"] },
-      { text: "The organiser and presenter — keeping everyone on track", tags: ["business", "communicate"] },
+      { text: "The organiser and presenter - keeping everyone on track", tags: ["business", "communicate"] },
       { text: "The one constantly asking 'but why does it work?'", tags: ["research", "policy"] },
       { text: "The one making the slides actually look good", tags: ["creative", "communicate"] },
     ],
@@ -63,15 +63,15 @@ export const CAREER_QUIZ: QuizQuestion[] = [
     id: "q4",
     question: "Which school subject do you secretly love (but might not admit)?",
     options: [
-      { text: "Math — proofs and patterns are weirdly satisfying", tags: ["tech", "research"] },
-      { text: "Economics — figuring out why markets move", tags: ["business", "data"] },
-      { text: "English — words are powerful", tags: ["communicate", "creative"] },
-      { text: "Physics — I want to know how the universe works", tags: ["tech", "build"] },
+      { text: "Math - proofs and patterns are weirdly satisfying", tags: ["tech", "research"] },
+      { text: "Economics - figuring out why markets move", tags: ["business", "data"] },
+      { text: "English - words are powerful", tags: ["communicate", "creative"] },
+      { text: "Physics - I want to know how the universe works", tags: ["tech", "build"] },
     ],
   },
   {
     id: "q5",
-    question: "A bug in your code — what's your move?",
+    question: "A bug in your code - what's your move?",
     options: [
       { text: "Debug for hours until I understand what happened", tags: ["tech", "research"] },
       { text: "Post on Stack Overflow / ask a friend", tags: ["communicate", "tech"] },
@@ -103,10 +103,10 @@ export const CAREER_QUIZ: QuizQuestion[] = [
     id: "q8",
     question: "If you had a superpower, you'd pick...",
     options: [
-      { text: "Reading minds — all that hidden data", tags: ["research", "data"] },
-      { text: "Shapeshifting — endless creative forms", tags: ["creative", "build"] },
-      { text: "Time travel — go back and run experiments", tags: ["research", "tech"] },
-      { text: "Persuasion — convince anyone of anything", tags: ["communicate", "business"] },
+      { text: "Reading minds - all that hidden data", tags: ["research", "data"] },
+      { text: "Shapeshifting - endless creative forms", tags: ["creative", "build"] },
+      { text: "Time travel - go back and run experiments", tags: ["research", "tech"] },
+      { text: "Persuasion - convince anyone of anything", tags: ["communicate", "business"] },
     ],
   },
   {
@@ -115,7 +115,7 @@ export const CAREER_QUIZ: QuizQuestion[] = [
     options: [
       { text: "Double-check every calculation before trusting it", tags: ["data", "research"] },
       { text: "Start drafting a story to explain it to others", tags: ["communicate", "data"] },
-      { text: "Dive into root-cause mode — why is this happening?", tags: ["research", "tech"] },
+      { text: "Dive into root-cause mode - why is this happening?", tags: ["research", "tech"] },
       { text: "Question whether the experiment was fair in the first place", tags: ["policy", "research"] },
     ],
   },
@@ -153,10 +153,10 @@ export const CAREER_QUIZ: QuizQuestion[] = [
     id: "q13",
     question: "When something doesn't work the way it should, you feel...",
     options: [
-      { text: "Curious — 'let me understand what's really happening'", tags: ["research", "tech"] },
-      { text: "Annoyed — 'I must fix this right now'", tags: ["build", "tech"] },
-      { text: "Inspired — 'this would be a great blog post'", tags: ["communicate", "creative"] },
-      { text: "Concerned — 'someone should file a proper complaint'", tags: ["policy", "communicate"] },
+      { text: "Curious - 'let me understand what's really happening'", tags: ["research", "tech"] },
+      { text: "Annoyed - 'I must fix this right now'", tags: ["build", "tech"] },
+      { text: "Inspired - 'this would be a great blog post'", tags: ["communicate", "creative"] },
+      { text: "Concerned - 'someone should file a proper complaint'", tags: ["policy", "communicate"] },
     ],
   },
   {
@@ -175,7 +175,7 @@ export const CAREER_QUIZ: QuizQuestion[] = [
     options: [
       { text: "Leading a team that builds products millions use", tags: ["build", "tech", "business"] },
       { text: "Publishing AI research papers read around the world", tags: ["research", "communicate"] },
-      { text: "Running my own company — chaos and all", tags: ["business", "build", "creative"] },
+      { text: "Running my own company - chaos and all", tags: ["business", "build", "creative"] },
       { text: "Shaping AI policy that protects millions of people", tags: ["policy", "communicate", "research"] },
     ],
   },

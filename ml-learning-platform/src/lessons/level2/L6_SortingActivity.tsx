@@ -46,7 +46,7 @@ function colorForValue(value: number, max: number): string {
 
 function randomArray(size: number): number[] {
   const base = Array.from({ length: size }, (_, i) => Math.floor(((i + 1) / size) * 45) + 5);
-  // Fisher-Yates with Math.random — state is local to this call, no seeded PRNG needed.
+  // Fisher-Yates with Math.random - state is local to this call, no seeded PRNG needed.
   for (let i = base.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [base[i], base[j]] = [base[j], base[i]];
@@ -90,7 +90,7 @@ function SortItOut() {
     <div className="space-y-5">
       <RikuSays>
         Sorting is just putting things in order. You&apos;ve done it with books, toys, and Spotify playlists. Computers
-        do it a billion times a second — and the bars below are about to line up from tiny to tall.
+        do it a billion times a second - and the bars below are about to line up from tiny to tall.
       </RikuSays>
 
       <div className="card-sketchy notebook-grid p-5 space-y-4">
@@ -101,7 +101,7 @@ function SortItOut() {
         <div className="w-full">
           <BarChart
             data={barData}
-            title={sorted ? "Sorted — smallest to largest" : "Unsorted values"}
+            title={sorted ? "Sorted - smallest to largest" : "Unsorted values"}
             yLabel="value"
             width={560}
             height={280}
@@ -139,11 +139,11 @@ function SortItOut() {
 
       <RikuSays>
         The height of each bar is the value. When they&apos;re sorted, the colors glide from cool lavender up to hot
-        coral — that&apos;s the pattern your eyes were looking for all along.
+        coral - that&apos;s the pattern your eyes were looking for all along.
       </RikuSays>
 
       <InfoBox variant="blue">
-        Sorting means arranging values in order — smallest to largest, A to Z, oldest to newest. Computers do this by
+        Sorting means arranging values in order - smallest to largest, A to Z, oldest to newest. Computers do this by
         comparing two items at a time and swapping them if they&apos;re out of order. It sounds simple but it&apos;s
         one of the most useful tricks in all of computing.
       </InfoBox>
@@ -239,8 +239,8 @@ function GroupingGame() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        Grouping means &ldquo;this looks like that, so let&apos;s call them the same kind&rdquo;. Pick a rule — Shape,
-        Color, or Size — and watch the same 12 items fall into totally different piles.
+        Grouping means &ldquo;this looks like that, so let&apos;s call them the same kind&rdquo;. Pick a rule - Shape,
+        Color, or Size - and watch the same 12 items fall into totally different piles.
       </RikuSays>
 
       <div className="card-sketchy notebook-grid p-5 space-y-4">
@@ -291,14 +291,14 @@ function GroupingGame() {
         </div>
 
         <p className="text-center font-hand text-xs font-bold text-foreground">
-          {groupKeys.length} groups by <span className="marker-highlight-mint">{groupBy.toLowerCase()}</span> — the
+          {groupKeys.length} groups by <span className="marker-highlight-mint">{groupBy.toLowerCase()}</span> - the
           data didn&apos;t change, only the rule did.
         </p>
       </div>
 
       <RikuSays>
         Bonus nerd fact: when nobody tells the computer what the groups are and it still finds them, that&apos;s called
-        <span className="marker-highlight-coral"> clustering</span>. Here&apos;s a tiny preview — press Step to watch
+        <span className="marker-highlight-coral"> clustering</span>. Here&apos;s a tiny preview - press Step to watch
         it separate the blobs by itself.
       </RikuSays>
 
@@ -311,7 +311,7 @@ function GroupingGame() {
 
       <InfoBox variant="amber">
         Grouping reveals hidden structure. The same data can be grouped in different ways, and each way tells you
-        something different. Later in ML, grouping without labels is called <strong>clustering</strong> — and the
+        something different. Later in ML, grouping without labels is called <strong>clustering</strong> - and the
         K-Means playground above is a real algorithm doing exactly that.
       </InfoBox>
     </div>
@@ -438,7 +438,7 @@ function WhichIsFaster() {
         />
 
         <p className="text-center font-hand text-xs text-foreground">
-          Notice how both curves bend upward. Double the array and you do way more than double the work — welcome to
+          Notice how both curves bend upward. Double the array and you do way more than double the work - welcome to
           <span className="marker-highlight-yellow"> O(n²)</span>.
         </p>
       </div>
@@ -482,13 +482,13 @@ function WhichIsFaster() {
 
       <RikuSays>
         Spoiler: neither is always faster. The winner depends on how the data is already arranged. That&apos;s exactly
-        why computer scientists invented smarter sorts like merge sort and quicksort — but those are a story for
+        why computer scientists invented smarter sorts like merge sort and quicksort - but those are a story for
         another day.
       </RikuSays>
 
       <InfoBox variant="green">
         Different algorithms solve the same problem with different numbers of steps. Finding faster algorithms is a
-        huge part of computer science. Both bubble and selection sort grow like n² — fine for 10 items, painful for
+        huge part of computer science. Both bubble and selection sort grow like n² - fine for 10 items, painful for
         10 million.
       </InfoBox>
     </div>
@@ -530,14 +530,14 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "Sorted data makes patterns easier to spot — you can quickly find the smallest, largest, or most common values, and see how data is distributed.",
+      "Sorted data makes patterns easier to spot - you can quickly find the smallest, largest, or most common values, and see how data is distributed.",
   },
   {
     question: "Between bubble sort and selection sort, which one is always faster?",
     options: ["Bubble sort", "Selection sort", "They're always the same", "It depends on the data"],
     correctIndex: 3,
     explanation:
-      "Neither algorithm is always faster — it depends on how the data is initially arranged. This is why computer scientists study many different sorting algorithms!",
+      "Neither algorithm is always faster - it depends on how the data is initially arranged. This is why computer scientists study many different sorting algorithms!",
   },
 ];
 
@@ -577,18 +577,18 @@ export default function L6_SortingActivity() {
       lessonNumber={3}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="You can sort and group data — awesome! Now let's use everything you've learned to make predictions. What if you could guess what happens next?"
+      nextLessonHint="You can sort and group data - awesome! Now let's use everything you've learned to make predictions. What if you could guess what happens next?"
       story={
         <StorySection
           paragraphs={[
-            "Aru's bookshelf was a disaster. Science books mixed with comics, thick novels next to tiny notebooks — she could never find anything.",
+            "Aru's bookshelf was a disaster. Science books mixed with comics, thick novels next to tiny notebooks - she could never find anything.",
             "Aru: \"Byte, I need to find my math textbook but it's buried somewhere in this mess!\"",
-            "Byte: \"Let me show you how I'd handle this. First, I'd sort them — maybe by size, or by subject. And then I'd group them — all science books together, all comics together. Sorting and grouping are two of the most powerful things you can do with messy data.\"",
+            "Byte: \"Let me show you how I'd handle this. First, I'd sort them - maybe by size, or by subject. And then I'd group them - all science books together, all comics together. Sorting and grouping are two of the most powerful things you can do with messy data.\"",
             "Aru: \"But how do you sort when you can only compare two things at a time?\"",
             "Byte: \"Great question! That's exactly how sorting algorithms work. Let me show you step by step.\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="Sorting means arranging items in order (smallest to largest, A to Z). Grouping means putting similar items together by a shared property. Computers sort by comparing two items at a time and swapping them if needed. Different sorting algorithms take different numbers of steps — finding faster algorithms is a core challenge in computer science."
+          conceptSummary="Sorting means arranging items in order (smallest to largest, A to Z). Grouping means putting similar items together by a shared property. Computers sort by comparing two items at a time and swapping them if needed. Different sorting algorithms take different numbers of steps - finding faster algorithms is a core challenge in computer science."
         />
       }
     />

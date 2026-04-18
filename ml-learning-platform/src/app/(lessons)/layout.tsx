@@ -73,7 +73,7 @@ export default function LessonsLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const crumb = pathname ? BREADCRUMB_MAP[pathname] : undefined;
 
-  // Boot gamification store (idempotent — safe to call on every mount)
+  // Boot gamification store (idempotent - safe to call on every mount)
   useEffect(() => { initGamification(); }, []);
 
   return (

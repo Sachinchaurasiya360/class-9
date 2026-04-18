@@ -30,12 +30,12 @@ A single artificial neuron showing inputs, weights, bias, weighted sum, activati
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `inputs` | `number[]` | — | Input values x1..xn |
-| `weights` | `number[]` | — | Weight for each input |
+| `inputs` | `number[]` | - | Input values x1..xn |
+| `weights` | `number[]` | - | Weight for each input |
 | `bias` | `number` | `0` | Bias term added to the weighted sum |
 | `activation` | `"sigmoid" \| "relu" \| "tanh" \| "linear"` | `"sigmoid"` | Activation function |
 | `size` | `number` | `360` | Approximate width in SVG units |
-| `label` | `string` | — | Optional caption under the neuron |
+| `label` | `string` | - | Optional caption under the neuron |
 
 ```tsx
 <Neuron
@@ -54,10 +54,10 @@ Full feed-forward network with sketchy curved connections. Line thickness = `|we
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `layers` | `number[]` | — | Layer sizes, e.g. `[3, 4, 4, 1]` |
+| `layers` | `number[]` | - | Layer sizes, e.g. `[3, 4, 4, 1]` |
 | `weights` | `number[][][]?` | random (seeded) | `weights[layer][toNeuron][fromNeuron]` |
 | `activations` | `ActivationName[]?` | all sigmoid | Per-layer activation |
-| `inputs` | `number[]?` | — | If provided, network is run and activations shown |
+| `inputs` | `number[]?` | - | If provided, network is run and activations shown |
 | `animateFlow` | `boolean` | `true` | Pulsing signal-flow along edges |
 | `showValues` | `boolean` | `false` | Show neuron activation numbers |
 | `width` / `height` | `number` | `640 / 360` | SVG dimensions |
@@ -74,9 +74,9 @@ Bipolar slider showing sign + magnitude at a glance.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `label` | `string` | — | Slider label |
-| `value` | `number` | — | Current value |
-| `onChange` | `(v: number) => void` | — | Change handler |
+| `label` | `string` | - | Slider label |
+| `value` | `number` | - | Current value |
+| `onChange` | `(v: number) => void` | - | Change handler |
 | `min` | `number` | `-2` | Min value |
 | `max` | `number` | `2` | Max value |
 | `step` | `number` | `0.1` | Step size |
@@ -94,8 +94,8 @@ Plot of an activation function with an optional highlighted input.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `type` | `"sigmoid" \| "relu" \| "tanh" \| "softmax" \| "linear"` | — | Function |
-| `highlightX` | `number?` | — | Draws a vertical line and point at `(x, f(x))` |
+| `type` | `"sigmoid" \| "relu" \| "tanh" \| "softmax" \| "linear"` | - | Function |
+| `highlightX` | `number?` | - | Draws a vertical line and point at `(x, f(x))` |
 | `xRange` | `[number, number]` | `[-5, 5]` | X axis range |
 | `width` / `height` | `number` | `380 / 260` | SVG dimensions |
 
@@ -145,8 +145,8 @@ Step-by-step walkthrough of a forward pass: `Play`, `Next Layer`, `Reset`.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `architecture` | `number[]` | — | Layer sizes |
-| `inputs` | `number[]` | — | Input vector |
+| `architecture` | `number[]` | - | Layer sizes |
+| `inputs` | `number[]` | - | Input vector |
 | `weights` | `number[][][]?` | random (seeded) | Explicit weights |
 | `activations` | `ActivationName[]?` | sigmoid | Per-layer activation |
 
@@ -162,7 +162,7 @@ Backward pass visualization with gradient-colored nodes (redder = bigger).
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `architecture` | `number[]` | — | Layer sizes |
+| `architecture` | `number[]` | - | Layer sizes |
 | `loss` | `number` | `1.2` | Final loss value (scales gradient magnitudes) |
 | `learningRate` | `number` | `0.1` | Shown alongside weight-update arrows |
 | `showUpdateArrows` | `boolean` | `true` | Display `Δw = -lr·g` labels |
@@ -175,7 +175,7 @@ Backward pass visualization with gradient-colored nodes (redder = bigger).
 
 ## Composition notes
 
-- `Perceptron` is built on top of `WeightSlider` — you can drop new sliders into any lesson without plumbing styles yourself.
+- `Perceptron` is built on top of `WeightSlider` - you can drop new sliders into any lesson without plumbing styles yourself.
 - `NeuralNetwork` and `ForwardPassAnimation` share the same `utils.ts` layout math, so a lesson can swap between a "static diagram" and an "animated walkthrough" without re-authoring the architecture.
 - All helpers (`forwardPass`, `activate`, `softmaxVec`, `makeRandomWeights`, `mulberry32`) are re-exported from the package barrel so lesson authors can build derived visualizations without poking into internal files.
 - Colors use CSS custom properties, so if the notebook theme ever changes, these components follow automatically.

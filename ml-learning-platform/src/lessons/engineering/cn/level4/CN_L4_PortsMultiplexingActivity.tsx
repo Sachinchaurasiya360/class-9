@@ -822,7 +822,6 @@ export default function CN_L4_PortsMultiplexingActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="DNS -- Domain Name System"
-      gateRelevance="1 mark"
       placementRelevance="Low"
     />
   );

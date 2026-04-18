@@ -6,7 +6,7 @@ import EngineeringLessonShell from "@/components/engineering/EngineeringLessonSh
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — VPC Visualization                                         */
+/*  Tab 1 - VPC Visualization                                         */
 /* ------------------------------------------------------------------ */
 
 function VPCTab() {
@@ -202,7 +202,7 @@ function VPCTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Load Balancing Algorithms                                  */
+/*  Tab 2 - Load Balancing Algorithms                                  */
 /* ------------------------------------------------------------------ */
 
 interface LBServer {
@@ -433,7 +433,7 @@ function LoadBalancingTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Auto-scaling & Availability Zones                          */
+/*  Tab 3 - Auto-scaling & Availability Zones                          */
 /* ------------------------------------------------------------------ */
 
 interface ScalingInstance {
@@ -757,7 +757,6 @@ export default function CN_L7_CloudNetworkingActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="WebSockets, gRPC & Modern Protocols"
-      gateRelevance="0-1 marks"
       placementRelevance="Very High"
     />
   );

@@ -127,7 +127,7 @@ export default function PracticeChapterPage({
             {pct === 100
               ? "Perfect! You own this chapter."
               : pct >= 75
-                ? "Great work — a couple more reps and you'll ace it."
+                ? "Great work - a couple more reps and you'll ace it."
                 : "Review the ones you missed and try again when you're ready."}
           </p>
         </div>

@@ -174,7 +174,7 @@ function TableTab() {
     <div className="space-y-4">
       <RikuSays>
         Every ML dataset is a table. The input columns are <b>X</b> (features). The answer column is <b>y</b> (label).
-        That's it. Even giant neural nets read tables like this — just bigger.
+        That's it. Even giant neural nets read tables like this - just bigger.
       </RikuSays>
 
       <p className="font-hand text-base text-center" style={{ color: INK }}>
@@ -493,7 +493,7 @@ function FeatureGameTab() {
           height={300}
           xLabel={space === "good" ? "Humidity" : "Favorite color hue"}
           yLabel={space === "good" ? "Cloud cover %" : "Number of cats"}
-          title={space === "good" ? "Clean separation — model can learn" : "All mashed together — no signal"}
+          title={space === "good" ? "Clean separation - model can learn" : "All mashed together - no signal"}
           categoryColors={{ rain: SKY, "no rain": YELLOW }}
         />
         <p className="font-hand text-xs mt-2 text-center" style={{ color: INK, opacity: 0.7 }}>
@@ -502,7 +502,7 @@ function FeatureGameTab() {
       </div>
 
       <InfoBox variant="amber">
-        In the real world, ML engineers spend <b>more than half their time</b> just choosing and cleaning features. Models matter — but features matter more.
+        In the real world, ML engineers spend <b>more than half their time</b> just choosing and cleaning features. Models matter - but features matter more.
       </InfoBox>
     </div>
   );
@@ -515,7 +515,7 @@ const quizQuestions = [
     question: "What is a feature in machine learning?",
     options: ["The answer we predict", "A clue we measure about each example", "A type of computer", "A loss function"],
     correctIndex: 1,
-    explanation: "A feature is an input — something measurable about each example, like weight or color. Many features = many clues.",
+    explanation: "A feature is an input - something measurable about each example, like weight or color. Many features = many clues.",
   },
   {
     question: "What is a label?",
@@ -533,7 +533,7 @@ const quizQuestions = [
     question: "If X has 5 columns and y has 1 column, how many features does each example have?",
     options: ["1", "5", "6", "0"],
     correctIndex: 1,
-    explanation: "X is the features. 5 X-columns means each example has 5 features. y is separate — that's the label.",
+    explanation: "X is the features. 5 X-columns means each example has 5 features. y is separate - that's the label.",
   },
 ];
 
@@ -558,9 +558,9 @@ export default function L3b_FeaturesLabelsActivity() {
       story={
         <StorySection
           paragraphs={[
-            "Aru held up an apple and an orange. \"Quick — how do you tell which is which without looking?\"",
+            "Aru held up an apple and an orange. \"Quick - how do you tell which is which without looking?\"",
             "Byte: \"Easy. I'd ask: bumpy or smooth? Heavy or light? Citrus smell or not? Each of those is a CLUE.\"",
-            "Aru: \"And the answer — apple or orange — is...?\"",
+            "Aru: \"And the answer - apple or orange - is...?\"",
             "Byte: \"That's the label. Clues are called features. Labels are what we want to predict. Every ML problem in the world is shaped exactly like this: a bunch of features pointing to one label.\"",
             "Aru: \"So if I want to predict whether it'll rain tomorrow...\"",
             "Byte: \"...your features are humidity, cloud cover, wind. Your label is 'rain' or 'no rain'. Same shape, different problem.\""

@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 /* --------------------------------------------------------------------------
- * Gamification engine — XP, coins, streaks, badges, daily missions, levels.
+ * Gamification engine - XP, coins, streaks, badges, daily missions, levels.
  *
  * Frontend-only. Persists to localStorage via a single key so a future backend
  * sync hook (`ml-gamification-v1`) can be swapped in without touching call
@@ -286,7 +286,7 @@ export function useGamification(): GamificationState {
 }
 
 /* --------------------------------------------------------------------------
- * Mutations — all state updates funnel through these so rewards and badges
+ * Mutations - all state updates funnel through these so rewards and badges
  * stay in sync. Every public call rolls the date first so counters reset
  * automatically at midnight without a background timer.
  * ------------------------------------------------------------------------ */
@@ -339,7 +339,7 @@ function advanceMissions() {
     const progress = Math.min(cur, m.target);
     const justClaimed = !m.claimed && progress >= m.target;
     if (justClaimed) {
-      // award inline — we're inside the setter so don't recurse
+      // award inline - we're inside the setter so don't recurse
       state = { ...state, xp: state.xp + m.xp, coins: state.coins + m.coins };
       pushReward({ kind: "xp", label: `Mission: ${m.label}`, amount: m.xp });
     }
@@ -374,7 +374,7 @@ function touchStreak() {
   } else {
     const gap = daysBetween(last, d);
     if (gap === 1) current += 1;
-    else if (gap <= 0) { /* skew — ignore */ }
+    else if (gap <= 0) { /* skew - ignore */ }
     else current = 1;
   }
   const longest = Math.max(state.streak.longest, current);
@@ -432,7 +432,7 @@ export function awardLessonComplete(lessonPath: string) {
   addXp(50, `Lesson completed`);
   addCoins(10, `Lesson completed`);
   touchStreak();
-  // Special badges — checked against lesson path patterns
+  // Special badges - checked against lesson path patterns
   checkSpecialLessonBadges(lessonPath);
   checkBadges();
   emit();
@@ -526,7 +526,7 @@ export function grantBadge(id: string) {
   emit();
 }
 
-/** Hard reset — used by the dashboard settings panel. */
+/** Hard reset - used by the dashboard settings panel. */
 export function resetGamification() {
   state = defaultState();
   emit();
@@ -538,7 +538,7 @@ export function dismissReward(id: string) {
   emit();
 }
 
-/** Peek — pure read without subscription. */
+/** Peek - pure read without subscription. */
 export function getGamificationState(): GamificationState {
   return state;
 }

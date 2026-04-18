@@ -35,7 +35,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Apply a Filter (hero ConvolutionViz)                        */
+/*  Tab 1 - Apply a Filter (hero ConvolutionViz)                        */
 /* ------------------------------------------------------------------ */
 function ApplyFilterTab() {
   return (
@@ -53,7 +53,7 @@ function ApplyFilterTab() {
       />
 
       <RikuSays>
-        Look at the feature map on the right — the bright cells are saying
+        Look at the feature map on the right - the bright cells are saying
         &quot;yes! I found what I was looking for at this spot!&quot; Dim cells
         mean &quot;nope, nothing here.&quot;
       </RikuSays>
@@ -61,7 +61,7 @@ function ApplyFilterTab() {
       <InfoBox variant="blue" title="Convolution">
         A filter (kernel) slides over the image. At each position it
         multiplies overlapping values, sums them up, and writes one number
-        into the output — the feature map. Different kernels detect different
+        into the output - the feature map. Different kernels detect different
         features!
       </InfoBox>
     </div>
@@ -69,7 +69,7 @@ function ApplyFilterTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Try Different Filters                                       */
+/*  Tab 2 - Try Different Filters                                       */
 /* ------------------------------------------------------------------ */
 function FilterGalleryTab() {
   const [filterIdx, setFilterIdx] = useState(0);
@@ -124,7 +124,7 @@ function FilterGalleryTab() {
       <InfoBox variant="amber" title="One filter, one feature">
         Each kernel is tuned to exactly one pattern. A vertical edge detector
         won&apos;t find horizontal stripes. That&apos;s why real CNNs use
-        dozens or hundreds of filters — the whole gallery is what lets a
+        dozens or hundreds of filters - the whole gallery is what lets a
         network &quot;see.&quot;
       </InfoBox>
     </div>
@@ -132,7 +132,7 @@ function FilterGalleryTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Build Your Own Filter                                       */
+/*  Tab 3 - Build Your Own Filter                                       */
 /* ------------------------------------------------------------------ */
 function BuildFilterTab() {
   const [kernel, setKernel] = useState<FilterKernel>(
@@ -144,14 +144,14 @@ function BuildFilterTab() {
       <RikuSays>
         Your turn. Click cells to bump them up, shift-click to bump down,
         drag to paint. Then watch the feature map recompute in real time.
-        Try: all +1 on the left, all −1 on the right. Boom — vertical edge
+        Try: all +1 on the left, all −1 on the right. Boom - vertical edge
         detector.
       </RikuSays>
 
       <KernelEditor
         kernel={kernel}
         onChange={setKernel}
-        title="Your kernel — drag to paint"
+        title="Your kernel - drag to paint"
       />
 
       <ConvolutionViz
@@ -162,14 +162,14 @@ function BuildFilterTab() {
 
       <RikuSays>
         Stack enough filters and your CNN starts seeing faces, cats, stop
-        signs — not because you told it what those look like, but because it
+        signs - not because you told it what those look like, but because it
         figured out which patterns matter.
       </RikuSays>
 
       <InfoBox variant="indigo" title="CNNs Learn Their Filters">
         In a real Convolutional Neural Network the computer doesn&apos;t use
         hand-made filters. It <strong>learns</strong> which filters work best
-        during training — automatically discovering edges, textures, and
+        during training - automatically discovering edges, textures, and
         shapes from raw pixels.
       </InfoBox>
     </div>
@@ -202,7 +202,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "Edge detection kernels highlight areas where pixel values change abruptly — that is where edges appear.",
+      "Edge detection kernels highlight areas where pixel values change abruptly - that is where edges appear.",
   },
   {
     question:
@@ -273,15 +273,15 @@ export default function L27_FiltersActivity() {
       lessonNumber={2}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Discover stride, padding, and pooling — how CNNs handle image sizes!"
+      nextLessonHint="Next: Discover stride, padding, and pooling - how CNNs handle image sizes!"
       story={
         <StorySection
           paragraphs={[
             "Aru was scrolling through photos on her phone when she paused on a selfie with a fun filter applied.",
             "Aru: \"How does my phone find faces in photos? It seems like magic!\"",
-            "Byte: \"It slides a small filter over the image — like a magnifying glass looking for specific patterns. An edge filter finds edges, a blur filter smooths things out. That's convolution!\"",
+            "Byte: \"It slides a small filter over the image - like a magnifying glass looking for specific patterns. An edge filter finds edges, a blur filter smooths things out. That's convolution!\"",
             "Aru: \"So the phone is basically looking at tiny patches of pixels at a time?\"",
-            "Byte: \"Exactly! And different filters detect different things — edges, corners, textures. That's the foundation of how computers see.\"",
+            "Byte: \"Exactly! And different filters detect different things - edges, corners, textures. That's the foundation of how computers see.\"",
           ]}
           conceptTitle="Key Concept"
           conceptSummary="Convolution slides a small filter (kernel) over an image, computing a weighted sum at each position. Different kernels detect different features like edges, blur, or sharpness."

@@ -318,12 +318,12 @@ function LiveHandTab() {
 
       <InfoBox variant="blue">
         <span className="font-hand text-base">
-          🖐️ MediaPipe finds <b>21 landmark points</b> on each hand: 4 per finger + 1 for the wrist. The colored lines connect them into a skeleton — that's how a computer "sees" the shape of your hand.
+          🖐️ MediaPipe finds <b>21 landmark points</b> on each hand: 4 per finger + 1 for the wrist. The colored lines connect them into a skeleton - that's how a computer "sees" the shape of your hand.
         </span>
       </InfoBox>
 
       <RikuSays>
-        Notice how the skeleton sometimes flickers when the lighting goes weird or your hand is half off-screen? That&apos;s not a bug — that&apos;s the model&apos;s confidence dropping. Real AI is always a little noisy. Even self-driving cars deal with this.
+        Notice how the skeleton sometimes flickers when the lighting goes weird or your hand is half off-screen? That&apos;s not a bug - that&apos;s the model&apos;s confidence dropping. Real AI is always a little noisy. Even self-driving cars deal with this.
       </RikuSays>
     </div>
   );
@@ -370,7 +370,7 @@ function LandmarkAnatomyTab() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        Hand tracking finds 21 &quot;landmarks&quot; on your hand — fingertip, knuckle, wrist, the whole skeleton. Hover any dot below to see exactly what joint it represents. Very minimalist, very powerful.
+        Hand tracking finds 21 &quot;landmarks&quot; on your hand - fingertip, knuckle, wrist, the whole skeleton. Hover any dot below to see exactly what joint it represents. Very minimalist, very powerful.
       </RikuSays>
 
       <div className="card-sketchy p-3 flex items-center justify-center gap-2">
@@ -449,12 +449,12 @@ function LandmarkAnatomyTab() {
 
       <InfoBox variant="amber">
         <span className="font-hand text-base">
-          🧠 Each landmark is just an (x, y, z) coordinate in space. From these 21 numbers per hand, the computer can tell whether you're pointing, waving, or making a fist — all using simple geometry!
+          🧠 Each landmark is just an (x, y, z) coordinate in space. From these 21 numbers per hand, the computer can tell whether you're pointing, waving, or making a fist - all using simple geometry!
         </span>
       </InfoBox>
 
       <RikuSays>
-        Fun fact: once you have these 21 points, counting extended fingers is just comparing y-coordinates — is the fingertip above the knuckle? Yes? Finger is up. No fancy AI needed for that step. The AI did the hard part first.
+        Fun fact: once you have these 21 points, counting extended fingers is just comparing y-coordinates - is the fingertip above the knuckle? Yes? Finger is up. No fancy AI needed for that step. The AI did the hard part first.
       </RikuSays>
     </div>
   );
@@ -482,11 +482,11 @@ const quizQuestions = [
     options: [
       "MediaPipe requires it",
       "Because the model is upside down",
-      "So your movements feel natural — like a mirror",
+      "So your movements feel natural - like a mirror",
       "It runs faster mirrored",
     ],
     correctIndex: 2,
-    explanation: "Mirroring is purely a UX choice — the underlying model works on any orientation.",
+    explanation: "Mirroring is purely a UX choice - the underlying model works on any orientation.",
   },
   {
     question: "Where does the model run?",
@@ -497,7 +497,7 @@ const quizQuestions = [
       "It doesn't actually run",
     ],
     correctIndex: 1,
-    explanation: "MediaPipe Tasks Vision runs entirely in the browser via WebAssembly + WebGL — no data leaves your device.",
+    explanation: "MediaPipe Tasks Vision runs entirely in the browser via WebAssembly + WebGL - no data leaves your device.",
   },
 ];
 
@@ -526,14 +526,14 @@ export default function HandTrackingActivity() {
         <StorySection
           paragraphs={[
             "Aru waved at the screen. Nothing happened.",
-            "Byte: \"For the computer to wave back, it first has to see your hand. Not just the pixels — the actual shape of your fingers.\"",
+            "Byte: \"For the computer to wave back, it first has to see your hand. Not just the pixels - the actual shape of your fingers.\"",
             "Aru: \"How does it do that?\"",
-            "Byte: \"Google built a tiny model called MediaPipe Hands. It looks at every video frame and finds 21 special points — your wrist, your knuckles, your fingertips. Then we connect them like a stick figure!\"",
+            "Byte: \"Google built a tiny model called MediaPipe Hands. It looks at every video frame and finds 21 special points - your wrist, your knuckles, your fingertips. Then we connect them like a stick figure!\"",
             "Aru: \"And then?\"",
             "Byte: \"Then we can count fingers, recognize gestures, even build games where you control characters with your hands. All in your browser. No app to install.\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="MediaPipe Hands is a tiny ML model from Google that finds 21 landmarks (keypoints) on each hand from a webcam frame, in real time, right inside your browser. Once you have the landmarks, you can build anything — finger counters, gesture controls, sign-language readers, and AR effects."
+          conceptSummary="MediaPipe Hands is a tiny ML model from Google that finds 21 landmarks (keypoints) on each hand from a webcam frame, in real time, right inside your browser. Once you have the landmarks, you can build anything - finger counters, gesture controls, sign-language readers, and AR effects."
         />
       }
     />

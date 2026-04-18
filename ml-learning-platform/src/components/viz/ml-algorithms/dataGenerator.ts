@@ -96,7 +96,7 @@ export function generateClassification2D(n = 40, seed = 11): Point[] {
 }
 
 /**
- * Two concentric circles — the inner class gets label 0, outer class gets label 1.
+ * Two concentric circles - the inner class gets label 0, outer class gets label 1.
  */
 export function generateCircularData(n = 50, seed = 23): Point[] {
   const rand = mulberry32(seed);
@@ -117,7 +117,7 @@ export function generateCircularData(n = 50, seed = 23): Point[] {
 }
 
 /**
- * Classic "two moons" dataset — interlocking crescents.
+ * Classic "two moons" dataset - interlocking crescents.
  */
 export function generateMoons(n = 50, seed = 31): Point[] {
   const rand = mulberry32(seed);
@@ -142,7 +142,7 @@ function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
 }
 
-// Shared palette helper — indexed cluster colors.
+// Shared palette helper - indexed cluster colors.
 export const CLUSTER_COLORS = [
   "var(--accent-coral)",
   "var(--accent-mint)",

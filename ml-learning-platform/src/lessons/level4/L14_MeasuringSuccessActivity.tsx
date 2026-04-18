@@ -33,7 +33,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1  Confusion Matrix — interactive sliders + presets           */
+/*  Tab 1  Confusion Matrix - interactive sliders + presets           */
 /* ------------------------------------------------------------------ */
 
 type Preset = {
@@ -75,7 +75,7 @@ const PRESETS: Preset[] = [
     fp: 1,
     fn: 32,
     blurb:
-      "Barely predicts positive. The few it does flag are usually right (high precision) — but it misses most real positives (low recall).",
+      "Barely predicts positive. The few it does flag are usually right (high precision) - but it misses most real positives (low recall).",
   },
   {
     id: "lazy",
@@ -150,7 +150,7 @@ function ConfusionMatrix() {
       <RikuSays>
         A confusion matrix is the therapy session your model needs after
         getting things wrong. Four little boxes that tell you{" "}
-        <em>exactly</em> how your classifier messed up — not just that it did.
+        <em>exactly</em> how your classifier messed up - not just that it did.
       </RikuSays>
 
       <div className="card-sketchy notebook-grid p-5 space-y-4">
@@ -237,7 +237,7 @@ function ConfusionMatrix() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2  Accuracy Isn't Everything — live classifier + matrix       */
+/*  Tab 2  Accuracy Isn't Everything - live classifier + matrix       */
 /* ------------------------------------------------------------------ */
 
 // Build an imbalanced dataset: 95 negatives, 5 positives, all in the
@@ -271,7 +271,7 @@ function buildImbalancedData(): Point[] {
 function AccuracyIsntEverything() {
   const data = useMemo(() => buildImbalancedData(), []);
 
-  // "Always predict healthy" baseline — this is the accuracy trap.
+  // "Always predict healthy" baseline - this is the accuracy trap.
   const totalPositive = data.filter((p) => p.label === 1).length;
   const totalNegative = data.length - totalPositive;
   const lazyAccuracy = ((totalNegative / data.length) * 100).toFixed(0);
@@ -293,7 +293,7 @@ function AccuracyIsntEverything() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 max-w-md mx-auto">
           <p className="text-xs text-red-700">
             <strong>Lazy Model:</strong> Always predicts &ldquo;Healthy&rdquo;
-            — gets <strong>{lazyAccuracy}% accuracy</strong>! But it misses
+            - gets <strong>{lazyAccuracy}% accuracy</strong>! But it misses
             ALL {totalPositive} sick patients.
           </p>
         </div>
@@ -314,7 +314,7 @@ function AccuracyIsntEverything() {
 
         <div className="border-t-2 border-dashed border-slate-300 pt-4">
           <p className="font-hand text-xs text-center text-slate-600 mb-3">
-            Now try a real classifier — drag the weight sliders below to draw
+            Now try a real classifier - drag the weight sliders below to draw
             your own decision boundary on the same imbalanced data:
           </p>
           <LogisticRegressionViz data={data} />
@@ -333,14 +333,14 @@ function AccuracyIsntEverything() {
         the majority class. <strong>Precision</strong> tells us how many of
         our positive predictions were correct. <strong>Recall</strong> tells
         us how many actual positives we caught. For medical diagnosis, recall
-        is critical — missing a sick patient is dangerous!
+        is critical - missing a sick patient is dangerous!
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3  Compare Models — presets + live confusion matrix           */
+/*  Tab 3  Compare Models - presets + live confusion matrix           */
 /* ------------------------------------------------------------------ */
 
 interface ModelPreset {
@@ -352,11 +352,11 @@ interface ModelPreset {
 }
 
 const MODELS: ModelPreset[] = [
-  // Model A — high precision, lower recall (good spam filter)
+  // Model A - high precision, lower recall (good spam filter)
   { name: "Model A", tp: 65, tn: 185, fp: 9, fn: 35 },
-  // Model B — high recall, lower precision (good medical screen)
+  // Model B - high recall, lower precision (good medical screen)
   { name: "Model B", tp: 95, tn: 155, fp: 37, fn: 5 },
-  // Model C — balanced (best F1)
+  // Model C - balanced (best F1)
   { name: "Model C", tp: 87, tn: 180, fp: 10, fn: 13 },
 ];
 
@@ -374,7 +374,7 @@ const SCENARIOS: Scenario[] = [
       "Detecting whether a patient has a disease. Missing a sick patient could be life-threatening.",
     bestModel: 1,
     reason:
-      "Model B has the highest recall — it catches almost all sick patients, which is critical in healthcare.",
+      "Model B has the highest recall - it catches almost all sick patients, which is critical in healthcare.",
   },
   {
     title: "Spam Filter",
@@ -382,7 +382,7 @@ const SCENARIOS: Scenario[] = [
       "Filtering spam emails. Marking a real email as spam is very annoying.",
     bestModel: 0,
     reason:
-      "Model A has the highest precision — it rarely marks real emails as spam.",
+      "Model A has the highest precision - it rarely marks real emails as spam.",
   },
   {
     title: "Movie Recommendation",
@@ -390,7 +390,7 @@ const SCENARIOS: Scenario[] = [
       "Suggesting movies a user might enjoy. We want a good overall balance.",
     bestModel: 2,
     reason:
-      "Model C has the best F1 score — the best balance of precision and recall for general recommendations.",
+      "Model C has the best F1 score - the best balance of precision and recall for general recommendations.",
   },
 ];
 
@@ -427,12 +427,12 @@ function CompareModels() {
       <RikuSays>
         Three models, three different personalities. One&apos;s cautious,
         one&apos;s trigger-happy, one&apos;s balanced. Pick the right
-        teammate for the job — the matrix will show you why.
+        teammate for the job - the matrix will show you why.
       </RikuSays>
 
       <div className="card-sketchy notebook-grid p-5 space-y-4">
         <h3 className="font-hand text-sm font-bold text-foreground text-center">
-          Compare 3 models — which is best for each scenario?
+          Compare 3 models - which is best for each scenario?
         </h3>
 
         {/* Scenario selector */}
@@ -523,7 +523,7 @@ function CompareModels() {
       </RikuSays>
 
       <InfoBox variant="indigo" title="Which Metric Matters?">
-        There is no single &ldquo;best&rdquo; metric — it depends on the
+        There is no single &ldquo;best&rdquo; metric - it depends on the
         problem! For <strong>medical diagnosis</strong>, recall matters most
         (catch all sick patients). For <strong>spam filtering</strong>,
         precision matters (don&apos;t block real emails).{" "}

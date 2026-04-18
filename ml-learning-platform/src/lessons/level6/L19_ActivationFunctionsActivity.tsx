@@ -163,7 +163,7 @@ function MeetFunctionsTab() {
       <RikuSays>
         Softmax is the polite one: it takes a bunch of numbers and makes them
         all add up to 1. Very democratic of it. ReLU is basically the *bouncer*
-        of activation functions — negative numbers don&apos;t get into the
+        of activation functions - negative numbers don&apos;t get into the
         club.
       </RikuSays>
 
@@ -261,7 +261,7 @@ function WhyNotLinearTab() {
         />
         <p className="font-hand text-sm text-center text-foreground mt-2">
           {showNonLinear
-            ? "ReLU gives us a bend at x = 0 — a real non-linearity."
+            ? "ReLU gives us a bend at x = 0 - a real non-linearity."
             : "Linear: output is just x. No bend, no magic, no learning superpowers."}
         </p>
       </div>
@@ -297,7 +297,7 @@ function PlaygroundTab() {
     <div className="space-y-5">
       <RikuSays>
         Pick a function, then drag the slider to zoom in on a single input
-        value. Watch the red dot slide up and down the curve — that&apos;s
+        value. Watch the red dot slide up and down the curve - that&apos;s
         exactly what happens inside every neuron for every input.
       </RikuSays>
 

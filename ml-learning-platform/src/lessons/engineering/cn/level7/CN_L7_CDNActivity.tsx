@@ -78,7 +78,7 @@ function WorldMapBg() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — The Problem (no CDN)                                       */
+/*  Tab 1 - The Problem (no CDN)                                       */
 /* ------------------------------------------------------------------ */
 
 function ProblemTab() {
@@ -236,7 +236,7 @@ function ProblemTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — CDN (edge servers + caching)                               */
+/*  Tab 2 - CDN (edge servers + caching)                               */
 /* ------------------------------------------------------------------ */
 
 function CDNTab() {
@@ -473,7 +473,7 @@ function CDNTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Explore (interactive multi-user)                           */
+/*  Tab 3 - Explore (interactive multi-user)                           */
 /* ------------------------------------------------------------------ */
 
 function ExploreTab() {
@@ -775,8 +775,7 @@ export default function CN_L7_CDNActivity() {
       lessonNumber={2}
       tabs={tabs}
       quiz={quiz}
-      nextLessonHint="Cloud Networking — VPCs, load balancers, and auto-scaling"
-      gateRelevance="1 mark"
+      nextLessonHint="Cloud Networking - VPCs, load balancers, and auto-scaling"
       placementRelevance="High"
     />
   );

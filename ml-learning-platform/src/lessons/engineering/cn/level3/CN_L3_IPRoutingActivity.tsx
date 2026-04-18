@@ -1,9 +1,35 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Server, GitBranch, Target, Info, Play, RotateCcw } from "lucide-react";
 import EngineeringLessonShell from "@/components/engineering/EngineeringLessonShell";
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
+import {
+  AlgoCanvas,
+  PseudocodePanel,
+  VariablesPanel,
+  InputEditor,
+  useStepPlayer,
+} from "@/components/engineering/algo";
+
+/* ================================================================== */
+/*  Helpers                                                            */
+/* ================================================================== */
+
+function ipToInt(ip: string): number {
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((p) => isNaN(p) || p < 0 || p > 255)) return NaN;
+  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
+}
+
+function intToIp(n: number): string {
+  return `${(n >>> 24) & 255}.${(n >>> 16) & 255}.${(n >>> 8) & 255}.${n & 255}`;
+}
+
+function maskFromPrefix(prefix: number): number {
+  if (prefix === 0) return 0;
+  return (0xffffffff << (32 - prefix)) >>> 0;
+}
 
 /* ================================================================== */
 /*  Types & Data                                                       */
@@ -75,221 +101,706 @@ function getRouter(id: string): Router | undefined {
 }
 
 /* ================================================================== */
-/*  Tab 1 — Routing Table & Packet Trace                               */
+/*  Longest-prefix-match algorithm, frame by frame                    */
 /* ================================================================== */
 
-function RoutingTab() {
-  const [hoveredRouter, setHoveredRouter] = useState<string | null>(null);
-  const [destIP, setDestIP] = useState("192.168.0.5");
-  const [packetPath, setPacketPath] = useState<string[]>([]);
-  const [animStep, setAnimStep] = useState(-1);
-  const animRef = useRef<ReturnType<typeof setInterval> | null>(null);
+interface RouteRow {
+  dest: string;
+  mask: string;
+  nextHop: string;
+  iface: string;
+  prefix: number;
+  destInt: number;
+  maskInt: number;
+}
 
-  const tracePacket = useCallback(() => {
-    // Simple longest prefix match simulation
-    const path: string[] = ["R1"];
-    let current = "R1";
-    const visited = new Set<string>();
+interface RoutingFrame {
+  line: number;
+  vars: Record<string, string | number | boolean | undefined>;
+  message: string;
+  routerId: string;
+  rowStates: ("default" | "active" | "match" | "mismatch" | "done")[];
+  bestIdx: number | null;
+  bestLen: number;
+  pathSoFar: string[];
+  currentRouter: string;
+  flashKeys?: string[];
+}
 
-    for (let i = 0; i < 10; i++) {
-      if (visited.has(current)) break;
-      visited.add(current);
+const ROUTING_PSEUDO = [
+  "function route(packet, dest):",
+  "  while current != destination-network:",
+  "    best = default-route",
+  "    for each entry in routingTable:",
+  "      if (dest AND entry.mask) == entry.dest:",
+  "        if entry.prefix > best.prefix:",
+  "          best = entry               // longer match wins",
+  "    if best.nextHop == 'direct': deliver; return",
+  "    current = best.nextHop; forward(packet)",
+];
 
-      const router = getRouter(current);
-      if (!router) break;
+function routerRows(router: Router): RouteRow[] {
+  return router.table.map((t) => ({
+    ...t,
+    prefix: parseInt(t.mask.replace("/", ""), 10),
+    destInt: ipToInt(t.dest),
+    maskInt: maskFromPrefix(parseInt(t.mask.replace("/", ""), 10)),
+  }));
+}
 
-      // Find longest prefix match
-      let bestMatch = router.table.find((e) => e.dest === "0.0.0.0"); // default
-      let bestLen = 0;
-      for (const entry of router.table) {
-        const prefLen = parseInt(entry.mask.replace("/", ""), 10);
-        if (prefLen > bestLen && destIP.startsWith(entry.dest.split(".").slice(0, Math.ceil(prefLen / 8)).join("."))) {
-          bestMatch = entry;
-          bestLen = prefLen;
+function buildRoutingFrames(destIp: string, startRouter = "R1"): RoutingFrame[] {
+  const frames: RoutingFrame[] = [];
+  const destInt = ipToInt(destIp);
+  if (isNaN(destInt)) {
+    frames.push({
+      line: 0,
+      vars: { error: "Invalid IP" },
+      message: `The IP "${destIp}" is not valid. Use dotted-quad format (e.g., 192.168.1.5).`,
+      routerId: startRouter,
+      rowStates: [],
+      bestIdx: null,
+      bestLen: -1,
+      pathSoFar: [],
+      currentRouter: startRouter,
+    });
+    return frames;
+  }
+
+  const path: string[] = [startRouter];
+  let current = startRouter;
+  const visited = new Set<string>();
+  let hopCount = 0;
+
+  frames.push({
+    line: 0,
+    vars: { dest: destIp, start: startRouter },
+    message: `A packet destined for ${destIp} arrives at ${startRouter}. We need to forward it across the network using the routing table.`,
+    routerId: current,
+    rowStates: Array(getRouter(current)!.table.length).fill("default"),
+    bestIdx: null,
+    bestLen: -1,
+    pathSoFar: [startRouter],
+    currentRouter: current,
+    flashKeys: ["dest"],
+  });
+
+  while (hopCount < 8) {
+    if (visited.has(current)) {
+      frames.push({
+        line: 1,
+        vars: { loop: current },
+        message: `Loop detected at ${current}. Forwarding aborted.`,
+        routerId: current,
+        rowStates: Array(getRouter(current)!.table.length).fill("default"),
+        bestIdx: null,
+        bestLen: -1,
+        pathSoFar: [...path],
+        currentRouter: current,
+      });
+      break;
+    }
+    visited.add(current);
+    hopCount++;
+    const router = getRouter(current)!;
+    const rows = routerRows(router);
+
+    frames.push({
+      line: 1,
+      vars: { hop: hopCount, at: current, dest: destIp, tableSize: rows.length },
+      message: `Hop ${hopCount}: scanning ${current}'s routing table. We'll check each entry for a match and keep the longest-prefix winner.`,
+      routerId: current,
+      rowStates: Array(rows.length).fill("default"),
+      bestIdx: null,
+      bestLen: -1,
+      pathSoFar: [...path],
+      currentRouter: current,
+    });
+
+    // Initialize with default route (prefix 0)
+    let bestIdx = rows.findIndex((r) => r.prefix === 0);
+    let bestLen = rows[bestIdx]?.prefix ?? -1;
+
+    const rowStates: ("default" | "active" | "match" | "mismatch" | "done")[] = Array(rows.length).fill("default");
+    if (bestIdx >= 0) rowStates[bestIdx] = "match";
+
+    frames.push({
+      line: 2,
+      vars: { "best (so far)": rows[bestIdx]?.dest + rows[bestIdx]?.mask, bestLen },
+      message: `Start with the default route ${rows[bestIdx]?.dest}${rows[bestIdx]?.mask} as the fallback. We'll upgrade if we find a longer match.`,
+      routerId: current,
+      rowStates: rowStates.slice(),
+      bestIdx,
+      bestLen,
+      pathSoFar: [...path],
+      currentRouter: current,
+    });
+
+    // Iterate entries in order
+    for (let idx = 0; idx < rows.length; idx++) {
+      const row = rows[idx];
+      // Mark row as active for this check
+      const activeStates = rowStates.slice();
+      if (activeStates[idx] !== "match") activeStates[idx] = "active";
+      frames.push({
+        line: 3,
+        vars: {
+          entry: `${row.dest}${row.mask}`,
+          prefix: row.prefix,
+          nextHop: row.nextHop,
+        },
+        message: `Examining entry ${idx + 1}: destination ${row.dest}${row.mask} (prefix /${row.prefix}).`,
+        routerId: current,
+        rowStates: activeStates,
+        bestIdx,
+        bestLen,
+        pathSoFar: [...path],
+        currentRouter: current,
+      });
+
+      const masked = (destInt & row.maskInt) >>> 0;
+      const matches = masked === row.destInt;
+
+      // Show the AND result vs entry.dest
+      frames.push({
+        line: 4,
+        vars: {
+          "dest AND mask": intToIp(masked),
+          "entry.dest": row.dest,
+          matches: matches ? "yes" : "no",
+        },
+        message: matches
+          ? `(${destIp}) AND (${intToIp(row.maskInt)}) = ${intToIp(masked)}. That equals ${row.dest} - this entry MATCHES.`
+          : `(${destIp}) AND (${intToIp(row.maskInt)}) = ${intToIp(masked)}. That does NOT equal ${row.dest} - skip.`,
+        routerId: current,
+        rowStates: (() => {
+          const s = rowStates.slice();
+          s[idx] = matches ? "match" : "mismatch";
+          return s;
+        })(),
+        bestIdx,
+        bestLen,
+        pathSoFar: [...path],
+        currentRouter: current,
+        flashKeys: ["matches"],
+      });
+
+      if (matches) {
+        if (row.prefix > bestLen) {
+          // Upgrade
+          // Demote previous best visually
+          if (bestIdx !== null && bestIdx >= 0 && bestIdx !== idx) {
+            rowStates[bestIdx] = "default";
+          }
+          bestIdx = idx;
+          bestLen = row.prefix;
+          rowStates[idx] = "match";
+          frames.push({
+            line: 5,
+            vars: {
+              "new best": `${row.dest}${row.mask}`,
+              bestLen: row.prefix,
+              nextHop: row.nextHop,
+            },
+            message: `Prefix /${row.prefix} is longer than the previous best (/${bestLen === row.prefix ? 0 : bestLen}). Upgrade this entry to the current best.`,
+            routerId: current,
+            rowStates: rowStates.slice(),
+            bestIdx,
+            bestLen,
+            pathSoFar: [...path],
+            currentRouter: current,
+            flashKeys: ["new best"],
+          });
+        } else {
+          // Matches but not longer - revert visual state
+          rowStates[idx] = "default";
+          frames.push({
+            line: 5,
+            vars: {
+              "this prefix": row.prefix,
+              "kept best": bestLen,
+            },
+            message: `Matches, but prefix /${row.prefix} is not longer than current best /${bestLen}. Keep the existing best.`,
+            routerId: current,
+            rowStates: rowStates.slice(),
+            bestIdx,
+            bestLen,
+            pathSoFar: [...path],
+            currentRouter: current,
+          });
         }
-      }
-
-      if (bestMatch?.nextHop === "direct") break;
-      if (bestMatch?.nextHop) {
-        path.push(bestMatch.nextHop);
-        current = bestMatch.nextHop;
       } else {
-        break;
+        // Clear mismatch marker on exit
+        rowStates[idx] = "default";
       }
     }
 
-    setPacketPath(path);
-    setAnimStep(0);
+    // Announce the winner
+    const winner = bestIdx !== null && bestIdx >= 0 ? rows[bestIdx] : null;
+    if (!winner) {
+      frames.push({
+        line: 7,
+        vars: { result: "unreachable" },
+        message: "No route found and no default. Packet dropped.",
+        routerId: current,
+        rowStates: Array(rows.length).fill("default"),
+        bestIdx: null,
+        bestLen: -1,
+        pathSoFar: [...path],
+        currentRouter: current,
+      });
+      break;
+    }
 
-    if (animRef.current) clearInterval(animRef.current);
-    let step = 0;
-    animRef.current = setInterval(() => {
-      step++;
-      if (step >= path.length) {
-        if (animRef.current) clearInterval(animRef.current);
-        return;
-      }
-      setAnimStep(step);
-    }, 800);
-  }, [destIP]);
+    const winnerStates = Array(rows.length).fill("default") as (
+      | "default"
+      | "active"
+      | "match"
+      | "mismatch"
+      | "done"
+    )[];
+    winnerStates[bestIdx!] = "done";
+    frames.push({
+      line: 6,
+      vars: {
+        "winner entry": `${winner.dest}${winner.mask}`,
+        nextHop: winner.nextHop,
+        iface: winner.iface,
+      },
+      message: `Longest match is ${winner.dest}${winner.mask} via ${winner.nextHop} on ${winner.iface}. This is the forwarding decision.`,
+      routerId: current,
+      rowStates: winnerStates,
+      bestIdx,
+      bestLen,
+      pathSoFar: [...path],
+      currentRouter: current,
+      flashKeys: ["winner entry"],
+    });
 
-  useEffect(() => {
-    return () => {
-      if (animRef.current) clearInterval(animRef.current);
-    };
-  }, []);
+    if (winner.nextHop === "direct") {
+      frames.push({
+        line: 7,
+        vars: {
+          at: current,
+          iface: winner.iface,
+          dest: destIp,
+        },
+        message: `The matched network is directly connected on ${winner.iface}. Deliver ${destIp} to the link-layer - routing complete.`,
+        routerId: current,
+        rowStates: winnerStates,
+        bestIdx,
+        bestLen,
+        pathSoFar: [...path],
+        currentRouter: current,
+        flashKeys: ["at"],
+      });
+      break;
+    }
 
-  const hovRouter = hoveredRouter ? getRouter(hoveredRouter) : null;
+    // Forward to next hop
+    path.push(winner.nextHop);
+    frames.push({
+      line: 8,
+      vars: {
+        from: current,
+        to: winner.nextHop,
+        hop: hopCount,
+      },
+      message: `Forward the packet: ${current} -> ${winner.nextHop}. Now ${winner.nextHop} repeats the process.`,
+      routerId: winner.nextHop,
+      rowStates: Array(getRouter(winner.nextHop)!.table.length).fill("default"),
+      bestIdx: null,
+      bestLen: -1,
+      pathSoFar: [...path],
+      currentRouter: winner.nextHop,
+      flashKeys: ["to"],
+    });
+
+    current = winner.nextHop;
+  }
+
+  return frames;
+}
+
+/* ================================================================== */
+/*  Network Topology SVG (used in Routing tab)                         */
+/* ================================================================== */
+
+function TopologyGraph({
+  path,
+  activeRouter,
+}: {
+  path: string[];
+  activeRouter: string;
+}) {
+  return (
+    <svg viewBox="0 0 560 320" style={{ width: "100%", maxHeight: 300 }}>
+      {LINKS.map((link) => {
+        const fromR = getRouter(link.from)!;
+        const toR = getRouter(link.to)!;
+        const isOnPath =
+          path.length > 0 &&
+          path.some(
+            (r, i) =>
+              i < path.length - 1 &&
+              ((r === link.from && path[i + 1] === link.to) ||
+                (r === link.to && path[i + 1] === link.from)),
+          );
+        return (
+          <g key={`${link.from}-${link.to}`}>
+            <line
+              x1={fromR.x}
+              y1={fromR.y}
+              x2={toR.x}
+              y2={toR.y}
+              stroke={isOnPath ? "#3b82f6" : "var(--eng-border)"}
+              strokeWidth={isOnPath ? 3 : 1.5}
+              style={{ transition: "all 0.3s" }}
+            />
+            <text
+              x={(fromR.x + toR.x) / 2 + 8}
+              y={(fromR.y + toR.y) / 2 - 8}
+              fontSize={10}
+              fill="var(--eng-text-muted)"
+              fontFamily="var(--eng-font)"
+              fontWeight={500}
+            >
+              cost: {link.cost}
+            </text>
+          </g>
+        );
+      })}
+
+      {ROUTERS.map((router) => {
+        const isOnPath = path.includes(router.id);
+        const isCurrent = router.id === activeRouter;
+        return (
+          <g key={router.id}>
+            <circle
+              cx={router.x}
+              cy={router.y}
+              r={isCurrent ? 26 : 22}
+              fill={isCurrent ? "#3b82f6" : isOnPath ? "#bfdbfe" : "var(--eng-surface)"}
+              stroke={isCurrent ? "#3b82f6" : isOnPath ? "#3b82f6" : "var(--eng-border)"}
+              strokeWidth={isCurrent ? 3 : 1.5}
+              style={{ transition: "all 0.3s" }}
+            />
+            <text
+              x={router.x}
+              y={router.y + 4}
+              textAnchor="middle"
+              fontSize={12}
+              fontWeight={700}
+              fill={isCurrent ? "#fff" : "var(--eng-text)"}
+              fontFamily="var(--eng-font)"
+            >
+              {router.label}
+            </text>
+            {isCurrent && (
+              <circle cx={router.x} cy={router.y - 32} r={6} fill="#f59e0b">
+                <animate attributeName="r" values="4;8;4" dur="0.8s" repeatCount="indefinite" />
+              </circle>
+            )}
+          </g>
+        );
+      })}
+
+      <text x={20} y={290} fontSize={10} fill="#3b82f6" fontFamily="var(--eng-font)" fontWeight={500}>
+        10.0.0.0/8
+      </text>
+      <text x={240} y={30} fontSize={10} fill="#8b5cf6" fontFamily="var(--eng-font)" fontWeight={500}>
+        172.16.0.0/16
+      </text>
+      <text x={440} y={290} fontSize={10} fill="#10b981" fontFamily="var(--eng-font)" fontWeight={500}>
+        192.168.0.0/24
+      </text>
+      <text x={240} y={310} fontSize={10} fill="#f59e0b" fontFamily="var(--eng-font)" fontWeight={500}>
+        Internet (default)
+      </text>
+    </svg>
+  );
+}
+
+/* ================================================================== */
+/*  Routing Table Visualization                                       */
+/* ================================================================== */
+
+function RoutingTableView({
+  router,
+  rowStates,
+  bestIdx,
+}: {
+  router: Router;
+  rowStates: ("default" | "active" | "match" | "mismatch" | "done")[];
+  bestIdx: number | null;
+}) {
+  const colorFor = (s: string) => {
+    switch (s) {
+      case "active":
+        return { bg: "rgba(59,130,246,0.10)", border: "#3b82f6", text: "var(--eng-text)" };
+      case "match":
+        return { bg: "rgba(245,158,11,0.12)", border: "#f59e0b", text: "var(--eng-text)" };
+      case "mismatch":
+        return { bg: "rgba(239,68,68,0.08)", border: "var(--eng-border)", text: "var(--eng-text-muted)" };
+      case "done":
+        return { bg: "rgba(16,185,129,0.12)", border: "#10b981", text: "var(--eng-text)" };
+      default:
+        return { bg: "transparent", border: "var(--eng-border)", text: "var(--eng-text)" };
+    }
+  };
 
   return (
-    <div className="eng-fadeIn" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div className="info-eng" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-        <Info className="w-4 h-4 shrink-0" style={{ marginTop: 2, color: "var(--eng-primary)" }} />
-        <span>Hover over routers to see their routing tables. Enter a destination IP and trace how the packet hops through the network using longest prefix match.</span>
+    <div
+      style={{
+        padding: 12,
+        borderRadius: "var(--eng-radius)",
+        border: "1px solid var(--eng-border)",
+        background: "var(--eng-bg)",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: "var(--eng-font)",
+          fontSize: "0.8rem",
+          fontWeight: 700,
+          color: "var(--eng-text)",
+          marginBottom: 8,
+        }}
+      >
+        {router.label} Routing Table
       </div>
-
-      {/* Network graph */}
-      <div className="card-eng" style={{ padding: 20 }}>
-        <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap", alignItems: "flex-end" }}>
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <label style={{ fontFamily: "var(--eng-font)", fontSize: "0.75rem", fontWeight: 600, color: "var(--eng-text-muted)", display: "block", marginBottom: 4 }}>
-              Destination IP
-            </label>
-            <input type="text" value={destIP} onChange={(e) => setDestIP(e.target.value)}
-              style={{ width: "100%", padding: "6px 10px", borderRadius: 6, border: "1.5px solid var(--eng-border)", fontFamily: "var(--eng-font)", fontSize: "0.85rem", background: "var(--eng-surface)", color: "var(--eng-text)", outline: "none" }}
-            />
-          </div>
-          <button className="btn-eng" onClick={tracePacket} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem" }}>
-            <Play className="w-4 h-4" /> Trace Packet
-          </button>
-        </div>
-
-        <svg viewBox="0 0 560 320" style={{ width: "100%", maxHeight: 340 }}>
-          {/* Links */}
-          {LINKS.map((link) => {
-            const fromR = getRouter(link.from)!;
-            const toR = getRouter(link.to)!;
-            const isOnPath = packetPath.length > 0 &&
-              packetPath.some((r, i) => i < packetPath.length - 1 &&
-                ((r === link.from && packetPath[i + 1] === link.to) || (r === link.to && packetPath[i + 1] === link.from)));
-
-            return (
-              <g key={`${link.from}-${link.to}`}>
-                <line
-                  x1={fromR.x} y1={fromR.y} x2={toR.x} y2={toR.y}
-                  stroke={isOnPath ? "#3b82f6" : "var(--eng-border)"}
-                  strokeWidth={isOnPath ? 3 : 1.5}
-                  style={{ transition: "all 0.3s" }}
-                />
-                <text
-                  x={(fromR.x + toR.x) / 2 + 8} y={(fromR.y + toR.y) / 2 - 8}
-                  fontSize={10} fill="var(--eng-text-muted)" fontFamily="var(--eng-font)" fontWeight={500}
-                >
-                  cost: {link.cost}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Routers */}
-          {ROUTERS.map((router) => {
-            const isOnPath = packetPath.includes(router.id);
-            const pathIdx = packetPath.indexOf(router.id);
-            const isAnimated = animStep >= 0 && pathIdx >= 0 && pathIdx <= animStep;
-
-            return (
-              <g key={router.id}
-                 onMouseEnter={() => setHoveredRouter(router.id)}
-                 onMouseLeave={() => setHoveredRouter(null)}
-                 style={{ cursor: "pointer" }}
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "separate",
+          borderSpacing: "0 4px",
+          fontFamily: "var(--eng-font)",
+          fontSize: "0.78rem",
+        }}
+      >
+        <thead>
+          <tr>
+            {["Destination", "Mask", "Next Hop", "Iface"].map((h) => (
+              <th
+                key={h}
+                style={{
+                  padding: "4px 8px",
+                  textAlign: "left",
+                  color: "var(--eng-text-muted)",
+                  fontWeight: 600,
+                  fontSize: "0.7rem",
+                }}
               >
-                <circle
-                  cx={router.x} cy={router.y} r={isAnimated ? 26 : 22}
-                  fill={isAnimated ? "#3b82f6" : isOnPath ? "#bfdbfe" : "var(--eng-surface)"}
-                  stroke={isOnPath ? "#3b82f6" : "var(--eng-border)"}
-                  strokeWidth={hoveredRouter === router.id ? 3 : 1.5}
-                  style={{ transition: "all 0.3s" }}
-                />
-                <text x={router.x} y={router.y + 4} textAnchor="middle" fontSize={12} fontWeight={700}
-                  fill={isAnimated ? "#fff" : "var(--eng-text)"} fontFamily="var(--eng-font)">
-                  {router.label}
-                </text>
-                {/* Packet indicator */}
-                {isAnimated && pathIdx === animStep && (
-                  <circle cx={router.x} cy={router.y - 30} r={6} fill="#f59e0b">
-                    <animate attributeName="r" values="4;8;4" dur="0.6s" repeatCount="indefinite" />
-                  </circle>
-                )}
-              </g>
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {router.table.map((entry, i) => {
+            const s = rowStates[i] ?? "default";
+            const c = colorFor(s);
+            const isWinner = bestIdx === i && s === "done";
+            return (
+              <tr
+                key={i}
+                style={{
+                  background: c.bg,
+                  transition: "all 0.25s ease",
+                }}
+              >
+                <td
+                  style={{
+                    padding: "6px 8px",
+                    fontFamily: "monospace",
+                    color: c.text,
+                    borderLeft: `3px solid ${c.border}`,
+                    borderTop: `1px solid ${c.border}`,
+                    borderBottom: `1px solid ${c.border}`,
+                    borderRadius: "4px 0 0 4px",
+                    fontWeight: isWinner ? 700 : 400,
+                  }}
+                >
+                  {entry.dest}
+                </td>
+                <td
+                  style={{
+                    padding: "6px 8px",
+                    fontFamily: "monospace",
+                    color: c.text,
+                    borderTop: `1px solid ${c.border}`,
+                    borderBottom: `1px solid ${c.border}`,
+                  }}
+                >
+                  {entry.mask}
+                </td>
+                <td
+                  style={{
+                    padding: "6px 8px",
+                    color: c.text,
+                    borderTop: `1px solid ${c.border}`,
+                    borderBottom: `1px solid ${c.border}`,
+                    fontWeight: isWinner ? 700 : 400,
+                  }}
+                >
+                  {entry.nextHop}
+                </td>
+                <td
+                  style={{
+                    padding: "6px 8px",
+                    fontFamily: "monospace",
+                    color: c.text,
+                    borderTop: `1px solid ${c.border}`,
+                    borderRight: `1px solid ${c.border}`,
+                    borderBottom: `1px solid ${c.border}`,
+                    borderRadius: "0 4px 4px 0",
+                  }}
+                >
+                  {entry.iface}
+                </td>
+              </tr>
             );
           })}
-
-          {/* Network labels */}
-          <text x={20} y={290} fontSize={10} fill="#3b82f6" fontFamily="var(--eng-font)" fontWeight={500}>10.0.0.0/8</text>
-          <text x={240} y={30} fontSize={10} fill="#8b5cf6" fontFamily="var(--eng-font)" fontWeight={500}>172.16.0.0/16</text>
-          <text x={440} y={290} fontSize={10} fill="#10b981" fontFamily="var(--eng-font)" fontWeight={500}>192.168.0.0/24</text>
-          <text x={240} y={310} fontSize={10} fill="#f59e0b" fontFamily="var(--eng-font)" fontWeight={500}>Internet (default)</text>
-        </svg>
-      </div>
-
-      {/* Routing table tooltip */}
-      {hovRouter && (
-        <div className="card-eng eng-fadeIn" style={{ padding: 16, borderLeft: "4px solid #3b82f6" }}>
-          <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "0.95rem", color: "var(--eng-text)", margin: "0 0 8px" }}>
-            {hovRouter.label} Routing Table
-          </h4>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "var(--eng-font)", fontSize: "0.8rem" }}>
-            <thead>
-              <tr style={{ borderBottom: "2px solid var(--eng-border)" }}>
-                {["Destination", "Mask", "Next Hop", "Interface"].map((h) => (
-                  <th key={h} style={{ padding: "6px 8px", textAlign: "left", color: "var(--eng-text-muted)", fontWeight: 600, fontSize: "0.75rem" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {hovRouter.table.map((entry, i) => (
-                <tr key={i} style={{ borderBottom: "1px solid var(--eng-border)" }}>
-                  <td style={{ padding: "6px 8px", fontFamily: "monospace" }}>{entry.dest}</td>
-                  <td style={{ padding: "6px 8px", fontFamily: "monospace" }}>{entry.mask}</td>
-                  <td style={{ padding: "6px 8px" }}>{entry.nextHop}</td>
-                  <td style={{ padding: "6px 8px", fontFamily: "monospace" }}>{entry.iface}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Packet path result */}
-      {packetPath.length > 0 && (
-        <div className="card-eng eng-fadeIn" style={{ padding: 16 }}>
-          <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", fontWeight: 600, color: "var(--eng-text)", marginBottom: 8 }}>
-            Packet Path to {destIP}
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
-            {packetPath.map((r, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span className="tag-eng" style={{
-                  background: i <= animStep ? "#3b82f6" : "var(--eng-border)",
-                  color: i <= animStep ? "#fff" : "var(--eng-text-muted)",
-                  transition: "all 0.3s",
-                }}>
-                  {r}
-                </span>
-                {i < packetPath.length - 1 && (
-                  <span style={{ color: "var(--eng-text-muted)", fontSize: "0.8rem" }}>-&gt;</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+        </tbody>
+      </table>
     </div>
   );
 }
 
 /* ================================================================== */
-/*  Tab 2 — Distance Vector vs Link State                              */
+/*  Tab 1 - Routing (AlgoCanvas + longest-prefix match)                */
+/* ================================================================== */
+
+function RoutingTab() {
+  const [destInput, setDestInput] = useState("192.168.0.5");
+  const dest = useMemo(() => {
+    return isNaN(ipToInt(destInput)) ? "192.168.0.5" : destInput;
+  }, [destInput]);
+
+  const frames = useMemo(() => buildRoutingFrames(dest, "R1"), [dest]);
+  const player = useStepPlayer(frames);
+  const frame = player.current!;
+  const currentRouter = getRouter(frame.currentRouter)!;
+
+  return (
+    <div className="eng-fadeIn" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="info-eng" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <Info className="w-4 h-4 shrink-0" style={{ marginTop: 2, color: "var(--eng-primary)" }} />
+        <span>
+          Each router scans its table and picks the entry whose <code>(destIP AND mask) == entry.dest</code> with the LONGEST prefix. Then forwards to the next hop. Step through to see the rule applied.
+        </span>
+      </div>
+
+      <AlgoCanvas
+        title={`Longest-Prefix-Match: packet to ${dest}`}
+        player={player}
+        input={
+          <InputEditor
+            label="Destination IP"
+            value={destInput}
+            onApply={setDestInput}
+            presets={[
+              { label: "10.5.2.1", value: "10.5.2.1" },
+              { label: "172.16.3.100", value: "172.16.3.100" },
+              { label: "192.168.0.50", value: "192.168.0.50" },
+              { label: "8.8.8.8 (internet)", value: "8.8.8.8" },
+              { label: "10.1.1.1", value: "10.1.1.1" },
+            ]}
+            placeholder="e.g. 192.168.0.5"
+            helper="Packet enters at R1 and hops via longest-prefix match."
+          />
+        }
+        pseudocode={<PseudocodePanel lines={ROUTING_PSEUDO} activeLine={frame.line} />}
+        variables={<VariablesPanel vars={frame.vars} flashKeys={frame.flashKeys} />}
+        status={frame.message}
+        legend={
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <LegendSwatch color="#3b82f6" label="Being checked" />
+            <LegendSwatch color="#f59e0b" label="Current best match" />
+            <LegendSwatch color="#10b981" label="Winner (forward)" />
+          </div>
+        }
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div
+            style={{
+              padding: 12,
+              borderRadius: "var(--eng-radius)",
+              background: "var(--eng-surface)",
+              border: "1px solid var(--eng-border)",
+            }}
+          >
+            <TopologyGraph path={frame.pathSoFar} activeRouter={frame.currentRouter} />
+            {frame.pathSoFar.length > 0 && (
+              <div
+                style={{
+                  marginTop: 8,
+                  fontFamily: "var(--eng-font)",
+                  fontSize: "0.78rem",
+                  color: "var(--eng-text-muted)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span style={{ fontWeight: 600, color: "var(--eng-text)" }}>Path:</span>
+                {frame.pathSoFar.map((r, i) => (
+                  <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <span
+                      className="tag-eng"
+                      style={{
+                        background: "#3b82f6",
+                        color: "#fff",
+                        padding: "2px 8px",
+                        fontSize: "0.72rem",
+                      }}
+                    >
+                      {r}
+                    </span>
+                    {i < frame.pathSoFar.length - 1 && (
+                      <span style={{ color: "var(--eng-text-muted)", fontSize: "0.85rem" }}>-&gt;</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <RoutingTableView router={currentRouter} rowStates={frame.rowStates} bestIdx={frame.bestIdx} />
+        </div>
+      </AlgoCanvas>
+    </div>
+  );
+}
+
+function LegendSwatch({ color, label }: { color: string; label: string }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        fontFamily: "var(--eng-font)",
+        fontSize: "0.72rem",
+        color: "var(--eng-text-muted)",
+      }}
+    >
+      <span
+        style={{
+          width: 12,
+          height: 12,
+          borderRadius: 3,
+          background: color,
+          display: "inline-block",
+        }}
+      />
+      {label}
+    </span>
+  );
+}
+
+/* ================================================================== */
+/*  Tab 2 - Distance Vector vs Link State                              */
 /* ================================================================== */
 
 interface DVEntry {
@@ -304,7 +815,6 @@ function AlgorithmsTab() {
   const [isPlaying, setIsPlaying] = useState(false);
   const animRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Distance Vector simulation state
   const [dvTables, setDvTables] = useState<Record<string, DVEntry[]>>(() => {
     const init: Record<string, DVEntry[]> = {};
     for (const r of ROUTERS) {
@@ -313,7 +823,6 @@ function AlgorithmsTab() {
         cost: r.id === dest.id ? 0 : Infinity,
         via: r.id === dest.id ? "-" : "?",
       }));
-      // Add direct neighbors
       for (const link of LINKS) {
         if (link.from === r.id) {
           const idx = init[r.id].findIndex((e) => e.dest === link.to);
@@ -335,7 +844,6 @@ function AlgorithmsTab() {
       }
 
       for (const r of ROUTERS) {
-        // Get neighbors
         const neighbors: { id: string; cost: number }[] = [];
         for (const link of LINKS) {
           if (link.from === r.id) neighbors.push({ id: link.to, cost: link.cost });
@@ -375,7 +883,7 @@ function AlgorithmsTab() {
           setIsPlaying(false);
           return prev;
         }
-        return prev; // actual increment done in runDVRound
+        return prev;
       });
       runDVRound();
     }, 1200);
@@ -418,7 +926,6 @@ function AlgorithmsTab() {
         <span>Compare Distance Vector (Bellman-Ford) and Link State (Dijkstra) routing algorithms. Watch routers exchange information and converge round by round.</span>
       </div>
 
-      {/* Algorithm toggle */}
       <div style={{ display: "flex", gap: 8 }}>
         <button className={algo === "dv" ? "btn-eng" : "btn-eng-outline"} onClick={() => setAlgo("dv")} style={{ fontSize: "0.85rem" }}>
           Distance Vector
@@ -430,7 +937,6 @@ function AlgorithmsTab() {
 
       {algo === "dv" ? (
         <>
-          {/* DV Controls */}
           <div className="card-eng" style={{ padding: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <span className="tag-eng" style={{ background: "var(--eng-primary-light)", color: "var(--eng-primary)" }}>
@@ -448,10 +954,8 @@ function AlgorithmsTab() {
             </div>
           </div>
 
-          {/* DV animation graph */}
           <div className="card-eng" style={{ padding: 20 }}>
             <svg viewBox="0 0 560 280" style={{ width: "100%", maxHeight: 280 }}>
-              {/* Links with exchange arrows */}
               {LINKS.map((link) => {
                 const fromR = getRouter(link.from)!;
                 const toR = getRouter(link.to)!;
@@ -490,7 +994,6 @@ function AlgorithmsTab() {
             </svg>
           </div>
 
-          {/* DV Tables */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
             {ROUTERS.map((router) => (
               <div key={router.id} className="card-eng" style={{ padding: 12 }}>
@@ -522,7 +1025,6 @@ function AlgorithmsTab() {
           </div>
         </>
       ) : (
-        /* Link State comparison view */
         <div className="card-eng" style={{ padding: 20 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div>
@@ -569,10 +1071,8 @@ function AlgorithmsTab() {
             </div>
           </div>
 
-          {/* SVG comparison */}
           <div style={{ marginTop: 20 }}>
             <svg viewBox="0 0 560 120" style={{ width: "100%" }}>
-              {/* DV side */}
               <text x={140} y={15} textAnchor="middle" fontSize={10} fontWeight={600} fill="#3b82f6" fontFamily="var(--eng-font)">Distance Vector: Share table with neighbors</text>
               <rect x={40} y={25} width={40} height={30} rx={4} fill="#3b82f6" opacity={0.8} />
               <text x={60} y={44} textAnchor="middle" fontSize={9} fill="#fff" fontFamily="var(--eng-font)" fontWeight={600}>R1</text>
@@ -581,7 +1081,6 @@ function AlgorithmsTab() {
               <text x={140} y={44} textAnchor="middle" fontSize={9} fill="#fff" fontFamily="var(--eng-font)" fontWeight={600}>R2</text>
               <text x={100} y={68} textAnchor="middle" fontSize={7} fill="var(--eng-text-muted)" fontFamily="var(--eng-font)">[full table]</text>
 
-              {/* LS side */}
               <text x={420} y={15} textAnchor="middle" fontSize={10} fontWeight={600} fill="#8b5cf6" fontFamily="var(--eng-font)">Link State: Flood link info to all</text>
               {[320, 370, 420, 470].map((x, i) => (
                 <g key={i}>
@@ -589,7 +1088,6 @@ function AlgorithmsTab() {
                   <text x={x + 20} y={44} textAnchor="middle" fontSize={9} fill="#fff" fontFamily="var(--eng-font)" fontWeight={600}>R{i + 1}</text>
                 </g>
               ))}
-              {/* Flood lines */}
               {[[340, 390], [340, 440], [340, 490], [390, 440], [390, 490], [440, 490]].map(([x1, x2], i) => (
                 <line key={i} x1={x1} y1={57} x2={x2} y2={57} stroke="#8b5cf6" strokeWidth={0.8} opacity={0.5} />
               ))}
@@ -609,7 +1107,7 @@ function AlgorithmsTab() {
 }
 
 /* ================================================================== */
-/*  Tab 3 — Practice: Edit Routing Tables                              */
+/*  Tab 3 - Practice: Edit Routing Tables                              */
 /* ================================================================== */
 
 function PracticeTab() {
@@ -631,26 +1129,28 @@ function PracticeTab() {
   }, []);
 
   const handleTrace = useCallback(() => {
-    // Simple matching
+    const destInt = ipToInt(packetDest);
+    if (isNaN(destInt)) {
+      setTraceResult(`Invalid IP: "${packetDest}"`);
+      return;
+    }
     let matchedEntry: typeof editableTable[0] | null = null;
     let bestLen = -1;
 
     for (const entry of editableTable) {
       const parts = entry.dest.split("/");
       const prefix = parseInt(parts[1], 10);
-      if (prefix > bestLen && packetDest.startsWith(parts[0].split(".").slice(0, Math.ceil(prefix / 8)).join("."))) {
+      const entryInt = ipToInt(parts[0]);
+      if (isNaN(entryInt) || isNaN(prefix)) continue;
+      const mask = maskFromPrefix(prefix);
+      if (((destInt & mask) >>> 0) === entryInt && prefix > bestLen) {
         matchedEntry = entry;
         bestLen = prefix;
       }
     }
 
-    if (!matchedEntry) {
-      // Try default
-      matchedEntry = editableTable.find((e) => e.dest === "0.0.0.0/0") || null;
-    }
-
     if (matchedEntry && matchedEntry.nextHop) {
-      setTraceResult(`Packet to ${packetDest} matched "${matchedEntry.dest}" -> forwarded to ${matchedEntry.nextHop} via ${matchedEntry.interface || "?"}`);
+      setTraceResult(`Packet to ${packetDest} matched "${matchedEntry.dest}" (longest /${bestLen}) -> forwarded to ${matchedEntry.nextHop} via ${matchedEntry.interface || "?"}`);
     } else {
       setTraceResult("No matching route found or next hop is empty. Fill in the routing table entries!");
     }
@@ -663,7 +1163,6 @@ function PracticeTab() {
         <span>Complete the routing table for R1 by filling in the next hop and interface fields. Then trace packets to see which route is matched.</span>
       </div>
 
-      {/* Editable routing table */}
       <div className="card-eng" style={{ padding: 20, overflowX: "auto" }}>
         <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "0.95rem", color: "var(--eng-text)", margin: "0 0 12px" }}>
           R1 Routing Table (Edit next hop and interface)
@@ -702,7 +1201,6 @@ function PracticeTab() {
         </table>
       </div>
 
-      {/* Packet trace */}
       <div className="card-eng" style={{ padding: 20 }}>
         <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", fontWeight: 600, color: "var(--eng-text)", marginBottom: 12 }}>
           Trace a Packet
@@ -718,23 +1216,21 @@ function PracticeTab() {
         {traceResult && (
           <div className="eng-fadeIn" style={{
             marginTop: 12, padding: 12, borderRadius: 8,
-            background: traceResult.includes("No matching") ? "rgba(239,68,68,0.08)" : "rgba(16,185,129,0.08)",
-            border: `1px solid ${traceResult.includes("No matching") ? "var(--eng-danger)" : "var(--eng-success)"}`,
+            background: traceResult.includes("No matching") || traceResult.includes("Invalid") ? "rgba(239,68,68,0.08)" : "rgba(16,185,129,0.08)",
+            border: `1px solid ${traceResult.includes("No matching") || traceResult.includes("Invalid") ? "var(--eng-danger)" : "var(--eng-success)"}`,
             fontFamily: "var(--eng-font)", fontSize: "0.85rem",
-            color: traceResult.includes("No matching") ? "var(--eng-danger)" : "var(--eng-success)",
+            color: traceResult.includes("No matching") || traceResult.includes("Invalid") ? "var(--eng-danger)" : "var(--eng-success)",
           }}>
             {traceResult}
           </div>
         )}
       </div>
 
-      {/* Reference topology */}
       <div className="card-eng" style={{ padding: 16 }}>
         <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.8rem", fontWeight: 600, color: "var(--eng-text)", marginBottom: 8 }}>
           Network Topology Reference
         </p>
         <svg viewBox="0 0 500 200" style={{ width: "100%", maxHeight: 200 }}>
-          {/* Simple topology for reference */}
           {LINKS.map((link) => {
             const fromR = getRouter(link.from)!;
             const toR = getRouter(link.to)!;
@@ -819,7 +1315,6 @@ export default function CN_L3_IPRoutingActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="IPv6 Basics"
-      gateRelevance="3-4 marks"
       placementRelevance="Medium"
     />
   );

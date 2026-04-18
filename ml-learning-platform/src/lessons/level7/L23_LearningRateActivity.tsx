@@ -11,7 +11,7 @@ import { LineChart } from "../../components/viz/data-viz";
 import type { Series } from "../../components/viz/data-viz";
 
 /* ------------------------------------------------------------------ */
-/*  Riku says — local dialogue helper                                  */
+/*  Riku says - local dialogue helper                                  */
 /* ------------------------------------------------------------------ */
 function RikuSays({ children }: { children: React.ReactNode }) {
   return (
@@ -33,7 +33,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 /*  Shared loss surfaces                                               */
 /* ------------------------------------------------------------------ */
 
-/** Classic skewed bowl on [0,100]² — used by GradientDescentViz. */
+/** Classic skewed bowl on [0,100]² - used by GradientDescentViz. */
 function skewedBowl(w: number, b: number): number {
   const dw = (w - 55) / 18;
   const db = (b - 48) / 26;
@@ -55,7 +55,7 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Learning Rate Tuning (hero)                                */
+/*  Tab 1 - Learning Rate Tuning (hero)                                */
 /* ------------------------------------------------------------------ */
 function LRTuningTab() {
   return (
@@ -63,7 +63,7 @@ function LRTuningTab() {
       <p className="font-hand text-sm text-center text-muted-foreground">
         Drag the <strong>learning rate</strong> slider and press{" "}
         <strong>Play</strong>. Try to find the sweet spot where the ball
-        reaches the bottom smoothly — not too slow, not bouncing wildly.
+        reaches the bottom smoothly - not too slow, not bouncing wildly.
       </p>
 
       <RikuSays>
@@ -93,14 +93,14 @@ function LRTuningTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Extreme Rates (side-by-side)                               */
+/*  Tab 2 - Extreme Rates (side-by-side)                               */
 /* ------------------------------------------------------------------ */
 function ExtremeRatesTab() {
   return (
     <div className="space-y-5">
       <p className="font-hand text-sm text-center text-muted-foreground">
         Two learning rates, same loss landscape. The one on top is painfully
-        tiny — barely moves. The one below is way too big — watch it ping
+        tiny - barely moves. The one below is way too big - watch it ping
         around the valley.
       </p>
 
@@ -111,7 +111,7 @@ function ExtremeRatesTab() {
 
       <div className="card-sketchy p-3">
         <p className="font-hand text-xs text-center font-bold mb-2">
-          Tiny learning rate (lr = 0.01) — barely budges
+          Tiny learning rate (lr = 0.01) - barely budges
         </p>
         <div className="flex justify-center">
           <LossLandscape
@@ -125,7 +125,7 @@ function ExtremeRatesTab() {
 
       <div className="card-sketchy p-3">
         <p className="font-hand text-xs text-center font-bold mb-2">
-          Huge learning rate (lr = 1.1) — overshoots and diverges
+          Huge learning rate (lr = 1.1) - overshoots and diverges
         </p>
         <div className="flex justify-center">
           <LossLandscape
@@ -139,13 +139,13 @@ function ExtremeRatesTab() {
 
       <RikuSays>
         Notice how the huge-lr trail bounces <em>across</em> the minimum
-        instead of settling into it? That&apos;s called overshooting — and
+        instead of settling into it? That&apos;s called overshooting - and
         if it&apos;s bad enough, the loss literally goes up forever. Oops.
       </RikuSays>
 
       <InfoBox variant="amber" title="Too Small vs Too Big">
         Tiny lr: you&apos;ll reach the bottom eventually, but training
-        wastes huge amounts of time. Huge lr: each step overshoots — the
+        wastes huge amounts of time. Huge lr: each step overshoots - the
         ball can&apos;t settle, and the loss may actually increase over
         time.
       </InfoBox>
@@ -154,7 +154,7 @@ function ExtremeRatesTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Loss Curves (side-by-side analytical)                      */
+/*  Tab 3 - Loss Curves (side-by-side analytical)                      */
 /* ------------------------------------------------------------------ */
 function LossCurvesTab() {
   // Run the same 1D gradient descent for three different learning rates,
@@ -220,10 +220,10 @@ function LossCurvesTab() {
       <InfoBox variant="indigo" title="Reading a Loss Curve">
         <strong>Smooth fall and flatten:</strong> healthy training.
         <br />
-        <strong>Flat line near the start:</strong> lr too small — model
+        <strong>Flat line near the start:</strong> lr too small - model
         barely learning.
         <br />
-        <strong>Spiky or rising curve:</strong> lr too large — model
+        <strong>Spiky or rising curve:</strong> lr too large - model
         diverging.
       </InfoBox>
     </div>

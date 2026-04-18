@@ -68,7 +68,7 @@ function expandIPv6(input: string): string {
 }
 
 /* ================================================================== */
-/*  Tab 1 — IPv6 Format & Zero Compression                            */
+/*  Tab 1 - IPv6 Format & Zero Compression                            */
 /* ================================================================== */
 
 function FormatTab() {
@@ -204,7 +204,7 @@ function FormatTab() {
 }
 
 /* ================================================================== */
-/*  Tab 2 — IPv4 vs IPv6 Comparison                                    */
+/*  Tab 2 - IPv4 vs IPv6 Comparison                                    */
 /* ================================================================== */
 
 function CompareTab() {
@@ -346,7 +346,7 @@ function CompareTab() {
 }
 
 /* ================================================================== */
-/*  Tab 3 — Transition Mechanisms                                      */
+/*  Tab 3 - Transition Mechanisms                                      */
 /* ================================================================== */
 
 function TransitionTab() {
@@ -609,7 +609,6 @@ export default function CN_L3_IPv6Activity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="NAT, ICMP & ARP"
-      gateRelevance="1-2 marks"
       placementRelevance="Low"
     />
   );

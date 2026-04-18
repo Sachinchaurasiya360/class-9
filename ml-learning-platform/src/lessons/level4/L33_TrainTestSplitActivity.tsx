@@ -19,7 +19,7 @@ const SKY = "#6bb6ff";
 const PAPER = "#fffdf5";
 
 /* ------------------------------------------------------------------ */
-/*  Riku — local dialogue helper                                       */
+/*  Riku - local dialogue helper                                       */
 /* ------------------------------------------------------------------ */
 
 function RikuSays({ children }: { children: React.ReactNode }) {
@@ -63,7 +63,7 @@ function CheatingTab() {
       title: "The catch",
       icon: "😱",
       text: "Next week, Sam gets a NEW set of math problems he hasn't seen.",
-      detail: "He fails. He didn't learn math — he memorized 10 specific questions.",
+      detail: "He fails. He didn't learn math - he memorized 10 specific questions.",
       color: CORAL,
     },
     {
@@ -137,12 +137,12 @@ function CheatingTab() {
 
       <RikuSays>
         The test set is the part we DON'T peek at. Like a surprise quiz for the
-        model — the only way to know if it really learned, not just memorized.
+        model - the only way to know if it really learned, not just memorized.
       </RikuSays>
 
       <InfoBox variant="amber">
         Same idea applies to ML models! If you test a model on the same data it
-        learned from, you can't tell if it really learned the pattern — or just
+        learned from, you can't tell if it really learned the pattern - or just
         memorized.
       </InfoBox>
 
@@ -163,7 +163,7 @@ function CheatingTab() {
 function SplitterTab() {
   const [trainPct, setTrainPct] = useState(80);
 
-  // A reusable labeled dataset — we'll slice it into train/test.
+  // A reusable labeled dataset - we'll slice it into train/test.
   const fullData = useMemo<Point[]>(
     () => generateClassification2D(40, 31),
     []
@@ -208,12 +208,12 @@ function SplitterTab() {
       </p>
 
       <RikuSays>
-        Same dataset, same model — but the split changes which points the model
+        Same dataset, same model - but the split changes which points the model
         "sees" and which ones we keep hidden to grade it. Slide around and feel
         the difference.
       </RikuSays>
 
-      {/* Split visualization — train vs test scatter */}
+      {/* Split visualization - train vs test scatter */}
       <div className="card-sketchy p-4" style={{ background: PAPER }}>
         <p className="font-hand text-sm font-bold text-foreground mb-2 text-center">
           Your dataset, split in two
@@ -269,7 +269,7 @@ function SplitterTab() {
         </div>
       </div>
 
-      {/* The trained model — KNN using ONLY the train subset */}
+      {/* The trained model - KNN using ONLY the train subset */}
       <div className="card-sketchy p-4 space-y-2" style={{ background: PAPER }}>
         <p className="font-hand text-sm font-bold text-foreground text-center">
           The trained model (click to drop a test point)
@@ -335,7 +335,7 @@ const LEAKS = [
     why: "Clean split! The test data is brand new. Whatever score you get is honest.",
   },
   {
-    scenario: "You train a movie recommender on Aru's viewing history, then test it by predicting what Aru liked yesterday — a movie that was already in the training data.",
+    scenario: "You train a movie recommender on Aru's viewing history, then test it by predicting what Aru liked yesterday - a movie that was already in the training data.",
     correct: true,
     why: "DATA LEAK! Yesterday's movie was in the training set, so the model already 'knows' the answer. Cheating.",
   },
@@ -459,7 +459,7 @@ const quizQuestions = [
     options: ["50/50", "80/20", "99/1", "10/90"],
     correctIndex: 1,
     explanation:
-      "80/20 is the classic split — enough data to learn from, enough to grade fairly.",
+      "80/20 is the classic split - enough data to learn from, enough to grade fairly.",
   },
   {
     question: "What is a 'data leak'?",
@@ -483,7 +483,7 @@ const quizQuestions = [
     ],
     correctIndex: 2,
     explanation:
-      "This is called overfitting — perfect on data it's seen, bad on new data. A classic warning sign.",
+      "This is called overfitting - perfect on data it's seen, bad on new data. A classic warning sign.",
   },
 ];
 

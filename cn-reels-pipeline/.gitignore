@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+media/
+output/*.mp4
+voice/*.mp3
+voice/*.wav
+subtitles/*.srt
+!subtitles/.gitkeep
+!voice/.gitkeep
+!output/.gitkeep
+scripts/day_*.md
+scenes/day_*_scene.py

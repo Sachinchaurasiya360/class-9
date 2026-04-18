@@ -1,9 +1,9 @@
 "use client";
 
 /* --------------------------------------------------------------------------
- * FloatingRiku — a small bottom-right button that opens a compact chat
+ * FloatingRiku - a small bottom-right button that opens a compact chat
  * popup. Reuses the same rikuResponses engine as the full /riku page, but
- * keeps its own lightweight message state (not persisted — for a quick
+ * keeps its own lightweight message state (not persisted - for a quick
  * chat-on-the-side experience). Includes a link to the full chat page.
  *
  * NOTE: this component is not mounted automatically; import and place it
@@ -74,7 +74,7 @@ export default function FloatingRiku() {
         {
           id: makeId(),
           from: "riku",
-          text: "Quick chat mode 🐼! Ask me something short — or hit the full chat link below for the big view.",
+          text: "Quick chat mode 🐼! Ask me something short - or hit the full chat link below for the big view.",
           time: nowTime(),
           suggestions: STARTER_SUGGESTIONS.slice(0, 3),
         },

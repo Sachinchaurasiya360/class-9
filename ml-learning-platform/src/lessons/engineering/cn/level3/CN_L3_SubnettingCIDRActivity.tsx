@@ -4,6 +4,13 @@ import { useState, useCallback, useMemo } from "react";
 import { Network, Sliders, Target, Info, CheckCircle2, XCircle } from "lucide-react";
 import EngineeringLessonShell from "@/components/engineering/EngineeringLessonShell";
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
+import {
+  AlgoCanvas,
+  PseudocodePanel,
+  VariablesPanel,
+  InputEditor,
+  useStepPlayer,
+} from "@/components/engineering/algo";
 
 /* ================================================================== */
 /*  Helper Utilities                                                   */
@@ -11,6 +18,7 @@ import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/Engine
 
 function ipToInt(ip: string): number {
   const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((p) => isNaN(p) || p < 0 || p > 255)) return NaN;
   return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
 }
 
@@ -29,159 +37,466 @@ function intToBits(n: number): number[] {
   return bits;
 }
 
+function parseInput(raw: string): { ip: string; prefix: number } | null {
+  const trimmed = raw.trim();
+  const m = trimmed.match(/^(\d+\.\d+\.\d+\.\d+)\s*\/\s*(\d+)$/);
+  if (!m) return null;
+  const ip = m[1];
+  const prefix = Number(m[2]);
+  if (isNaN(ipToInt(ip))) return null;
+  if (prefix < 0 || prefix > 32) return null;
+  return { ip, prefix };
+}
+
 /* ================================================================== */
-/*  Tab 1 — Subnet Calculator                                         */
+/*  Subnet Frame-Builder                                              */
 /* ================================================================== */
 
-function SubnetTab() {
-  const [ipInput, setIpInput] = useState("192.168.1.100");
-  const [prefix, setPrefix] = useState(24);
+type BitCell = { value: 0 | 1; role: "net" | "host" | "both"; highlight: boolean };
 
-  const calc = useMemo(() => {
-    const ipNum = ipToInt(ipInput);
-    if (isNaN(ipNum)) return null;
+interface SubnetFrame {
+  line: number;
+  vars: Record<string, string | number | boolean | undefined>;
+  message: string;
+  ipBits: BitCell[];
+  maskBits: BitCell[];
+  resultBits: BitCell[] | null;
+  broadcastBits: BitCell[] | null;
+  flashKeys?: string[];
+}
 
-    const mask = maskFromPrefix(prefix);
-    const network = (ipNum & mask) >>> 0;
-    const broadcast = (network | (~mask >>> 0)) >>> 0;
-    const firstHost = prefix < 31 ? network + 1 : network;
-    const lastHost = prefix < 31 ? broadcast - 1 : broadcast;
-    const totalHosts = prefix >= 31 ? (prefix === 32 ? 1 : 2) : Math.pow(2, 32 - prefix) - 2;
+const SUBNET_PSEUDO = [
+  "function subnet(ip, prefix):",
+  "  mask  = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF",
+  "  net   = ip AND mask",
+  "  bcast = net OR (NOT mask)",
+  "  firstHost = net + 1",
+  "  lastHost  = bcast - 1",
+  "  numHosts  = 2^(32 - prefix) - 2",
+  "  return { net, bcast, firstHost, lastHost, numHosts }",
+];
 
-    return {
-      networkAddr: intToIp(network),
-      broadcastAddr: intToIp(broadcast),
-      firstHostAddr: intToIp(firstHost),
-      lastHostAddr: intToIp(lastHost),
-      subnetMask: intToIp(mask),
-      totalHosts: Math.max(0, totalHosts),
-      ipBits: intToBits(ipNum),
-      maskBits: intToBits(mask),
-    };
-  }, [ipInput, prefix]);
+function mkCells(bits: number[], mark: (i: number) => { role: "net" | "host" | "both"; highlight: boolean }): BitCell[] {
+  return bits.map((b, i) => {
+    const { role, highlight } = mark(i);
+    return { value: b as 0 | 1, role, highlight };
+  });
+}
 
+function buildSubnetFrames(ipStr: string, prefix: number): SubnetFrame[] {
+  const frames: SubnetFrame[] = [];
+  const ipNum = ipToInt(ipStr);
+  const mask = maskFromPrefix(prefix);
+  const network = (ipNum & mask) >>> 0;
+  const broadcast = (network | (~mask >>> 0)) >>> 0;
+  const firstHost = prefix < 31 ? network + 1 : network;
+  const lastHost = prefix < 31 ? broadcast - 1 : broadcast;
+  const numHosts = prefix >= 31 ? (prefix === 32 ? 1 : 2) : Math.pow(2, 32 - prefix) - 2;
+
+  const ipBits = intToBits(ipNum);
+  const maskBits = intToBits(mask);
+  const netBits = intToBits(network);
+  const bcastBits = intToBits(broadcast);
+
+  const plainIp: BitCell[] = mkCells(ipBits, () => ({ role: "both", highlight: false }));
+  const plainMask: BitCell[] = mkCells(maskBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false }));
+
+  // Frame 0 - show the input IP alone
+  frames.push({
+    line: 0,
+    vars: { ip: ipStr, prefix: `/${prefix}` },
+    message: `Parse the input: IP = ${ipStr}, prefix = /${prefix}. The prefix tells us how many of the 32 bits identify the network.`,
+    ipBits: plainIp,
+    maskBits: plainMask.map((c) => ({ ...c, highlight: false })),
+    resultBits: null,
+    broadcastBits: null,
+  });
+
+  // Frame 1 - derive the mask (first `prefix` bits = 1, rest = 0)
+  frames.push({
+    line: 1,
+    vars: { ip: ipStr, prefix: `/${prefix}`, mask: intToIp(mask) },
+    message: `Build the subnet mask by setting the leftmost ${prefix} bits to 1 and the remaining ${32 - prefix} bits to 0. That gives ${intToIp(mask)}.`,
+    ipBits: plainIp,
+    maskBits: mkCells(maskBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: i < prefix })),
+    resultBits: null,
+    broadcastBits: null,
+    flashKeys: ["mask"],
+  });
+
+  // Frame 2..(prefix+1) - run the AND bit-by-bit for the network portion
+  // Rather than 32 frames, collapse per-byte (4 frames), but keep precision by showing each net-bit AND as it's computed
+  // For readability, group by byte.
+  const resultSoFar: BitCell[] = Array(32)
+    .fill(null)
+    .map(() => ({ value: 0, role: "host" as const, highlight: false }));
+
+  for (let byte = 0; byte < 4; byte++) {
+    const byteStart = byte * 8;
+    const byteEnd = byteStart + 8;
+    // Apply the AND for this byte
+    for (let i = byteStart; i < byteEnd; i++) {
+      resultSoFar[i] = {
+        value: ((ipBits[i] & maskBits[i]) as 0 | 1),
+        role: i < prefix ? "net" : "host",
+        highlight: false,
+      };
+    }
+    const highlightedIp: BitCell[] = plainIp.map((c, i) => ({
+      ...c,
+      highlight: i >= byteStart && i < byteEnd,
+    }));
+    const highlightedMask: BitCell[] = mkCells(maskBits, (i) => ({
+      role: i < prefix ? "net" : "host",
+      highlight: i >= byteStart && i < byteEnd,
+    }));
+    const currResult: BitCell[] = resultSoFar.map((c, i) => ({
+      ...c,
+      highlight: i >= byteStart && i < byteEnd,
+    }));
+    const octetIpVal = (ipNum >>> (24 - byte * 8)) & 0xff;
+    const octetMaskVal = (mask >>> (24 - byte * 8)) & 0xff;
+    const octetNetVal = (network >>> (24 - byte * 8)) & 0xff;
+
+    frames.push({
+      line: 2,
+      vars: {
+        byte: byte + 1,
+        "IP octet": octetIpVal,
+        "mask octet": octetMaskVal,
+        "net octet": octetNetVal,
+      },
+      message: `AND octet ${byte + 1}: ${octetIpVal} AND ${octetMaskVal} = ${octetNetVal}. Wherever the mask is 0 the result becomes 0 - host bits are erased.`,
+      ipBits: highlightedIp,
+      maskBits: highlightedMask,
+      resultBits: currResult,
+      broadcastBits: null,
+      flashKeys: ["net octet"],
+    });
+  }
+
+  // Frame: show the complete network address
+  frames.push({
+    line: 2,
+    vars: { network: intToIp(network) },
+    message: `All four octets AND'ed. Network address = ${intToIp(network)}. This is the "name" of the subnet.`,
+    ipBits: plainIp,
+    maskBits: plainMask,
+    resultBits: mkCells(netBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+    broadcastBits: null,
+    flashKeys: ["network"],
+  });
+
+  // Frame: compute broadcast = net OR (NOT mask)  (set all host bits to 1)
+  frames.push({
+    line: 3,
+    vars: { network: intToIp(network), broadcast: intToIp(broadcast) },
+    message: `Broadcast = network OR (NOT mask). Flip every host bit to 1. That gives ${intToIp(broadcast)}.`,
+    ipBits: plainIp,
+    maskBits: plainMask,
+    resultBits: mkCells(netBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+    broadcastBits: mkCells(bcastBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: i >= prefix })),
+    flashKeys: ["broadcast"],
+  });
+
+  // Frame: derive first/last host
+  frames.push({
+    line: 4,
+    vars: {
+      network: intToIp(network),
+      firstHost: intToIp(firstHost),
+      broadcast: intToIp(broadcast),
+    },
+    message: `First usable host = network + 1 = ${intToIp(firstHost)}. Network address itself is reserved.`,
+    ipBits: plainIp,
+    maskBits: plainMask,
+    resultBits: mkCells(netBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+    broadcastBits: mkCells(bcastBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+    flashKeys: ["firstHost"],
+  });
+
+  frames.push({
+    line: 5,
+    vars: {
+      firstHost: intToIp(firstHost),
+      lastHost: intToIp(lastHost),
+      broadcast: intToIp(broadcast),
+    },
+    message: `Last usable host = broadcast − 1 = ${intToIp(lastHost)}. Broadcast address itself is reserved.`,
+    ipBits: plainIp,
+    maskBits: plainMask,
+    resultBits: mkCells(netBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+    broadcastBits: mkCells(bcastBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+    flashKeys: ["lastHost"],
+  });
+
+  frames.push({
+    line: 6,
+    vars: {
+      prefix: `/${prefix}`,
+      "host bits": 32 - prefix,
+      numHosts: numHosts.toLocaleString(),
+    },
+    message: `Usable hosts = 2^${32 - prefix} − 2 = ${numHosts.toLocaleString()}. We subtract 2 for network + broadcast addresses.`,
+    ipBits: plainIp,
+    maskBits: plainMask,
+    resultBits: mkCells(netBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+    broadcastBits: mkCells(bcastBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+    flashKeys: ["numHosts"],
+  });
+
+  frames.push({
+    line: 7,
+    vars: {
+      network: intToIp(network),
+      firstHost: intToIp(firstHost),
+      lastHost: intToIp(lastHost),
+      broadcast: intToIp(broadcast),
+      numHosts: numHosts.toLocaleString(),
+    },
+    message: `Done. ${intToIp(network)}/${prefix} holds addresses ${intToIp(network)} – ${intToIp(broadcast)}, with ${numHosts.toLocaleString()} usable hosts.`,
+    ipBits: plainIp,
+    maskBits: plainMask,
+    resultBits: mkCells(netBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+    broadcastBits: mkCells(bcastBits, (i) => ({ role: i < prefix ? "net" : "host", highlight: false })),
+  });
+
+  return frames;
+}
+
+/* ================================================================== */
+/*  Bit-Row Renderer                                                  */
+/* ================================================================== */
+
+function BitRow({
+  label,
+  bits,
+  prefix,
+  mono,
+}: {
+  label: string;
+  bits: BitCell[];
+  prefix: number;
+  mono: string;
+}) {
   return (
-    <div className="eng-fadeIn" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div className="info-eng" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-        <Info className="w-4 h-4 shrink-0" style={{ marginTop: 2, color: "var(--eng-primary)" }} />
-        <span>Enter an IP address and drag the prefix slider to change the subnet boundary. The 32 bits are divided into network (blue) and host (green) portions.</span>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+      <div
+        style={{
+          fontFamily: "var(--eng-font)",
+          fontSize: "0.72rem",
+          fontWeight: 600,
+          color: "var(--eng-text-muted)",
+          width: 78,
+          flexShrink: 0,
+        }}
+      >
+        {label}
       </div>
-
-      {/* IP input and prefix slider */}
-      <div className="card-eng" style={{ padding: 20 }}>
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 16 }}>
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <label style={{ fontFamily: "var(--eng-font)", fontSize: "0.8rem", fontWeight: 600, color: "var(--eng-text-muted)", display: "block", marginBottom: 4 }}>
-              IP Address
-            </label>
-            <input
-              type="text"
-              value={ipInput}
-              onChange={(e) => setIpInput(e.target.value)}
-              style={{
-                width: "100%", padding: "8px 12px", borderRadius: 8,
-                border: "1.5px solid var(--eng-border)", background: "var(--eng-surface)",
-                fontFamily: "var(--eng-font)", fontSize: "0.9rem", color: "var(--eng-text)", outline: "none",
-              }}
-            />
-          </div>
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <label style={{ fontFamily: "var(--eng-font)", fontSize: "0.8rem", fontWeight: 600, color: "var(--eng-text-muted)", display: "block", marginBottom: 4 }}>
-              Prefix Length: /{prefix}
-            </label>
-            <input
-              type="range"
-              min={0}
-              max={32}
-              value={prefix}
-              onChange={(e) => setPrefix(Number(e.target.value))}
-              style={{ width: "100%", accentColor: "var(--eng-primary)" }}
-            />
-            <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--eng-font)", fontSize: "0.65rem", color: "var(--eng-text-muted)" }}>
-              <span>/0</span>
-              <span>/8</span>
-              <span>/16</span>
-              <span>/24</span>
-              <span>/32</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 32-bit visualization */}
-        {calc && (
-          <div style={{ overflow: "auto" }}>
-            <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.8rem", fontWeight: 600, color: "var(--eng-text)", marginBottom: 8 }}>
-              32-Bit Breakdown: Network vs Host
-            </p>
-            <svg viewBox="0 0 680 70" style={{ width: "100%", minWidth: 500 }}>
-              {calc.ipBits.map((bit, i) => {
-                const isNetwork = i < prefix;
-                const x = 10 + i * 20 + Math.floor(i / 8) * 6;
-                return (
-                  <g key={i}>
-                    <rect
-                      x={x} y={10} width={18} height={26} rx={3}
-                      fill={isNetwork ? "#3b82f6" : "#10b981"}
-                      opacity={0.85}
-                    />
-                    <text x={x + 9} y={27} textAnchor="middle" fontSize={10} fontWeight={600} fill="#fff"
-                      fontFamily="var(--eng-font)">
-                      {bit}
-                    </text>
-                    {/* Boundary marker */}
-                    {i === prefix - 1 && prefix < 32 && (
-                      <line x1={x + 20} y1={5} x2={x + 20} y2={60} stroke="var(--eng-danger)" strokeWidth={2} strokeDasharray="3 2" />
-                    )}
-                  </g>
-                );
-              })}
-              {/* Labels */}
-              <text x={10 + (prefix * 20 + Math.floor(prefix / 8) * 6) / 2} y={55} textAnchor="middle" fontSize={9} fill="#3b82f6" fontWeight={600} fontFamily="var(--eng-font)">
-                Network ({prefix} bits)
-              </text>
-              {prefix < 32 && (
-                <text x={10 + (prefix * 20 + Math.floor(prefix / 8) * 6) + ((32 - prefix) * 20 + Math.floor((32 - prefix) / 8) * 6) / 2} y={55} textAnchor="middle" fontSize={9} fill="#10b981" fontWeight={600} fontFamily="var(--eng-font)">
-                  Host ({32 - prefix} bits)
-                </text>
-              )}
-            </svg>
-          </div>
-        )}
-      </div>
-
-      {/* Computed results */}
-      {calc && (
-        <div className="card-eng" style={{ padding: 20 }}>
-          <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", fontWeight: 600, color: "var(--eng-text)", marginBottom: 12 }}>
-            Subnet Details
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
-            {[
-              { label: "Network Address", value: calc.networkAddr, color: "#3b82f6" },
-              { label: "Broadcast Address", value: calc.broadcastAddr, color: "#ef4444" },
-              { label: "First Host", value: calc.firstHostAddr, color: "#10b981" },
-              { label: "Last Host", value: calc.lastHostAddr, color: "#10b981" },
-              { label: "Subnet Mask", value: calc.subnetMask, color: "#8b5cf6" },
-              { label: "Usable Hosts", value: calc.totalHosts.toLocaleString(), color: "#f59e0b" },
-            ].map((item) => (
-              <div key={item.label} style={{ padding: 12, borderRadius: 8, border: "1px solid var(--eng-border)", background: "var(--eng-surface)" }}>
-                <div style={{ fontFamily: "var(--eng-font)", fontSize: "0.7rem", color: "var(--eng-text-muted)", marginBottom: 4 }}>
-                  {item.label}
-                </div>
-                <div style={{ fontFamily: "monospace", fontSize: "0.95rem", fontWeight: 600, color: item.color }}>
-                  {item.value}
-                </div>
+      <div style={{ display: "flex", gap: 2, flexWrap: "nowrap" }}>
+        {bits.map((c, i) => {
+          const isBoundary = i === prefix - 1 && prefix > 0 && prefix < 32;
+          const isOctetEnd = i % 8 === 7 && i !== 31;
+          const bg =
+            c.role === "net" ? "#3b82f6" : c.role === "host" ? "#10b981" : "#64748b";
+          return (
+            <div key={i} style={{ display: "flex", gap: 2 }}>
+              <div
+                style={{
+                  width: 16,
+                  height: 22,
+                  borderRadius: 3,
+                  background: bg,
+                  opacity: c.highlight ? 1 : 0.75,
+                  border: c.highlight ? "2px solid var(--eng-warning)" : "1px solid rgba(255,255,255,0.15)",
+                  color: "#fff",
+                  fontFamily: mono,
+                  fontSize: "0.68rem",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.25s ease",
+                }}
+              >
+                {c.value}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+              {isBoundary && (
+                <div
+                  style={{
+                    width: 2,
+                    background: "var(--eng-danger)",
+                    marginLeft: 1,
+                    marginRight: 1,
+                  }}
+                  title="Network / host boundary"
+                />
+              )}
+              {isOctetEnd && !isBoundary && (
+                <div style={{ width: 6 }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 /* ================================================================== */
-/*  Tab 2 — VLSM Visual Allocator                                     */
+/*  Tab 1 - Subnet Calculator (AlgoCanvas)                            */
+/* ================================================================== */
+
+function SubnetTab() {
+  const [raw, setRaw] = useState("192.168.1.100/24");
+  const parsed = useMemo(() => parseInput(raw) ?? { ip: "192.168.1.100", prefix: 24 }, [raw]);
+  const frames = useMemo(() => buildSubnetFrames(parsed.ip, parsed.prefix), [parsed]);
+  const player = useStepPlayer(frames);
+  const frame = player.current!;
+  const mono = '"SF Mono", Menlo, Consolas, monospace';
+
+  return (
+    <div className="eng-fadeIn" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="info-eng" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <Info className="w-4 h-4 shrink-0" style={{ marginTop: 2, color: "var(--eng-primary)" }} />
+        <span>
+          Enter an IP in <code>x.x.x.x/prefix</code> form. Each step shows the binary AND being applied octet-by-octet, then derives broadcast and host range.
+        </span>
+      </div>
+
+      <AlgoCanvas
+        title={`Subnet ${parsed.ip}/${parsed.prefix}`}
+        player={player}
+        input={
+          <InputEditor
+            label="IP / prefix"
+            value={raw}
+            onApply={setRaw}
+            presets={[
+              { label: "/24", value: "192.168.1.100/24" },
+              { label: "/26", value: "10.0.0.50/26" },
+              { label: "/20", value: "172.16.5.200/20" },
+              { label: "/28", value: "192.168.10.5/28" },
+              { label: "/30", value: "10.1.2.3/30" },
+            ]}
+            placeholder="e.g. 192.168.1.100/24"
+            helper="Format: dotted-quad IP / prefix (0–32)."
+          />
+        }
+        pseudocode={<PseudocodePanel lines={SUBNET_PSEUDO} activeLine={frame.line} />}
+        variables={<VariablesPanel vars={frame.vars} flashKeys={frame.flashKeys} />}
+        status={frame.message}
+        legend={
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <LegendSwatch color="#3b82f6" label="Network bit" />
+            <LegendSwatch color="#10b981" label="Host bit" />
+            <LegendSwatch color="var(--eng-warning)" label="Active octet" />
+          </div>
+        }
+      >
+        <div
+          style={{
+            padding: 18,
+            borderRadius: "var(--eng-radius)",
+            background: "var(--eng-surface)",
+            border: "1px solid var(--eng-border)",
+            overflowX: "auto",
+          }}
+        >
+          <BitRow label="IP" bits={frame.ipBits} prefix={parsed.prefix} mono={mono} />
+          <BitRow label="Mask" bits={frame.maskBits} prefix={parsed.prefix} mono={mono} />
+          {frame.resultBits && (
+            <>
+              <div
+                style={{
+                  height: 1,
+                  background: "var(--eng-border)",
+                  margin: "6px 0 8px 88px",
+                }}
+              />
+              <BitRow label="Network" bits={frame.resultBits} prefix={parsed.prefix} mono={mono} />
+            </>
+          )}
+          {frame.broadcastBits && (
+            <BitRow label="Broadcast" bits={frame.broadcastBits} prefix={parsed.prefix} mono={mono} />
+          )}
+
+          {/* Dotted-quad summary card at bottom */}
+          <div
+            style={{
+              marginTop: 14,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))",
+              gap: 10,
+            }}
+          >
+            <SummaryCard label="Subnet mask" value={intToIp(maskFromPrefix(parsed.prefix))} color="#8b5cf6" />
+            {frame.resultBits && (
+              <SummaryCard
+                label="Network"
+                value={intToIp(ipToInt(parsed.ip) & maskFromPrefix(parsed.prefix))}
+                color="#3b82f6"
+              />
+            )}
+            {frame.broadcastBits && (
+              <SummaryCard
+                label="Broadcast"
+                value={intToIp(
+                  ((ipToInt(parsed.ip) & maskFromPrefix(parsed.prefix)) | (~maskFromPrefix(parsed.prefix) >>> 0)) >>> 0,
+                )}
+                color="#ef4444"
+              />
+            )}
+            {frame.line >= 6 && (
+              <SummaryCard
+                label="Usable hosts"
+                value={(parsed.prefix >= 31
+                  ? parsed.prefix === 32
+                    ? 1
+                    : 2
+                  : Math.pow(2, 32 - parsed.prefix) - 2
+                ).toLocaleString()}
+                color="#f59e0b"
+              />
+            )}
+          </div>
+        </div>
+      </AlgoCanvas>
+    </div>
+  );
+}
+
+function LegendSwatch({ color, label }: { color: string; label: string }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--eng-font)", fontSize: "0.72rem", color: "var(--eng-text-muted)" }}>
+      <span style={{ width: 12, height: 12, borderRadius: 3, background: color, display: "inline-block" }} />
+      {label}
+    </span>
+  );
+}
+
+function SummaryCard({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div
+      style={{
+        padding: 10,
+        borderRadius: 8,
+        border: "1px solid var(--eng-border)",
+        background: "var(--eng-bg)",
+      }}
+    >
+      <div style={{ fontFamily: "var(--eng-font)", fontSize: "0.65rem", color: "var(--eng-text-muted)", marginBottom: 2 }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: "monospace", fontSize: "0.88rem", fontWeight: 700, color }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Tab 2 - VLSM Visual Allocator                                     */
 /* ================================================================== */
 
 interface VLSMBlock {
@@ -221,7 +536,6 @@ function VLSMTab() {
   }, []);
 
   const allocation = useMemo((): VLSMBlock[] => {
-    // Sort by required hosts descending (VLSM strategy)
     const sorted = [...subnets].sort((a, b) => b.hosts - a.hosts);
     const blocks: VLSMBlock[] = [];
     let currentAddr = ipToInt(baseIP);
@@ -229,7 +543,7 @@ function VLSMTab() {
     let usedSpace = 0;
 
     for (let i = 0; i < sorted.length; i++) {
-      const needed = sorted[i].hosts + 2; // +2 for network + broadcast
+      const needed = sorted[i].hosts + 2;
       let hostBits = 0;
       while (Math.pow(2, hostBits) < needed) hostBits++;
       const blockSize = Math.pow(2, hostBits);
@@ -267,7 +581,6 @@ function VLSMTab() {
         <span>VLSM (Variable Length Subnet Masking) allocates different-sized subnets from a single network. Define your required subnet sizes below and see optimal allocation.</span>
       </div>
 
-      {/* Base network config */}
       <div className="card-eng" style={{ padding: 16 }}>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
           <div>
@@ -288,7 +601,6 @@ function VLSMTab() {
         </div>
       </div>
 
-      {/* Subnet requirements input */}
       <div className="card-eng" style={{ padding: 16 }}>
         <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", fontWeight: 600, color: "var(--eng-text)", marginBottom: 12 }}>
           Subnet Requirements
@@ -312,13 +624,12 @@ function VLSMTab() {
         </div>
       </div>
 
-      {/* Block diagram */}
       <div className="card-eng" style={{ padding: 20 }}>
         <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", fontWeight: 600, color: "var(--eng-text)", marginBottom: 4 }}>
           VLSM Allocation Diagram
         </p>
         <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.75rem", color: "var(--eng-text-muted)", marginBottom: 12 }}>
-          Used: {usedAddresses + allocation.length * 2} / {totalSpace} addresses ({Math.round(((usedAddresses + allocation.length * 2) / totalSpace) * 100)}%)
+          Used: {usedAddresses} / {totalSpace} addresses ({Math.round((usedAddresses / totalSpace) * 100)}%)
         </p>
         <svg viewBox="0 0 640 60" style={{ width: "100%", marginBottom: 12 }}>
           <rect x={0} y={10} width={640} height={40} rx={4} fill="var(--eng-border)" opacity={0.3} />
@@ -340,7 +651,6 @@ function VLSMTab() {
           })}
         </svg>
 
-        {/* Allocation table */}
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "var(--eng-font)", fontSize: "0.8rem" }}>
             <thead>
@@ -373,7 +683,7 @@ function VLSMTab() {
 }
 
 /* ================================================================== */
-/*  Tab 3 — Practice Problems                                          */
+/*  Tab 3 - Practice Problems                                          */
 /* ================================================================== */
 
 interface SubnetProblem {
@@ -421,7 +731,7 @@ const PROBLEMS: SubnetProblem[] = [
 
 function PracticeTab() {
   const [currentProblem, setCurrentProblem] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<string[]>(() => PROBLEMS[0].steps.map(() => ""));
   const [checked, setChecked] = useState<boolean[]>([]);
   const [showSolution, setShowSolution] = useState(false);
 
@@ -433,11 +743,6 @@ function PracticeTab() {
     setChecked([]);
     setShowSolution(false);
   }, []);
-
-  // Initialize on first render
-  useState(() => {
-    setAnswers(problem.steps.map(() => ""));
-  });
 
   const handleCheck = useCallback(() => {
     const results = problem.steps.map((step, i) =>
@@ -453,7 +758,6 @@ function PracticeTab() {
         <span>Solve subnetting problems step by step. Enter your answers and check them against the correct values.</span>
       </div>
 
-      {/* Problem selector */}
       <div style={{ display: "flex", gap: 8 }}>
         {PROBLEMS.map((_, i) => (
           <button
@@ -467,7 +771,6 @@ function PracticeTab() {
         ))}
       </div>
 
-      {/* Problem card */}
       <div className="card-eng" style={{ padding: 20 }}>
         <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "1rem", color: "var(--eng-text)", margin: "0 0 4px" }}>
           Problem {currentProblem + 1}
@@ -593,7 +896,6 @@ export default function CN_L3_SubnettingCIDRActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="IP Routing & Forwarding"
-      gateRelevance="4-5 marks"
       placementRelevance="High"
     />
   );

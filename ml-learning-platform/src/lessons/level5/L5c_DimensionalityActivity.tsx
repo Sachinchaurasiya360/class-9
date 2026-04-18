@@ -111,7 +111,7 @@ function SquishTab() {
 
       <p className="font-hand text-base text-center" style={{ color: INK }}>
         Real data has <b>many dimensions</b>. To visualise it, we squish points onto a
-        single line. Rotate the axis and watch the 1D projection separate — or collapse.
+        single line. Rotate the axis and watch the 1D projection separate - or collapse.
       </p>
 
       <div className="card-sketchy p-3">
@@ -184,7 +184,7 @@ function SquishTab() {
 
       <InfoBox variant="blue">
         This is the heart of <b>PCA</b> (Principal Component Analysis). PCA picks the
-        angle automatically — the one that spreads the data out as much as possible.
+        angle automatically - the one that spreads the data out as much as possible.
         It's how a 1000-feature dataset becomes a viewable 2D plot.
       </InfoBox>
     </div>
@@ -215,7 +215,7 @@ function CurseTab() {
       </RikuSays>
 
       <p className="font-hand text-base text-center" style={{ color: INK }}>
-        Adding more features <b>sounds</b> good — until you realise empty space
+        Adding more features <b>sounds</b> good - until you realise empty space
         explodes faster than data can fill it.
       </p>
 
@@ -280,7 +280,7 @@ function CurseTab() {
       <InfoBox variant="amber">
         ML calls this the <b>curse of dimensionality</b>. With 100 features, you'd need
         more data points than atoms in the universe to fill the space. That's why we
-        squish — to bring high-D data back into a learnable shape.
+        squish - to bring high-D data back into a learnable shape.
       </InfoBox>
     </div>
   );
@@ -340,7 +340,7 @@ function CompressionTab() {
       <p className="font-hand text-base text-center" style={{ color: INK }}>
         Squishing data is like compressing a song. With <b>fewer components</b>, you
         keep the shape but lose tiny details. Watch the explained-variance curve flatten
-        out — that's the sweet spot.
+        out - that's the sweet spot.
       </p>
 
       <div className="card-sketchy p-3" style={{ background: PAPER }}>
@@ -398,7 +398,7 @@ function CompressionTab() {
       </div>
 
       <InfoBox variant="green">
-        JPEG, MP3, MP4 — every file format you know is built on this idea. Throw away
+        JPEG, MP3, MP4 - every file format you know is built on this idea. Throw away
         tiny details, keep the big shape, save 95% of the space. Same thing PCA does for
         ML data.
       </InfoBox>
@@ -443,7 +443,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "PCA picks the angles where your data varies the most — those carry the most information and are best for compression.",
+      "PCA picks the angles where your data varies the most - those carry the most information and are best for compression.",
   },
   {
     question: "What's the trade-off when keeping fewer components?",
@@ -455,7 +455,7 @@ const quizQuestions = [
     ],
     correctIndex: 0,
     explanation:
-      "Fewer components = smaller, faster, cleaner — but you discard tiny details. Same trade-off as JPEG image quality.",
+      "Fewer components = smaller, faster, cleaner - but you discard tiny details. Same trade-off as JPEG image quality.",
   },
 ];
 
@@ -501,10 +501,10 @@ export default function L5c_DimensionalityActivity() {
             "Aru: \"So... I just give up?\"",
             "Byte: \"Nope. We squish. We find the 2 most interesting angles in those 50 dimensions and project everything onto them. Suddenly 50-D becomes a flat picture you can read with your eyes.\"",
             "Aru: \"That feels like cheating.\"",
-            "Byte: \"It IS cheating — beautifully. It's called PCA, and every data scientist on Earth uses it daily.\"",
+            "Byte: \"It IS cheating - beautifully. It's called PCA, and every data scientist on Earth uses it daily.\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="Dimensionality reduction takes data with many features and squishes it into fewer dimensions while keeping the important structure. PCA is the most famous method — it picks the angles that spread your data out the most, so you can visualize, compress, and learn from it."
+          conceptSummary="Dimensionality reduction takes data with many features and squishes it into fewer dimensions while keeping the important structure. PCA is the most famous method - it picks the angles that spread your data out the most, so you can visualize, compress, and learn from it."
         />
       }
     />

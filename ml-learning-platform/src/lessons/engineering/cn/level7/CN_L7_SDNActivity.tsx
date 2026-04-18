@@ -6,7 +6,7 @@ import EngineeringLessonShell from "@/components/engineering/EngineeringLessonSh
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Traditional Networking                                     */
+/*  Tab 1 - Traditional Networking                                     */
 /* ------------------------------------------------------------------ */
 
 interface TraditionalRouter {
@@ -206,7 +206,7 @@ function TraditionalTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — SDN Architecture                                           */
+/*  Tab 2 - SDN Architecture                                           */
 /* ------------------------------------------------------------------ */
 
 function SDNTab() {
@@ -447,7 +447,7 @@ function SDNTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — SDN Benefits (flow rule programming)                       */
+/*  Tab 3 - SDN Benefits (flow rule programming)                       */
 /* ------------------------------------------------------------------ */
 
 function BenefitsTab() {
@@ -712,8 +712,7 @@ export default function CN_L7_SDNActivity() {
       lessonNumber={1}
       tabs={tabs}
       quiz={quiz}
-      nextLessonHint="Content Delivery Networks — Speed up the web globally"
-      gateRelevance="1 mark"
+      nextLessonHint="Content Delivery Networks - Speed up the web globally"
       placementRelevance="Medium"
     />
   );

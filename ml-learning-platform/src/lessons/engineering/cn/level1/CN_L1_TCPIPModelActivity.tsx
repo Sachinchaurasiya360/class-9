@@ -10,6 +10,8 @@ import {
   Wifi,
   ChevronRight,
   Play,
+  Pause,
+  RotateCcw,
   Info,
   Network,
   Zap,
@@ -132,7 +134,353 @@ const OSI_COMPARE: OSICompareLayer[] = [
 ];
 
 /* ================================================================== */
-/*  TAB 1 — TCP/IP Model Explorer                                     */
+/*  Layer detail header                                                */
+/* ================================================================== */
+
+function parseOsiMapping(s: string): { numbers: number[]; names: string } {
+  const match = s.match(/^(.+?)\s*\((.+)\)\s*$/);
+  if (!match) return { numbers: [], names: s };
+  const names = match[1].trim();
+  const numbers = Array.from(match[2].matchAll(/L(\d+)/g)).map((m) => parseInt(m[1], 10));
+  return { numbers, names };
+}
+
+function LayerDetailHeader({ layer }: { layer: TCPIPLayer }) {
+  const mono = '"SF Mono", Menlo, Consolas, monospace';
+  const { numbers, names } = parseOsiMapping(layer.osiMapping);
+
+  return (
+    <div style={{ display: "flex", alignItems: "stretch", gap: 16 }}>
+      {/* Display stat: big layer number */}
+      <div
+        style={{
+          flexShrink: 0,
+          width: 72,
+          padding: "8px 0",
+          background: `${layer.color}10`,
+          border: `1px solid ${layer.color}40`,
+          borderRadius: 10,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 2,
+        }}
+      >
+        <span style={{ fontFamily: mono, fontSize: "0.56rem", fontWeight: 700, letterSpacing: "0.14em", color: layer.color, opacity: 0.8 }}>
+          LAYER
+        </span>
+        <span style={{ fontFamily: mono, fontSize: "2rem", fontWeight: 800, color: layer.color, lineHeight: 1, letterSpacing: "-0.02em" }}>
+          {layer.number}
+        </span>
+      </div>
+
+      {/* Title + OSI mapping */}
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 8 }}>
+        <h4
+          style={{
+            margin: 0,
+            fontFamily: "var(--eng-font)",
+            fontSize: "1.35rem",
+            fontWeight: 700,
+            color: "var(--eng-text)",
+            letterSpacing: "-0.01em",
+            lineHeight: 1.15,
+          }}
+        >
+          {layer.name}
+        </h4>
+
+        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+          <span style={{ fontFamily: mono, fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.14em", color: "var(--eng-text-muted)" }}>
+            MAPS TO OSI
+          </span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+            {numbers.map((n, i) => (
+              <span key={n} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <span
+                  style={{
+                    padding: "3px 8px",
+                    fontFamily: mono,
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    color: layer.color,
+                    background: `${layer.color}14`,
+                    border: `1px solid ${layer.color}50`,
+                    borderRadius: 4,
+                  }}
+                >
+                  L{n}
+                </span>
+                {i < numbers.length - 1 && (
+                  <span style={{ color: "var(--eng-text-muted)", fontSize: "0.75rem", opacity: 0.6 }}>+</span>
+                )}
+              </span>
+            ))}
+          </div>
+          <span style={{ fontFamily: "var(--eng-font)", fontSize: "0.78rem", color: "var(--eng-text-muted)", fontStyle: "italic" }}>
+            {names}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Protocol Stack (Tab 1 visualization)                               */
+/* ================================================================== */
+
+const TCPIP_PDU: Record<number, string> = {
+  4: "Data",
+  3: "Segment / Datagram",
+  2: "Packet",
+  1: "Frame",
+};
+
+function ProtocolStack({
+  layers,
+  selected,
+  onSelect,
+  animPhase,
+}: {
+  layers: TCPIPLayer[];
+  selected: number;
+  onSelect: (n: number) => void;
+  animPhase: number;
+}) {
+  const mono = '"SF Mono", Menlo, Consolas, monospace';
+  const [direction, setDirection] = useState<"send" | "receive">("send");
+
+  return (
+    <div
+      style={{
+        background: "var(--eng-surface)",
+        border: "1px solid var(--eng-border)",
+        borderRadius: "var(--eng-radius)",
+        overflow: "hidden",
+        marginBottom: 20,
+        boxShadow: "var(--eng-shadow)",
+      }}
+    >
+      {/* Header band */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "12px 18px",
+          borderBottom: "1px solid var(--eng-border)",
+          background: "var(--eng-bg)",
+          flexWrap: "wrap",
+          gap: 10,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+          <span style={{ fontFamily: mono, fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", color: "var(--eng-text-muted)" }}>
+            PROTOCOL SUITE
+          </span>
+          <span style={{ fontFamily: mono, fontSize: "0.78rem", fontWeight: 700, color: "var(--eng-text)" }}>
+            TCP/IP &middot; 4 layers
+          </span>
+        </div>
+        <div
+          style={{
+            display: "inline-flex",
+            padding: 2,
+            background: "var(--eng-surface)",
+            border: "1px solid var(--eng-border)",
+            borderRadius: 6,
+          }}
+        >
+          {(["send", "receive"] as const).map((d) => {
+            const active = direction === d;
+            return (
+              <button
+                key={d}
+                onClick={() => setDirection(d)}
+                style={{
+                  padding: "4px 10px",
+                  fontFamily: mono,
+                  fontSize: "0.68rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  border: "none",
+                  borderRadius: 4,
+                  background: active ? "var(--eng-primary)" : "transparent",
+                  color: active ? "#fff" : "var(--eng-text-muted)",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {d === "send" ? "▼ send" : "▲ receive"}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Stack body */}
+      <div style={{ display: "grid", gridTemplateColumns: "52px 1fr", padding: "18px 18px 22px" }}>
+        {/* Left rail: flow indicator */}
+        <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 10 }}>
+          <div style={{ fontFamily: mono, fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--eng-text-muted)", marginBottom: 6, writingMode: "horizontal-tb" }}>
+            FLOW
+          </div>
+          <div
+            style={{
+              flex: 1,
+              width: 2,
+              background: "var(--eng-border)",
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: 1,
+            }}
+          >
+            <div
+              key={`flow-${direction}-${animPhase}`}
+              style={{
+                position: "absolute",
+                left: -3,
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: "var(--eng-primary)",
+                animation: `flow-${direction} 2.4s ease-in-out infinite`,
+              }}
+            />
+          </div>
+          <style>{`
+            @keyframes flow-send {
+              0% { top: 0%; opacity: 0; }
+              10% { opacity: 1; }
+              90% { opacity: 1; }
+              100% { top: 100%; opacity: 0; }
+            }
+            @keyframes flow-receive {
+              0% { top: 100%; opacity: 0; }
+              10% { opacity: 1; }
+              90% { opacity: 1; }
+              100% { top: 0%; opacity: 0; }
+            }
+          `}</style>
+        </div>
+
+        {/* Right: layer plates */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {layers.map((l, i) => {
+            const isSelected = selected === l.number;
+            const pdu = TCPIP_PDU[l.number];
+            return (
+              <button
+                key={l.number}
+                onClick={() => onSelect(l.number)}
+                aria-pressed={isSelected}
+                style={{
+                  position: "relative",
+                  textAlign: "left",
+                  display: "grid",
+                  gridTemplateColumns: "68px 1fr auto",
+                  alignItems: "stretch",
+                  gap: 14,
+                  padding: "14px 16px",
+                  background: isSelected ? `${l.color}0e` : "var(--eng-surface)",
+                  border: isSelected ? `1.5px solid ${l.color}` : "1px solid var(--eng-border)",
+                  borderRadius: 10,
+                  cursor: "pointer",
+                  transition: "all 0.25s ease",
+                  transform: isSelected ? "translateX(2px)" : "none",
+                  boxShadow: isSelected ? `0 2px 10px ${l.color}22` : "none",
+                  fontFamily: "var(--eng-font)",
+                  animationDelay: `${i * 60}ms`,
+                }}
+                className="eng-fadeIn"
+              >
+                {/* Display number */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    justifyContent: "center",
+                    paddingRight: 12,
+                    borderRight: `1px solid ${isSelected ? `${l.color}40` : "var(--eng-border)"}`,
+                  }}
+                >
+                  <span style={{ fontFamily: mono, fontSize: "0.56rem", fontWeight: 700, letterSpacing: "0.12em", color: l.color }}>
+                    LAYER
+                  </span>
+                  <span style={{ fontFamily: mono, fontSize: "1.75rem", fontWeight: 800, color: l.color, lineHeight: 1, letterSpacing: "-0.03em" }}>
+                    {l.number}
+                  </span>
+                </div>
+
+                {/* Center: name + protocols */}
+                <div style={{ minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 6 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                    <h4 style={{ margin: 0, fontSize: "1.02rem", fontWeight: 700, color: isSelected ? l.color : "var(--eng-text)", letterSpacing: "-0.01em" }}>
+                      {l.name}
+                    </h4>
+                    <span style={{ fontFamily: mono, fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.1em", color: "var(--eng-text-muted)" }}>
+                      PDU &middot; <span style={{ color: "var(--eng-text)" }}>{pdu}</span>
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                    {l.protocols.map((p) => (
+                      <span
+                        key={p.name}
+                        style={{
+                          padding: "2px 7px",
+                          fontFamily: mono,
+                          fontSize: "0.68rem",
+                          fontWeight: 600,
+                          color: isSelected ? p.color : "var(--eng-text-muted)",
+                          background: isSelected ? `${p.color}12` : "var(--eng-bg)",
+                          border: `1px solid ${isSelected ? `${p.color}50` : "var(--eng-border)"}`,
+                          borderRadius: 3,
+                          transition: "all 0.25s ease",
+                        }}
+                      >
+                        {p.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right: indicator */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {isSelected ? (
+                    <span
+                      style={{
+                        fontFamily: mono,
+                        fontSize: "0.62rem",
+                        fontWeight: 700,
+                        letterSpacing: "0.1em",
+                        color: l.color,
+                        padding: "3px 8px",
+                        background: `${l.color}12`,
+                        border: `1px solid ${l.color}50`,
+                        borderRadius: 4,
+                      }}
+                    >
+                      ACTIVE
+                    </span>
+                  ) : (
+                    <ChevronRight className="w-4 h-4" style={{ color: "var(--eng-text-muted)", opacity: 0.5 }} />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  TAB 1 - TCP/IP Model Explorer                                     */
 /* ================================================================== */
 
 function TCPIPModelExplorer() {
@@ -149,123 +497,23 @@ function TCPIPModelExplorer() {
 
   return (
     <div>
-      <h3 style={sectionTitle}>TCP/IP Model — 4 Layers</h3>
+      <h3 style={sectionTitle}>TCP/IP Model - 4 Layers</h3>
       <p style={sectionDesc}>
         The TCP/IP model is a practical, implementation-focused model with 4 layers. Click each layer to explore its protocols and purpose.
       </p>
 
-      {/* Visual layer stack as SVG */}
-      <div className="card-eng" style={{ padding: 0, overflow: "hidden", marginBottom: 20 }}>
-        <svg viewBox="0 0 560 320" style={{ width: "100%", height: "auto", display: "block" }}>
-          <rect width="560" height="320" fill="#fafbfd" />
-
-          <text x="280" y="24" textAnchor="middle" fill="var(--eng-text)" style={{ fontFamily: "var(--eng-font)", fontSize: "0.82rem", fontWeight: 700 }}>
-            TCP/IP Protocol Suite
-          </text>
-
-          {TCPIP_LAYERS.map((l, idx) => {
-            const yPos = 40 + idx * 68;
-            const isSelected = selectedLayer === l.number;
-
-            return (
-              <g
-                key={l.number}
-                style={{ cursor: "pointer" }}
-                onClick={() => setSelectedLayer(l.number)}
-              >
-                {/* Layer background */}
-                <rect
-                  x="60" y={yPos}
-                  width="440" height="58"
-                  rx="10"
-                  fill={isSelected ? `${l.color}18` : `${l.color}08`}
-                  stroke={isSelected ? l.color : `${l.color}40`}
-                  strokeWidth={isSelected ? 2.5 : 1}
-                  style={{ transition: "all 0.3s ease" }}
-                />
-
-                {/* Selection indicator */}
-                {isSelected && (
-                  <rect
-                    x="60" y={yPos}
-                    width="5" height="58"
-                    rx="2"
-                    fill={l.color}
-                    className="eng-fadeIn"
-                  />
-                )}
-
-                {/* Layer number */}
-                <circle
-                  cx="95" cy={yPos + 29}
-                  r="15"
-                  fill={isSelected ? l.color : `${l.color}30`}
-                  style={{ transition: "fill 0.3s ease" }}
-                />
-                <text x="95" y={yPos + 33} textAnchor="middle" fill={isSelected ? "#fff" : l.color} style={{ fontFamily: "var(--eng-font)", fontSize: "0.72rem", fontWeight: 700 }}>
-                  L{l.number}
-                </text>
-
-                {/* Layer name */}
-                <text x="125" y={yPos + 25} fill={isSelected ? l.color : "var(--eng-text)"} style={{ fontFamily: "var(--eng-font)", fontSize: "0.88rem", fontWeight: 700 }}>
-                  {l.name}
-                </text>
-
-                {/* Protocol tags */}
-                {l.protocols.slice(0, 4).map((p, pi) => (
-                  <g key={pi}>
-                    <rect
-                      x={125 + pi * 65} y={yPos + 34}
-                      width="58" height="18"
-                      rx="4"
-                      fill={isSelected ? `${p.color}20` : "#f1f5f9"}
-                      stroke={isSelected ? `${p.color}60` : "#e2e8f0"}
-                      strokeWidth="0.5"
-                      style={{ transition: "all 0.3s ease" }}
-                    />
-                    <text
-                      x={125 + pi * 65 + 29} y={yPos + 47}
-                      textAnchor="middle"
-                      fill={isSelected ? p.color : "var(--eng-text-muted)"}
-                      style={{ fontFamily: "var(--eng-font)", fontSize: "0.48rem", fontWeight: 600 }}
-                    >
-                      {p.name}
-                    </text>
-                  </g>
-                ))}
-                {l.protocols.length > 4 && (
-                  <text x={125 + 4 * 65 + 8} y={yPos + 47} fill="var(--eng-text-muted)" style={{ fontFamily: "var(--eng-font)", fontSize: "0.48rem" }}>
-                    +{l.protocols.length - 4} more
-                  </text>
-                )}
-
-                {/* Click hint */}
-                {!isSelected && (
-                  <text x="480" y={yPos + 33} textAnchor="end" fill="var(--eng-text-muted)" style={{ fontFamily: "var(--eng-font)", fontSize: "0.55rem", opacity: 0.5 }}>
-                    Click to explore
-                  </text>
-                )}
-              </g>
-            );
-          })}
-        </svg>
-      </div>
+      {/* Protocol stack */}
+      <ProtocolStack
+        layers={TCPIP_LAYERS}
+        selected={selectedLayer}
+        onSelect={setSelectedLayer}
+        animPhase={animPhase}
+      />
 
       {/* Selected layer details */}
-      <div
-        className="card-eng eng-fadeIn"
-        key={selectedLayer}
-        style={{ padding: 20, borderLeft: `4px solid ${layer.color}` }}
-      >
-        <div className="flex items-center gap-3" style={{ marginBottom: 10 }}>
-          <span style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "1rem", color: layer.color }}>
-            Layer {layer.number}: {layer.name}
-          </span>
-          <span className="tag-eng" style={{ background: `${layer.color}15`, color: layer.color, fontSize: "0.65rem" }}>
-            Maps to: {layer.osiMapping}
-          </span>
-        </div>
-        <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", color: "var(--eng-text)", lineHeight: 1.6, margin: "0 0 16px" }}>
+      <div className="card-eng eng-fadeIn" key={selectedLayer} style={{ padding: 20 }}>
+        <LayerDetailHeader layer={layer} />
+        <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.88rem", color: "var(--eng-text)", lineHeight: 1.65, margin: "16px 0 18px" }}>
           {layer.description}
         </p>
 
@@ -302,7 +550,7 @@ function TCPIPModelExplorer() {
 }
 
 /* ================================================================== */
-/*  TAB 2 — OSI vs TCP/IP Comparison                                   */
+/*  TAB 2 - OSI vs TCP/IP Comparison                                   */
 /* ================================================================== */
 
 function OSIvsTCPIPComparison() {
@@ -496,7 +744,7 @@ function OSIvsTCPIPComparison() {
 }
 
 /* ================================================================== */
-/*  TAB 3 — Protocol Mini Demos                                        */
+/*  TAB 3 - Protocol Mini Demos                                        */
 /* ================================================================== */
 
 interface ProtocolDemo {
@@ -532,7 +780,7 @@ const PROTOCOL_DEMOS: ProtocolDemo[] = [
     steps: [
       "Client sends SYN (synchronize) packet to server",
       "Server responds with SYN-ACK (synchronize-acknowledge)",
-      "Client sends ACK (acknowledge) — connection established!",
+      "Client sends ACK (acknowledge) - connection established!",
       "Data transfer begins with acknowledgment for each segment",
       "Connection closed with FIN/ACK exchange (4-way handshake)",
     ],
@@ -581,12 +829,48 @@ const PROTOCOL_DEMOS: ProtocolDemo[] = [
   },
 ];
 
+/* Sequence-diagram metadata per protocol */
+interface SeqMeta {
+  actors: [string, string];
+  directions: ("ltr" | "rtl" | "self-l" | "self-r")[];
+  labels: string[];
+}
+const SEQ_DIAGRAMS: Record<string, SeqMeta> = {
+  http: {
+    actors: ["Browser", "Web Server"],
+    directions: ["ltr", "ltr", "self-r", "rtl", "self-l"],
+    labels: ["GET /", "TCP/IP stack", "lookup", "200 OK", "render"],
+  },
+  tcp: {
+    actors: ["Client", "Server"],
+    directions: ["ltr", "rtl", "ltr", "ltr", "rtl"],
+    labels: ["SYN", "SYN-ACK", "ACK", "data + ack", "FIN"],
+  },
+  ip: {
+    actors: ["Host A", "Host B"],
+    directions: ["self-l", "ltr", "self-r", "ltr", "rtl"],
+    labels: ["pack", "→ router", "route", "hop-by-hop", "deliver"],
+  },
+  arp: {
+    actors: ["Device", "LAN"],
+    directions: ["self-l", "ltr", "self-r", "rtl", "self-l"],
+    labels: ["need MAC", "ARP broadcast", "all receive", "I have it!", "cache"],
+  },
+  icmp: {
+    actors: ["Your PC", "google.com"],
+    directions: ["self-l", "ltr", "ltr", "rtl", "self-l"],
+    labels: ["ping cmd", "Echo Request", "via routers", "Echo Reply", "RTT shown"],
+  },
+};
+
 function ProtocolMiniDemos() {
   const [selectedProto, setSelectedProto] = useState<string>("http");
   const [currentStep, setCurrentStep] = useState(0);
   const [autoPlay, setAutoPlay] = useState(false);
+  const mono = '"SF Mono", Menlo, Consolas, monospace';
 
   const proto = PROTOCOL_DEMOS.find((p) => p.id === selectedProto)!;
+  const seq = SEQ_DIAGRAMS[selectedProto];
 
   useEffect(() => {
     setCurrentStep(0);
@@ -603,7 +887,7 @@ function ProtocolMiniDemos() {
         }
         return s + 1;
       });
-    }, 1200);
+    }, 1400);
     return () => clearInterval(interval);
   }, [autoPlay, proto.steps.length]);
 
@@ -611,149 +895,374 @@ function ProtocolMiniDemos() {
     <div>
       <h3 style={sectionTitle}>Protocol Mini Demos</h3>
       <p style={sectionDesc}>
-        Select a protocol to see a step-by-step animated demonstration of how it works.
+        Select a protocol to follow a sequence diagram of how it actually works on the wire.
       </p>
 
-      {/* Protocol selector */}
-      <div className="flex gap-2 flex-wrap" style={{ marginBottom: 20 }}>
-        {PROTOCOL_DEMOS.map((p) => (
-          <button
-            key={p.id}
-            onClick={() => setSelectedProto(p.id)}
-            style={{
-              padding: "8px 16px",
-              borderRadius: 8,
-              border: selectedProto === p.id ? `2px solid ${p.color}` : "1.5px solid var(--eng-border)",
-              background: selectedProto === p.id ? `${p.color}11` : "var(--eng-surface)",
-              color: selectedProto === p.id ? p.color : "var(--eng-text)",
-              fontFamily: "var(--eng-font)",
-              fontWeight: 600,
-              fontSize: "0.85rem",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-          >
-            {p.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Protocol info */}
-      <div className="card-eng eng-fadeIn" key={selectedProto} style={{ padding: 20, borderLeft: `4px solid ${proto.color}`, marginBottom: 16 }}>
-        <div className="flex items-center gap-3" style={{ marginBottom: 8 }}>
-          <span style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "1rem", color: proto.color }}>
-            {proto.name}
-          </span>
-          <span className="tag-eng" style={{ background: `${proto.color}15`, color: proto.color }}>
-            {proto.layer}
-          </span>
-        </div>
-        <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", color: "var(--eng-text-muted)", margin: 0 }}>
-          {proto.shortDesc}
-        </p>
-      </div>
-
-      {/* SVG step animation */}
-      <div className="card-eng" style={{ padding: 0, overflow: "hidden", marginBottom: 16 }}>
-        <svg viewBox="0 0 560 200" style={{ width: "100%", height: "auto", display: "block" }}>
-          <rect width="560" height="200" fill="#fafbfd" />
-
-          {/* Step indicators */}
-          {proto.steps.map((_, i) => {
-            const x = 40 + (i * (480 / (proto.steps.length - 1 || 1)));
-            const isActive = i <= currentStep;
-            const isCurrent = i === currentStep;
-
-            return (
-              <g key={i}>
-                {/* Connection line to next step */}
-                {i < proto.steps.length - 1 && (
-                  <line
-                    x1={x + 14}
-                    y1="40"
-                    x2={40 + ((i + 1) * (480 / (proto.steps.length - 1 || 1))) - 14}
-                    y2="40"
-                    stroke={i < currentStep ? proto.color : "#e2e8f0"}
-                    strokeWidth="2"
-                    style={{ transition: "stroke 0.4s ease" }}
-                  />
-                )}
-
-                {/* Step circle */}
-                <circle
-                  cx={x} cy="40" r={isCurrent ? 16 : 12}
-                  fill={isActive ? `${proto.color}20` : "#f1f5f9"}
-                  stroke={isActive ? proto.color : "#e2e8f0"}
-                  strokeWidth={isCurrent ? 2.5 : 1.5}
-                  style={{ transition: "all 0.3s ease", cursor: "pointer" }}
-                  onClick={() => setCurrentStep(i)}
-                />
-                <text
-                  x={x} y="44"
-                  textAnchor="middle"
-                  fill={isActive ? proto.color : "var(--eng-text-muted)"}
-                  style={{ fontFamily: "var(--eng-font)", fontSize: isCurrent ? "0.7rem" : "0.6rem", fontWeight: 700 }}
-                >
-                  {i + 1}
-                </text>
-
-                {/* Pulse ring on current step */}
-                {isCurrent && (
-                  <circle cx={x} cy="40" r="16" fill="none" stroke={proto.color} strokeWidth="1.5">
-                    <animate attributeName="r" values="16;24" dur="1.2s" repeatCount="indefinite" />
-                    <animate attributeName="stroke-opacity" values="0.5;0" dur="1.2s" repeatCount="indefinite" />
-                  </circle>
-                )}
-              </g>
-            );
-          })}
-
-          {/* Current step text */}
-          <foreignObject x="40" y="75" width="480" height="100">
-            <div
+      {/* Segmented protocol selector */}
+      <div
+        role="tablist"
+        style={{
+          display: "inline-flex",
+          padding: 3,
+          background: "var(--eng-bg)",
+          border: "1px solid var(--eng-border)",
+          borderRadius: 8,
+          marginBottom: 20,
+          overflowX: "auto",
+          maxWidth: "100%",
+        }}
+      >
+        {PROTOCOL_DEMOS.map((p) => {
+          const active = selectedProto === p.id;
+          return (
+            <button
+              key={p.id}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setSelectedProto(p.id)}
               style={{
-                fontFamily: "var(--eng-font)",
-                fontSize: "0.88rem",
-                color: "var(--eng-text)",
-                lineHeight: 1.6,
-                textAlign: "center",
-                padding: "10px 20px",
+                padding: "6px 14px",
+                borderRadius: 6,
+                border: "none",
+                background: active ? "var(--eng-surface)" : "transparent",
+                boxShadow: active ? "var(--eng-shadow)" : "none",
+                color: active ? p.color : "var(--eng-text-muted)",
+                fontFamily: mono,
+                fontWeight: 700,
+                fontSize: "0.78rem",
+                letterSpacing: "0.03em",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                whiteSpace: "nowrap",
               }}
             >
-              <span style={{ fontWeight: 600, color: proto.color }}>Step {currentStep + 1}: </span>
-              {proto.steps[currentStep]}
-            </div>
-          </foreignObject>
-        </svg>
+              {p.name}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Controls */}
-      <div className="flex gap-2 justify-center">
-        <button
-          onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
-          disabled={currentStep === 0}
-          className="btn-eng-outline"
-          style={{ fontSize: "0.82rem", opacity: currentStep === 0 ? 0.4 : 1 }}
+      {/* Main layout */}
+      <div
+        className="eng-fadeIn"
+        key={selectedProto}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(260px, 320px) 1fr",
+          gap: 16,
+          marginBottom: 16,
+        }}
+      >
+        {/* LEFT: step list */}
+        <div
+          style={{
+            background: "var(--eng-surface)",
+            border: "1px solid var(--eng-border)",
+            borderRadius: "var(--eng-radius)",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
-          Previous
-        </button>
-        <button
-          onClick={() => { setCurrentStep(0); setAutoPlay(true); }}
-          className="btn-eng"
-          style={{ fontSize: "0.82rem" }}
+          {/* Protocol header */}
+          <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--eng-border)", background: "var(--eng-bg)" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
+              <span style={{ fontFamily: mono, fontSize: "1.05rem", fontWeight: 800, color: proto.color, letterSpacing: "-0.01em" }}>
+                {proto.name}
+              </span>
+              <span style={{ fontFamily: mono, fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--eng-text-muted)" }}>
+                {proto.layer.toUpperCase()}
+              </span>
+            </div>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--eng-text-muted)", lineHeight: 1.45 }}>
+              {proto.shortDesc}
+            </p>
+          </div>
+
+          {/* Step list */}
+          <ol style={{ margin: 0, padding: 0, listStyle: "none" }}>
+            {proto.steps.map((step, i) => {
+              const done = i < currentStep;
+              const active = i === currentStep;
+              return (
+                <li key={i}>
+                  <button
+                    onClick={() => setCurrentStep(i)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 10,
+                      padding: "10px 14px",
+                      border: "none",
+                      borderLeft: active ? `3px solid ${proto.color}` : "3px solid transparent",
+                      borderBottom: i < proto.steps.length - 1 ? "1px solid var(--eng-border)" : "none",
+                      background: active ? `${proto.color}0c` : "transparent",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      fontFamily: "var(--eng-font)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        flexShrink: 0,
+                        width: 22,
+                        height: 22,
+                        borderRadius: 4,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontFamily: mono,
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        color: done || active ? "white" : "var(--eng-text-muted)",
+                        background: done ? `${proto.color}99` : active ? proto.color : "var(--eng-border)",
+                        transition: "all 0.3s ease",
+                      }}
+                    >
+                      {done ? "✓" : String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.8rem",
+                        color: active ? "var(--eng-text)" : done ? "var(--eng-text-muted)" : "var(--eng-text)",
+                        lineHeight: 1.5,
+                        fontWeight: active ? 600 : 400,
+                      }}
+                    >
+                      {step}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+
+        {/* RIGHT: sequence diagram */}
+        <div
+          style={{
+            background: "var(--eng-surface)",
+            border: "1px solid var(--eng-border)",
+            borderRadius: "var(--eng-radius)",
+            overflow: "hidden",
+          }}
         >
-          <Play className="w-3.5 h-3.5" /> Play All
-        </button>
-        <button
-          onClick={() => setCurrentStep((s) => Math.min(proto.steps.length - 1, s + 1))}
-          disabled={currentStep >= proto.steps.length - 1}
-          className="btn-eng-outline"
-          style={{ fontSize: "0.82rem", opacity: currentStep >= proto.steps.length - 1 ? 0.4 : 1 }}
-        >
-          Next
-        </button>
+          <SequenceDiagram seq={seq} currentStep={currentStep} color={proto.color} />
+        </div>
+      </div>
+
+      {/* Controls row */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          padding: "10px 14px",
+          background: "var(--eng-surface)",
+          border: "1px solid var(--eng-border)",
+          borderRadius: "var(--eng-radius)",
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontFamily: mono, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", color: "var(--eng-text-muted)" }}>
+            STEP
+          </span>
+          <span style={{ fontFamily: mono, fontSize: "0.95rem", fontWeight: 700, color: proto.color }}>
+            {String(currentStep + 1).padStart(2, "0")}
+            <span style={{ color: "var(--eng-text-muted)", fontWeight: 400 }}>/{String(proto.steps.length).padStart(2, "0")}</span>
+          </span>
+          <div style={{ width: 120, height: 4, background: "var(--eng-bg)", border: "1px solid var(--eng-border)", borderRadius: 2, overflow: "hidden" }}>
+            <div
+              style={{
+                width: `${((currentStep + 1) / proto.steps.length) * 100}%`,
+                height: "100%",
+                background: proto.color,
+                transition: "width 0.4s ease",
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 6 }}>
+          <button
+            onClick={() => { setCurrentStep(0); setAutoPlay(false); }}
+            className="btn-eng-outline"
+            style={{ fontSize: "0.78rem", padding: "5px 10px" }}
+            title="Reset"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
+            disabled={currentStep === 0}
+            className="btn-eng-outline"
+            style={{ fontSize: "0.78rem", padding: "5px 12px", opacity: currentStep === 0 ? 0.4 : 1 }}
+          >
+            Prev
+          </button>
+          <button
+            onClick={() => {
+              if (autoPlay) { setAutoPlay(false); return; }
+              if (currentStep >= proto.steps.length - 1) setCurrentStep(0);
+              setAutoPlay(true);
+            }}
+            className="btn-eng"
+            style={{ fontSize: "0.78rem", padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 5 }}
+          >
+            {autoPlay ? <><Pause className="w-3.5 h-3.5" /> Pause</> : <><Play className="w-3.5 h-3.5" /> Play</>}
+          </button>
+          <button
+            onClick={() => setCurrentStep((s) => Math.min(proto.steps.length - 1, s + 1))}
+            disabled={currentStep >= proto.steps.length - 1}
+            className="btn-eng-outline"
+            style={{ fontSize: "0.78rem", padding: "5px 12px", opacity: currentStep >= proto.steps.length - 1 ? 0.4 : 1 }}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
+  );
+}
+
+function SequenceDiagram({ seq, currentStep, color }: { seq: SeqMeta; currentStep: number; color: string }) {
+  const mono = '"SF Mono", Menlo, Consolas, monospace';
+  const width = 520;
+  const headerY = 46;
+  const rowH = 48;
+  const stepsCount = seq.directions.length;
+  const height = headerY + 30 + stepsCount * rowH + 30;
+  const leftX = 110;
+  const rightX = width - 110;
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto", display: "block", background: "var(--eng-bg)" }}>
+      {/* Actor headers */}
+      {[{ x: leftX, label: seq.actors[0] }, { x: rightX, label: seq.actors[1] }].map((a) => (
+        <g key={a.label}>
+          <rect x={a.x - 70} y={18} width={140} height={28} rx={6} fill="var(--eng-surface)" stroke={color} strokeWidth={1.5} />
+          <text x={a.x} y={36} textAnchor="middle" fill="var(--eng-text)" style={{ fontFamily: mono, fontSize: "0.72rem", fontWeight: 700 }}>
+            {a.label}
+          </text>
+        </g>
+      ))}
+
+      {/* Lifelines */}
+      <line x1={leftX} y1={headerY} x2={leftX} y2={height - 20} stroke="var(--eng-border)" strokeWidth="1" strokeDasharray="4 4" />
+      <line x1={rightX} y1={headerY} x2={rightX} y2={height - 20} stroke="var(--eng-border)" strokeWidth="1" strokeDasharray="4 4" />
+
+      {/* Arrow marker */}
+      <defs>
+        <marker id={`arrow-${color.replace("#", "")}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill={color} />
+        </marker>
+        <marker id={`arrow-muted`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#cbd5e1" />
+        </marker>
+      </defs>
+
+      {/* Arrows per step */}
+      {seq.directions.map((dir, i) => {
+        const y = headerY + 30 + i * rowH + rowH / 2;
+        const done = i < currentStep;
+        const active = i === currentStep;
+        const upcoming = i > currentStep;
+        const stroke = active ? color : done ? `${color}80` : "#cbd5e1";
+        const marker = upcoming ? "arrow-muted" : `arrow-${color.replace("#", "")}`;
+        const opacity = upcoming ? 0.5 : 1;
+        const strokeW = active ? 2.5 : 1.5;
+        const label = seq.labels[i];
+
+        let x1 = leftX, x2 = rightX;
+        let selfLoop = false;
+        let selfSide: "l" | "r" = "l";
+        if (dir === "ltr") { x1 = leftX; x2 = rightX; }
+        else if (dir === "rtl") { x1 = rightX; x2 = leftX; }
+        else if (dir === "self-l") { selfLoop = true; selfSide = "l"; }
+        else if (dir === "self-r") { selfLoop = true; selfSide = "r"; }
+
+        if (selfLoop) {
+          const cx = selfSide === "l" ? leftX : rightX;
+          const loopSize = 22;
+          const loopX = selfSide === "l" ? cx + 6 : cx - 6 - loopSize;
+          return (
+            <g key={i} style={{ opacity, transition: "opacity 0.3s ease" }}>
+              <path
+                d={`M ${cx} ${y - 10} C ${loopX + (selfSide === "l" ? loopSize : -loopSize) * (selfSide === "l" ? 1.5 : -1.5)} ${y - 14}, ${loopX + (selfSide === "l" ? loopSize : -loopSize) * (selfSide === "l" ? 1.5 : -1.5)} ${y + 14}, ${cx} ${y + 10}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={strokeW}
+                markerEnd={`url(#${marker})`}
+                style={{ transition: "stroke 0.3s ease, stroke-width 0.3s ease" }}
+              />
+              <text
+                x={selfSide === "l" ? cx + 30 : cx - 30}
+                y={y + 3}
+                textAnchor={selfSide === "l" ? "start" : "end"}
+                fill={active ? color : "var(--eng-text-muted)"}
+                style={{ fontFamily: mono, fontSize: "0.7rem", fontWeight: active ? 700 : 500 }}
+              >
+                {label}
+              </text>
+            </g>
+          );
+        }
+
+        const midX = (x1 + x2) / 2;
+        return (
+          <g key={i} style={{ opacity, transition: "opacity 0.3s ease" }}>
+            <line
+              x1={x1}
+              y1={y}
+              x2={x2}
+              y2={y}
+              stroke={stroke}
+              strokeWidth={strokeW}
+              markerEnd={`url(#${marker})`}
+              style={{ transition: "stroke 0.3s ease, stroke-width 0.3s ease" }}
+            />
+            <rect
+              x={midX - label.length * 3.6 - 6}
+              y={y - 16}
+              width={label.length * 7.2 + 12}
+              height={16}
+              rx={3}
+              fill="var(--eng-surface)"
+              stroke={active ? color : "var(--eng-border)"}
+              strokeWidth={active ? 1.5 : 1}
+            />
+            <text
+              x={midX}
+              y={y - 5}
+              textAnchor="middle"
+              fill={active ? color : "var(--eng-text)"}
+              style={{ fontFamily: mono, fontSize: "0.7rem", fontWeight: active ? 700 : 500 }}
+            >
+              {label}
+            </text>
+            {active && (
+              <circle cx={dir === "ltr" ? x2 : x1} cy={y} r="6" fill={color} opacity="0.4">
+                <animate attributeName="r" values="6;14" dur="1.2s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.5;0" dur="1.2s" repeatCount="indefinite" />
+              </circle>
+            )}
+            <text
+              x={x1 < x2 ? x1 - 6 : x1 + 6}
+              y={y + 4}
+              textAnchor={x1 < x2 ? "end" : "start"}
+              fill={active ? color : "var(--eng-text-muted)"}
+              style={{ fontFamily: mono, fontSize: "0.6rem", fontWeight: 700 }}
+            >
+              {String(i + 1).padStart(2, "0")}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
@@ -833,7 +1342,6 @@ export default function CN_L1_TCPIPModelActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="Switching Techniques"
-      gateRelevance="1-2 marks"
       placementRelevance="Low"
     />
   );

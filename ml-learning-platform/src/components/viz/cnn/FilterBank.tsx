@@ -21,7 +21,7 @@ export interface FilterBankProps {
 }
 
 /**
- * <FilterBank /> — a row of miniature filter previews. Each filter is
+ * <FilterBank /> - a row of miniature filter previews. Each filter is
  * rendered as a small ImageGrid with its own min/max so the structure of
  * the kernel (positive vs negative weights) is visible.
  */

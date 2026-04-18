@@ -11,7 +11,7 @@ const SUBJECTS = [
     icon: <Network className="w-8 h-8" />,
     color: "#3b82f6",
     levels: 7,
-    lessons: 34,
+    lessons: 35,
     available: true,
     href: "/engineering/cn/level1/what-is-network",
     topics: ["OSI & TCP/IP Models", "IP Addressing & Subnetting", "TCP/UDP", "DNS & HTTP", "Network Security", "Cloud & CDN"],
@@ -19,19 +19,19 @@ const SUBJECTS = [
   {
     id: "dsa",
     title: "Data Structures & Algorithms",
-    desc: "Arrays, trees, graphs, sorting, searching, dynamic programming — complete DSA mastery for GATE and placements.",
+    desc: "Arrays, trees, graphs, sorting, searching, dynamic programming - complete DSA mastery for interviews and placements.",
     icon: <Cpu className="w-8 h-8" />,
     color: "#e76f51",
     levels: 8,
-    lessons: 42,
-    available: false,
-    href: "#",
+    lessons: 43,
+    available: true,
+    href: "/engineering/dsa/level1/algorithm-tracer",
     topics: ["Arrays & Strings", "Linked Lists & Stacks", "Trees & Graphs", "Sorting & Searching", "DP & Greedy"],
   },
   {
     id: "os",
     title: "Operating Systems",
-    desc: "Process scheduling, memory management, deadlocks, file systems — everything for OS mastery.",
+    desc: "Process scheduling, memory management, deadlocks, file systems - everything for OS mastery.",
     icon: <MonitorSmartphone className="w-8 h-8" />,
     color: "#10b981",
     levels: 7,
@@ -43,7 +43,7 @@ const SUBJECTS = [
   {
     id: "dbms",
     title: "Database Management",
-    desc: "SQL, normalization, transactions, indexing, ER diagrams — relational databases inside out.",
+    desc: "SQL, normalization, transactions, indexing, ER diagrams - relational databases inside out.",
     icon: <Database className="w-8 h-8" />,
     color: "#f59e0b",
     levels: 7,
@@ -72,7 +72,7 @@ export default function EngineeringPage() {
       {/* Header */}
       <div style={{ marginBottom: 40 }}>
         <div className="flex items-center gap-3" style={{ marginBottom: 8 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Network className="w-5 h-5" style={{ color: "#fff" }} />
           </div>
           <div>
@@ -80,7 +80,7 @@ export default function EngineeringPage() {
               Engineering Track
             </h1>
             <p style={{ fontSize: "0.85rem", color: "var(--eng-text-muted)", margin: 0 }}>
-              B.Tech CSE — GATE, Placements & Semester Exams
+              B.Tech CSE - Placements, Interviews & Semester Exams
             </p>
           </div>
         </div>

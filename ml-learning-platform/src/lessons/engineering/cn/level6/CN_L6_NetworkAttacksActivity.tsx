@@ -6,7 +6,7 @@ import EngineeringLessonShell from "@/components/engineering/EngineeringLessonSh
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — DDoS Attack                                                */
+/*  Tab 1 - DDoS Attack                                                */
 /* ------------------------------------------------------------------ */
 
 function DDoSTab() {
@@ -204,7 +204,7 @@ function DDoSTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — MITM, ARP Spoofing, DNS Poisoning                         */
+/*  Tab 2 - MITM, ARP Spoofing, DNS Poisoning                         */
 /* ------------------------------------------------------------------ */
 
 function MITMTab() {
@@ -547,7 +547,7 @@ function MITMTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Defenses                                                   */
+/*  Tab 3 - Defenses                                                   */
 /* ------------------------------------------------------------------ */
 
 function DefensesTab() {
@@ -787,7 +787,6 @@ export default function CN_L6_NetworkAttacksActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="Software-Defined Networking (Level 7)"
-      gateRelevance="1-2 marks"
       placementRelevance="Medium"
     />
   );

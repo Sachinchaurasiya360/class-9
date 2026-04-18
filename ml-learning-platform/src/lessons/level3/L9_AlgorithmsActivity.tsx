@@ -32,7 +32,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Follow the Recipe (step-by-step procedure)                 */
+/*  Tab 1 - Follow the Recipe (step-by-step procedure)                 */
 /* ------------------------------------------------------------------ */
 
 interface AlgorithmDef {
@@ -60,7 +60,7 @@ const ALGORITHMS: AlgorithmDef[] = [
       "Compare positions 1 and 2: 8 > 2, swap them → [2, 8, 5]",
       "Compare positions 2 and 3: 8 > 5, swap them → [2, 5, 8]",
       "Compare positions 1 and 2: 2 < 5, no swap needed → [2, 5, 8]",
-      "No more swaps needed — list is sorted!",
+      "No more swaps needed - list is sorted!",
     ],
   },
   {
@@ -137,7 +137,7 @@ function FollowRecipeTab() {
     <div className="space-y-4">
       <RikuSays>
         An algorithm is just a recipe with no vibes. Step 1, step 2, step 3,
-        done. Pick a recipe below and walk through it one step at a time — no
+        done. Pick a recipe below and walk through it one step at a time - no
         magic, just careful instructions.
       </RikuSays>
 
@@ -244,12 +244,12 @@ function FollowRecipeTab() {
 
       <RikuSays>
         Notice how you always get the same answer? That&apos;s the whole point
-        of an algorithm — same input, same steps, same output. Every single
+        of an algorithm - same input, same steps, same output. Every single
         time. Reliable as gravity.
       </RikuSays>
 
       <InfoBox variant="blue">
-        An algorithm is like a recipe — a step-by-step procedure that always
+        An algorithm is like a recipe - a step-by-step procedure that always
         produces the correct result. If you follow it exactly, you get the
         answer every time!
       </InfoBox>
@@ -258,7 +258,7 @@ function FollowRecipeTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Many Ways to Think (ML algorithms as strategies)           */
+/*  Tab 2 - Many Ways to Think (ML algorithms as strategies)           */
 /* ------------------------------------------------------------------ */
 
 type StrategyId = "regression" | "knn" | "tree" | "descent";
@@ -273,24 +273,24 @@ const STRATEGIES: Strategy[] = [
   {
     id: "regression",
     label: "Find the best line",
-    tagline: "Linear regression — an algorithm that draws a line through points.",
+    tagline: "Linear regression - an algorithm that draws a line through points.",
   },
   {
     id: "knn",
     label: "Ask the neighbors",
-    tagline: "K-Nearest Neighbors — an algorithm that copies whoever is closest.",
+    tagline: "K-Nearest Neighbors - an algorithm that copies whoever is closest.",
   },
   {
     id: "tree",
     label: "Play 20 questions",
     tagline:
-      "Decision Tree — an algorithm that keeps asking yes/no questions until it's sure.",
+      "Decision Tree - an algorithm that keeps asking yes/no questions until it's sure.",
   },
   {
     id: "descent",
     label: "Walk downhill",
     tagline:
-      "Gradient Descent — an algorithm that tiptoes toward the lowest point of a loss surface.",
+      "Gradient Descent - an algorithm that tiptoes toward the lowest point of a loss surface.",
   },
 ];
 
@@ -340,7 +340,7 @@ function ManyWaysTab() {
 
       <RikuSays>
         {strategy === "regression" &&
-          "Linear regression just keeps wiggling slope and intercept until the mistakes shrink. No neighbors, no questions — just math on the residuals."}
+          "Linear regression just keeps wiggling slope and intercept until the mistakes shrink. No neighbors, no questions - just math on the residuals."}
         {strategy === "knn" &&
           "K-NN doesn't 'learn' anything ahead of time. When a new point shows up, it literally looks at its K closest friends and copies the majority label. Low effort, high vibes."}
         {strategy === "tree" &&
@@ -351,7 +351,7 @@ function ManyWaysTab() {
 
       <InfoBox variant="amber">
         Different algorithms can solve the same kind of problem in totally
-        different ways. Choosing the right one is half the fun of ML — and the
+        different ways. Choosing the right one is half the fun of ML - and the
         whole job of a data scientist.
       </InfoBox>
     </div>
@@ -359,7 +359,7 @@ function ManyWaysTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Algorithms That Learn                                      */
+/*  Tab 3 - Algorithms That Learn                                      */
 /* ------------------------------------------------------------------ */
 
 function AlgorithmsThatLearnTab() {
@@ -386,7 +386,7 @@ function AlgorithmsThatLearnTab() {
       <RikuSays>
         Compare this to Tab 1&apos;s &quot;find the biggest number&quot;
         recipe. That one has a hard-coded answer. This one *discovers* an
-        answer. Same idea — step-by-step instructions — just with a built-in
+        answer. Same idea - step-by-step instructions - just with a built-in
         &quot;oops-o-meter&quot; (the loss).
       </RikuSays>
 
@@ -400,13 +400,13 @@ function AlgorithmsThatLearnTab() {
           <li>Measure how wrong the guess is (the loss).</li>
           <li>Nudge the guess in a direction that shrinks the loss.</li>
           <li>Repeat until the loss stops going down.</li>
-          <li>Done — that&apos;s a trained model.</li>
+          <li>Done - that&apos;s a trained model.</li>
         </ol>
       </div>
 
       <InfoBox variant="green">
-        Every ML model you&apos;ve ever heard of — from spam filters to image
-        classifiers to ChatGPT — is running some version of this exact loop.
+        Every ML model you&apos;ve ever heard of - from spam filters to image
+        classifiers to ChatGPT - is running some version of this exact loop.
         Guess, measure, nudge, repeat. That&apos;s the whole field.
       </InfoBox>
     </div>
@@ -428,7 +428,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "An algorithm is a finite, step-by-step procedure that takes input and produces output. It doesn't even need a computer — a cooking recipe is an algorithm!",
+      "An algorithm is a finite, step-by-step procedure that takes input and produces output. It doesn't even need a computer - a cooking recipe is an algorithm!",
   },
   {
     question:

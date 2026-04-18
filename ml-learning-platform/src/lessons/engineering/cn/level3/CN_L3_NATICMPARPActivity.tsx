@@ -6,7 +6,7 @@ import EngineeringLessonShell from "@/components/engineering/EngineeringLessonSh
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
 
 /* ================================================================== */
-/*  Tab 1 — NAT Translation Animation                                 */
+/*  Tab 1 - NAT Translation Animation                                 */
 /* ================================================================== */
 
 interface NATEntry {
@@ -223,7 +223,7 @@ function NATTab() {
 }
 
 /* ================================================================== */
-/*  Tab 2 — ICMP: Ping & Traceroute                                    */
+/*  Tab 2 - ICMP: Ping & Traceroute                                    */
 /* ================================================================== */
 
 function ICMPTab() {
@@ -457,7 +457,7 @@ function ICMPTab() {
 }
 
 /* ================================================================== */
-/*  Tab 3 — ARP Request/Reply Animation                                */
+/*  Tab 3 - ARP Request/Reply Animation                                */
 /* ================================================================== */
 
 function ARPTab() {
@@ -747,7 +747,6 @@ export default function CN_L3_NATICMPARPActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="TCP - Connection Management (Transport Layer)"
-      gateRelevance="2-3 marks"
       placementRelevance="Medium"
     />
   );

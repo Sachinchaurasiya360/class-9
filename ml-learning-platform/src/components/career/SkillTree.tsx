@@ -7,7 +7,7 @@ interface SkillTreeProps {
 }
 
 /**
- * Visual skill ordering — not a real tree, just a vertical flow of
+ * Visual skill ordering - not a real tree, just a vertical flow of
  * sketchy cards connected by arrows. Each node shows a skill name and
  * a short justification.
  */

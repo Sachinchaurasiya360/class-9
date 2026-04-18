@@ -98,14 +98,14 @@ export default function TestModePage() {
             </h1>
           </div>
           <p className="font-hand text-base text-foreground/80">
-            Simulate a real CBSE AI 417 paper — balanced across all seven units.
+            Simulate a real CBSE AI 417 paper - balanced across all seven units.
           </p>
 
           <ul className="space-y-2 font-hand text-base text-foreground">
             <Rule>{TEST_QUESTION_COUNT} questions drawn across every unit</Rule>
             <Rule>{TEST_DURATION_SECONDS / 60} minutes on the clock</Rule>
             <Rule>No hints or explanations until you submit</Rule>
-            <Rule>No calculator allowed — mental maths only</Rule>
+            <Rule>No calculator allowed - mental maths only</Rule>
             <Rule>You can revisit and change answers until submit</Rule>
           </ul>
 
@@ -207,7 +207,7 @@ export default function TestModePage() {
                   onClick={() => setExpandedReview(expandedReview === i ? null : i)}
                   className="font-hand text-sm font-bold aspect-square rounded-lg border-2 border-foreground flex items-center justify-center"
                   style={{ background: bg, boxShadow: "2px 2px 0 #2b2a35" }}
-                  aria-label={`Question ${i + 1} — ${correct ? "correct" : answered ? "wrong" : "unanswered"}`}
+                  aria-label={`Question ${i + 1} - ${correct ? "correct" : answered ? "wrong" : "unanswered"}`}
                 >
                   {i + 1}
                 </button>

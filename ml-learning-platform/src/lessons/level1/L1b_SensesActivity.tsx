@@ -67,7 +67,7 @@ function CameraEyeTab() {
   return (
     <div className="space-y-4">
       <RikuSays>
-        Senses are how you collect data. Eyes = camera. Ears = microphone. Fingers = touch sensor. You are full of data-gathering hardware — and so is every ML system. Let&apos;s peek inside a camera.
+        Senses are how you collect data. Eyes = camera. Ears = microphone. Fingers = touch sensor. You are full of data-gathering hardware - and so is every ML system. Let&apos;s peek inside a camera.
       </RikuSays>
 
       <p className="font-hand text-base text-center" style={{ color: INK }}>
@@ -167,12 +167,12 @@ function CameraEyeTab() {
       </div>
 
       <InfoBox variant="blue">
-        Your phone camera has <b>millions</b> of these tiny dots — that's why it's called a <b>12-megapixel</b> camera!
+        Your phone camera has <b>millions</b> of these tiny dots - that's why it's called a <b>12-megapixel</b> camera!
         Each photo you take is just a giant grid of red, green, and blue numbers.
       </InfoBox>
 
       <RikuSays>
-        Fun thing to remember: to an ML model, a photo isn&apos;t a cat or a sunset — it&apos;s just a matrix of numbers. All the &quot;seeing&quot; happens by doing math on that grid.
+        Fun thing to remember: to an ML model, a photo isn&apos;t a cat or a sunset - it&apos;s just a matrix of numbers. All the &quot;seeing&quot; happens by doing math on that grid.
       </RikuSays>
     </div>
   );
@@ -328,7 +328,7 @@ function SensorZooTab() {
   return (
     <div className="space-y-4">
       <RikuSays>
-        Machines get their &quot;senses&quot; from sensors: temperature sensors, light sensors, cameras, microphones. Same idea, different casing. Every sensor has one job — turn something real into numbers.
+        Machines get their &quot;senses&quot; from sensors: temperature sensors, light sensors, cameras, microphones. Same idea, different casing. Every sensor has one job - turn something real into numbers.
       </RikuSays>
 
       <p className="font-hand text-base text-center" style={{ color: INK }}>
@@ -368,11 +368,11 @@ function SensorZooTab() {
       </div>
 
       <InfoBox variant="green">
-        A modern smartphone has <b>15+ sensors</b> packed inside it. ML systems become powerful by combining many sensors at once — like a self-driving car using cameras + radar + GPS together.
+        A modern smartphone has <b>15+ sensors</b> packed inside it. ML systems become powerful by combining many sensors at once - like a self-driving car using cameras + radar + GPS together.
       </InfoBox>
 
       <RikuSays>
-        This is where ML really begins: <b>data starts at a sensor</b>. No sensors, no data. No data, nothing to learn from. The world around us is a firehose of numbers — ML&apos;s job is to drink from it without drowning.
+        This is where ML really begins: <b>data starts at a sensor</b>. No sensors, no data. No data, nothing to learn from. The world around us is a firehose of numbers - ML&apos;s job is to drink from it without drowning.
       </RikuSays>
     </div>
   );
@@ -385,7 +385,7 @@ const quizQuestions = [
     question: "What does a digital camera actually store when you take a photo?",
     options: ["A drawing of the scene", "A grid of red/green/blue numbers", "An invisible recording", "A smell"],
     correctIndex: 1,
-    explanation: "Every photo is just a giant grid of pixels — and each pixel is three numbers: how much R, G, and B there is.",
+    explanation: "Every photo is just a giant grid of pixels - and each pixel is three numbers: how much R, G, and B there is.",
   },
   {
     question: "How does a microphone turn sound into something a computer can use?",
@@ -397,7 +397,7 @@ const quizQuestions = [
     question: "Which of these is NOT a sensor?",
     options: ["Thermometer", "GPS", "Calculator", "Accelerometer"],
     correctIndex: 2,
-    explanation: "A calculator processes numbers — it doesn't sense the world. Sensors gather data; calculators just compute.",
+    explanation: "A calculator processes numbers - it doesn't sense the world. Sensors gather data; calculators just compute.",
   },
   {
     question: "Why are sensors so important for ML?",
@@ -424,14 +424,14 @@ export default function L1b_SensesActivity() {
       lessonNumber={4}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Now you know how the world becomes numbers. Next: how those numbers actually live inside the computer — bits, bytes, and files!"
+      nextLessonHint="Now you know how the world becomes numbers. Next: how those numbers actually live inside the computer - bits, bytes, and files!"
       story={
         <StorySection
           paragraphs={[
             "Aru tilted her phone sideways and the screen rotated. \"How did it know I turned it?\"",
-            "Byte: \"There's a tiny sensor inside called an accelerometer. It measures which way is 'down' — and tells the screen.\"",
+            "Byte: \"There's a tiny sensor inside called an accelerometer. It measures which way is 'down' - and tells the screen.\"",
             "Aru: \"So... my phone has feelings?\"",
-            "Byte: \"Not feelings — but it has SENSES. Sensors are how machines see, hear, and feel the world. Every one of them does the same trick: it turns something real into numbers.\"",
+            "Byte: \"Not feelings - but it has SENSES. Sensors are how machines see, hear, and feel the world. Every one of them does the same trick: it turns something real into numbers.\"",
             "Aru: \"Numbers again! Everything in computers really is numbers, isn't it?\""
           ]}
           conceptTitle="Key Concept"

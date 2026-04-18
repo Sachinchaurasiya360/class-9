@@ -173,7 +173,7 @@ function Tab1DataAroundUs() {
           <PartyPopper className="w-7 h-7 mx-auto" style={{ color: CORAL }} />
           <p className="font-hand text-base font-bold" style={{ color: INK }}>Amazing! You found all the data!</p>
           <p className="font-hand text-xs" style={{ color: INK, opacity: 0.75 }}>
-            Everything around you can be measured or described — that means everything is data!
+            Everything around you can be measured or described - that means everything is data!
           </p>
         </div>
       )}
@@ -216,12 +216,12 @@ function Tab1DataAroundUs() {
 
       <InfoBox variant="blue">
         Data is just information that has been organized so a computer can work with it.
-        Numbers, words, colors — all of it is data!
+        Numbers, words, colors - all of it is data!
       </InfoBox>
 
       <RikuSays>
         Notice how some values are <b>numbers</b> (28, 7, 152) and some are <b>categories</b>
-        (Brown, Red). Both are valid data — but computers treat them differently. Remember that
+        (Brown, Red). Both are valid data - but computers treat them differently. Remember that
         split, it&apos;s going to come back big time in ML.
       </RikuSays>
     </div>
@@ -406,7 +406,7 @@ function Tab2BuildTable() {
       <RikuSays>
         Humans think in stories. Computers think in tables. Learning ML is mostly about
         translating between the two. Fill in the blanks below and watch the stats at the bottom
-        update live — that&apos;s exactly how data analysis feels.
+        update live - that&apos;s exactly how data analysis feels.
       </RikuSays>
 
       <div className="card-sketchy p-3 overflow-x-auto">
@@ -447,7 +447,7 @@ function Tab2BuildTable() {
             <p className="font-hand text-[10px] font-bold uppercase tracking-wide" style={{ color: INK, opacity: 0.6 }}>
               {s.label}
             </p>
-            <p className="font-hand text-xl font-bold mt-1" style={{ color: INK }}>{String(s.value) || "—"}</p>
+            <p className="font-hand text-xl font-bold mt-1" style={{ color: INK }}>{String(s.value) || "-"}</p>
           </div>
         ))}
       </div>
@@ -459,7 +459,7 @@ function Tab2BuildTable() {
 
       <RikuSays>
         Each row is one student. Each column is one thing we measured about them. ML people call
-        the rows <b>samples</b> and the columns <b>features</b>. Congrats — you just built a
+        the rows <b>samples</b> and the columns <b>features</b>. Congrats - you just built a
         dataset.
       </RikuSays>
     </div>
@@ -688,7 +688,7 @@ const quizQuestions = [
       "Your height",
       "Your favorite song",
       "The number of clouds in the sky",
-      "None — all of these are data",
+      "None - all of these are data",
     ],
     correctIndex: 3,
     explanation:
@@ -760,11 +760,11 @@ export default function L3_DataActivity() {
             "Aru was packing for a school trip. She grabbed a notebook and started writing: \"3 T-shirts, 2 pants, 1 jacket, toothbrush, umbrella...\"",
             "Byte: \"You know what you just did? You created data!\"",
             "Aru: \"What? It's just a list of things I need to pack.\"",
-            "Byte: \"That's exactly what data is — organized information. The number of T-shirts, the type of clothes, whether you need an umbrella — all of that is data. And it's everywhere. Your height, your age, the temperature outside, the color of your shoes — all data!\"",
+            "Byte: \"That's exactly what data is - organized information. The number of T-shirts, the type of clothes, whether you need an umbrella - all of that is data. And it's everywhere. Your height, your age, the temperature outside, the color of your shoes - all data!\"",
             "Aru: \"So everything around me is data? That's kind of amazing.\""
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="Data is information that has been organized so we can work with it. Data comes in two main types: numbers (like height, age, temperature) and categories (like color, animal type, yes/no). Tables are the most common way to organize data — rows for items, columns for properties."
+          conceptSummary="Data is information that has been organized so we can work with it. Data comes in two main types: numbers (like height, age, temperature) and categories (like color, animal type, yes/no). Tables are the most common way to organize data - rows for items, columns for properties."
         />
       }
     />

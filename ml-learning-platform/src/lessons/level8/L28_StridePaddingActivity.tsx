@@ -15,7 +15,7 @@ import {
 import { playClick } from "../../utils/sounds";
 
 /* ------------------------------------------------------------------ */
-/*  Riku — red panda mascot dialogue helper                            */
+/*  Riku - red panda mascot dialogue helper                            */
 /* ------------------------------------------------------------------ */
 function RikuSays({ children }: { children: ReactNode }) {
   return (
@@ -359,13 +359,13 @@ export default function L28_StridePaddingActivity() {
       lessonNumber={3}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Put it all together — build a mini CNN from scratch!"
+      nextLessonHint="Next: Put it all together - build a mini CNN from scratch!"
       story={
         <StorySection
           paragraphs={[
             "Aru watched Byte demonstrate how a filter slides across an image, and a question popped up.",
             "Aru: \"Does the filter always move one pixel at a time? And what happens at the edges?\"",
-            "Byte: \"Great questions! When we slide the filter, we can skip positions — that's called stride. And we can add zeros around the edges — that's padding. After filtering, we shrink the image with pooling, keeping only the important parts!\"",
+            "Byte: \"Great questions! When we slide the filter, we can skip positions - that's called stride. And we can add zeros around the edges - that's padding. After filtering, we shrink the image with pooling, keeping only the important parts!\"",
             "Aru: \"So stride, padding, and pooling all help control the size of the output?\"",
             "Byte: \"Exactly! They're the building blocks that let us design CNNs that process images efficiently.\"",
           ]}

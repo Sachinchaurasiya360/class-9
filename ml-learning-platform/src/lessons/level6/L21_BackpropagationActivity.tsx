@@ -38,7 +38,7 @@ function ErrorFlowsTab() {
   const [lr, setLr] = useState(0.5);
   const [simulatedOutput, setSimulatedOutput] = useState(0.35);
 
-  // "Loss" magnitude that we feed to the BackpropagationViz — larger = redder grads.
+  // "Loss" magnitude that we feed to the BackpropagationViz - larger = redder grads.
   const loss = useMemo(() => {
     const err = target - simulatedOutput;
     // Scale so sliders produce lively gradient colors (0 .. ~2)
@@ -106,7 +106,7 @@ function ErrorFlowsTab() {
       {/* Forward pass (for comparison) */}
       <div className="card-sketchy p-4 notebook-grid">
         <div className="font-hand text-sm font-bold text-center mb-2">
-          <span className="marker-highlight-mint">Forward pass</span> — data flows left to right
+          <span className="marker-highlight-mint">Forward pass</span> - data flows left to right
         </div>
         <NeuralNetwork
           layers={architecture}
@@ -124,7 +124,7 @@ function ErrorFlowsTab() {
       {/* Backward pass visualization */}
       <div className="card-sketchy p-4 notebook-grid">
         <div className="font-hand text-sm font-bold text-center mb-2">
-          <span className="marker-highlight-coral">Backward pass</span> — error flows right to left
+          <span className="marker-highlight-coral">Backward pass</span> - error flows right to left
         </div>
         <BackpropagationViz
           architecture={architecture}

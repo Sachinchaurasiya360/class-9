@@ -17,7 +17,7 @@ const KIND_LABEL: Record<CertificateDef["kind"], string> = {
 
 /**
  * Format today's date as "April 12, 2026".
- * Uses the browser's current date at render time — since this component is
+ * Uses the browser's current date at render time - since this component is
  * only mounted when the user clicks "View", the date is the view date.
  */
 function formatToday(): string {
@@ -39,7 +39,7 @@ export default function CertificatePrintable({
 
   return (
     <>
-      {/* Print-only CSS — hides everything except this certificate when printing */}
+      {/* Print-only CSS - hides everything except this certificate when printing */}
       <style jsx global>{`
         @media print {
           @page {
@@ -147,7 +147,7 @@ export default function CertificatePrintable({
             {cert.description}
           </p>
 
-          {/* Bottom row — verification code + date */}
+          {/* Bottom row - verification code + date */}
           <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-2 text-left text-[10px] sm:text-xs">
             <div>
               <p className="font-hand uppercase tracking-wider text-muted-foreground">

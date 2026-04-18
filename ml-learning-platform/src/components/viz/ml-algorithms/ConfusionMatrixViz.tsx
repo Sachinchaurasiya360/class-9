@@ -40,7 +40,7 @@ export default function ConfusionMatrixViz({
         className="border-2 border-foreground rounded-xl p-4 text-center relative"
         style={{
           background: color,
-          // Use opacity via an inline gradient overlay trick — simpler to
+          // Use opacity via an inline gradient overlay trick - simpler to
           // directly blend with the background.
           opacity: 0.35 + intensity * 0.6,
         }}

@@ -22,7 +22,7 @@ function binaryToOctet(bits: number[]): number {
 }
 
 /* ================================================================== */
-/*  Tab 1 — Binary IPv4 Visualizer                                     */
+/*  Tab 1 - Binary IPv4 Visualizer                                     */
 /* ================================================================== */
 
 function BinaryTab() {
@@ -174,7 +174,7 @@ function BinaryTab() {
 }
 
 /* ================================================================== */
-/*  Tab 2 — IP Address Classes                                         */
+/*  Tab 2 - IP Address Classes                                         */
 /* ================================================================== */
 
 interface ClassInfo {
@@ -321,7 +321,7 @@ function ClassesTab() {
 }
 
 /* ================================================================== */
-/*  Tab 3 — Special Addresses                                          */
+/*  Tab 3 - Special Addresses                                          */
 /* ================================================================== */
 
 interface SpecialAddr {
@@ -505,7 +505,6 @@ export default function CN_L3_IPv4AddressingActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="Subnetting & CIDR"
-      gateRelevance="2-3 marks"
       placementRelevance="Medium"
     />
   );

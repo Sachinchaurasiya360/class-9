@@ -154,7 +154,7 @@ function buildLayout(
 }
 
 /**
- * <MiniCNN /> — high-level architecture diagram showing a pipeline of conv /
+ * <MiniCNN /> - high-level architecture diagram showing a pipeline of conv /
  * pool / flatten / dense stages. Each stage renders as a little stack of
  * feature-map blocks (so students see *both* the width shrinking *and* the
  * number of channels growing).

@@ -31,7 +31,7 @@ const YELLOW = "#ffd93d";
 const SKY = "#6bb6ff";
 
 /* ------------------------------------------------------------------ */
-/*  Riku says — local dialogue helper                                  */
+/*  Riku says - local dialogue helper                                  */
 /* ------------------------------------------------------------------ */
 
 function RikuSays({ children }: { children: React.ReactNode }) {
@@ -49,7 +49,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Learning loop diagram (kept — it's just arrows, not a "viz")       */
+/*  Learning loop diagram (kept - it's just arrows, not a "viz")       */
 /* ------------------------------------------------------------------ */
 
 function LearningLoopDiagram() {
@@ -148,7 +148,7 @@ function LearningLoopDiagram() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — The Guessing Game                                          */
+/*  Tab 1 - The Guessing Game                                          */
 /* ------------------------------------------------------------------ */
 
 function GuessingGame() {
@@ -416,19 +416,19 @@ function GuessingGame() {
       </div>
 
       <RikuSays>
-        Computers don&apos;t learn by magic. They learn by &ldquo;try, fail, adjust, try again&rdquo; — just faster.
+        Computers don&apos;t learn by magic. They learn by &ldquo;try, fail, adjust, try again&rdquo; - just faster.
       </RikuSays>
 
       <InfoBox variant="blue">
         This is learning in its simplest form: guess, get feedback, adjust. Every machine learning algorithm works on
-        this same principle — make a prediction, check how wrong you are, and adjust to be less wrong next time!
+        this same principle - make a prediction, check how wrong you are, and adjust to be less wrong next time!
       </InfoBox>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Train the Line (LinearRegressionViz)                       */
+/*  Tab 2 - Train the Line (LinearRegressionViz)                       */
 /* ------------------------------------------------------------------ */
 
 function TrainTheLine() {
@@ -444,7 +444,7 @@ function TrainTheLine() {
         </h3>
         <p className="text-xs text-slate-600">
           Drag the slope and intercept sliders to move the line yourself. The dashed
-          vertical bars are <b>residuals</b> — how wrong each prediction is. MSE is
+          vertical bars are <b>residuals</b> - how wrong each prediction is. MSE is
           the average squared residual, and it&apos;s what the model tries to shrink.
           Hit <b>Fit</b> to let the computer find the best line in one shot.
         </p>
@@ -466,10 +466,10 @@ function TrainTheLine() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Learning Speed (GradientDescentViz + LineChart of loss)    */
+/*  Tab 3 - Learning Speed (GradientDescentViz + LineChart of loss)    */
 /* ------------------------------------------------------------------ */
 
-/** A smooth skewed bowl in [0, 100]^2 — the landscape for learning-rate demos. */
+/** A smooth skewed bowl in [0, 100]^2 - the landscape for learning-rate demos. */
 function bowlLoss(w: number, b: number): number {
   const dw = (w - 60) / 18;
   const db = (b - 40) / 22;
@@ -536,7 +536,7 @@ function LearningSpeed() {
           Descending a loss landscape
         </h3>
         <p className="text-xs text-slate-600">
-          The colored heatmap is a <b>loss surface</b> — lower = better. Training
+          The colored heatmap is a <b>loss surface</b> - lower = better. Training
           is just rolling downhill. The <b>learning rate</b> slider controls how
           far we step each time. Watch what happens when you crank it up.
         </p>
@@ -550,7 +550,7 @@ function LearningSpeed() {
 
       <div className="card-sketchy p-4 notebook-grid">
         <p className="font-hand text-xs font-bold text-center mb-2" style={{ color: INK }}>
-          Loss vs iterations — same problem, three learning rates
+          Loss vs iterations - same problem, three learning rates
         </p>
         <LineChart
           series={series}
@@ -565,15 +565,15 @@ function LearningSpeed() {
         <div className="flex justify-center gap-4 text-xs mt-2 font-hand">
           <span>
             <span className="inline-block w-2.5 h-2.5 rounded-full mr-1" style={{ background: SKY }} />
-            Tiny — crawls
+            Tiny - crawls
           </span>
           <span>
             <span className="inline-block w-2.5 h-2.5 rounded-full mr-1" style={{ background: MINT }} />
-            Good — smooth
+            Good - smooth
           </span>
           <span>
             <span className="inline-block w-2.5 h-2.5 rounded-full mr-1" style={{ background: CORAL }} />
-            Huge — explodes
+            Huge - explodes
           </span>
         </div>
       </div>
@@ -593,7 +593,7 @@ function LearningSpeed() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 4 — You vs The Computer                                        */
+/*  Tab 4 - You vs The Computer                                        */
 /* ------------------------------------------------------------------ */
 
 function YouVsComputer() {
@@ -621,7 +621,7 @@ function YouVsComputer() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        Click <b>Fit</b> in the playground below. The computer finds the best line in a single blink. You can drag the sliders and try to beat it — spoiler: you won&apos;t. That&apos;s fine! Understanding the how is the superpower, not the speed.
+        Click <b>Fit</b> in the playground below. The computer finds the best line in a single blink. You can drag the sliders and try to beat it - spoiler: you won&apos;t. That&apos;s fine! Understanding the how is the superpower, not the speed.
       </RikuSays>
 
       <div className="card-sketchy notebook-grid p-5 space-y-4">
@@ -672,11 +672,11 @@ function YouVsComputer() {
       </div>
 
       <RikuSays>
-        Computers can try thousands of adjustments per second. Your job isn&apos;t to out-race them — it&apos;s to understand the trick they use.
+        Computers can try thousands of adjustments per second. Your job isn&apos;t to out-race them - it&apos;s to understand the trick they use.
       </RikuSays>
 
       <InfoBox variant="indigo">
-        Don&apos;t worry if the computer beats you — that&apos;s the whole point of
+        Don&apos;t worry if the computer beats you - that&apos;s the whole point of
         machine learning! Computers can try thousands of adjustments per second.
         Your job is to understand HOW it works, not to be faster.
       </InfoBox>

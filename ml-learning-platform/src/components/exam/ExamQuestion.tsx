@@ -40,7 +40,7 @@ export default function ExamQuestion({
 
   function handleSelect(idx: number) {
     if (mode === "test") {
-      // Test mode — no immediate feedback, allow changing until submit.
+      // Test mode - no immediate feedback, allow changing until submit.
       setSelected(idx);
       onAnswer(idx, idx === question.correctIndex);
       return;

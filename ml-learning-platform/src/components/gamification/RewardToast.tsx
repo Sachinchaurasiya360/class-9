@@ -25,7 +25,7 @@ const COLORS: Record<RewardEvent["kind"], string> = {
 };
 
 /**
- * Global toast stack — mount once (in lessons layout) and it listens to the
+ * Global toast stack - mount once (in lessons layout) and it listens to the
  * gamification store. Only shows events from the last 6 seconds to avoid
  * spamming if state was already primed from a previous visit.
  */

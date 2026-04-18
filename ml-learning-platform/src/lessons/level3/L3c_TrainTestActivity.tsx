@@ -21,7 +21,7 @@ const LAVENDER = "#b18cf2";
 const PAPER = "#fffdf5";
 
 /* ------------------------------------------------------------------ */
-/*  Riku says — local dialogue helper                                  */
+/*  Riku says - local dialogue helper                                  */
 /* ------------------------------------------------------------------ */
 
 function RikuSays({ children }: { children: React.ReactNode }) {
@@ -39,7 +39,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Shared dataset — a mix of two classes, deterministic seed          */
+/*  Shared dataset - a mix of two classes, deterministic seed          */
 /* ------------------------------------------------------------------ */
 
 const FULL_DATA: Point[] = generateClassification2D(40, 21);
@@ -75,7 +75,7 @@ function SplitTab() {
     <div className="space-y-4">
       <p className="font-hand text-base text-center" style={{ color: INK }}>
         Before we let a model learn, we hide some examples in a{" "}
-        <span style={{ color: CORAL, fontWeight: 700 }}>secret pile</span> — so later we can check if it really learned, or just memorized.
+        <span style={{ color: CORAL, fontWeight: 700 }}>secret pile</span> - so later we can check if it really learned, or just memorized.
       </p>
 
       <RikuSays>
@@ -184,7 +184,7 @@ function MemorizeTab() {
       </p>
 
       <RikuSays>
-        Computers don&apos;t learn by magic. They learn by &ldquo;try, fail, adjust, try again&rdquo; — just faster. But we only trust them when they pass a test they&apos;ve never seen before.
+        Computers don&apos;t learn by magic. They learn by &ldquo;try, fail, adjust, try again&rdquo; - just faster. But we only trust them when they pass a test they&apos;ve never seen before.
       </RikuSays>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -260,13 +260,13 @@ function MemorizeTab() {
             className="font-hand text-xs mt-2 text-center"
             style={{ color: INK, opacity: 0.75 }}
           >
-            The model only saw <b>{train.length}</b> points during training. Try dropping a test point near a boundary — that&apos;s where memorizing falls apart but learning still works.
+            The model only saw <b>{train.length}</b> points during training. Try dropping a test point near a boundary - that&apos;s where memorizing falls apart but learning still works.
           </p>
         </div>
       )}
 
       <InfoBox variant="amber">
-        This is the whole point of a test set! On training data a memorizer looks perfect — but only the test reveals who actually learned. ML calls this <b>generalization</b>.
+        This is the whole point of a test set! On training data a memorizer looks perfect - but only the test reveals who actually learned. ML calls this <b>generalization</b>.
       </InfoBox>
     </div>
   );
@@ -362,7 +362,7 @@ function AccuracyTab() {
       </div>
 
       <InfoBox variant="green">
-        Accuracy is the simplest score, but it&apos;s not the only one. Later you&apos;ll meet <b>precision</b>, <b>recall</b>, and <b>F1</b> — different ways to measure what &ldquo;good&rdquo; means.
+        Accuracy is the simplest score, but it&apos;s not the only one. Later you&apos;ll meet <b>precision</b>, <b>recall</b>, and <b>F1</b> - different ways to measure what &ldquo;good&rdquo; means.
       </InfoBox>
     </div>
   );
@@ -388,19 +388,19 @@ const quizQuestions = [
     options: ["50/50", "80/20", "10/90", "100/0"],
     correctIndex: 1,
     explanation:
-      "About 80% for training and 20% for testing is the classic recipe — enough to learn from, enough to honestly test.",
+      "About 80% for training and 20% for testing is the classic recipe - enough to learn from, enough to honestly test.",
   },
   {
     question: "A model gets 100% on training but 30% on test. What's wrong?",
     options: [
-      "Nothing — it's perfect",
+      "Nothing - it's perfect",
       "It memorized instead of learning",
       "The test set is broken",
       "It's too small",
     ],
     correctIndex: 1,
     explanation:
-      "This is called overfitting — the model memorized the training answers but never found the real pattern. Always trust the TEST score.",
+      "This is called overfitting - the model memorized the training answers but never found the real pattern. Always trust the TEST score.",
   },
   {
     question: "If a model gets 8 out of 10 right, what's its accuracy?",
@@ -432,14 +432,14 @@ export default function L3c_TrainTestActivity() {
         <StorySection
           paragraphs={[
             "Aru: \"Byte, I taught my little robot every math question in the book. It got 100% on the exam!\"",
-            "Byte: \"Wait — were the exam questions the SAME ones from the book?\"",
+            "Byte: \"Wait - were the exam questions the SAME ones from the book?\"",
             "Aru: \"Yes...?\"",
-            "Byte: \"Then your robot didn't learn math. It just memorized the answers. Quick — give it a brand new question it's never seen.\"",
+            "Byte: \"Then your robot didn't learn math. It just memorized the answers. Quick - give it a brand new question it's never seen.\"",
             "Aru tried. The robot froze. It didn't know what to do.",
             "Byte: \"That's why ML always hides some examples in a TEST PILE. We never let the model see them while it's learning. Then we use them as a surprise quiz to see if it really learned.\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="Always split your data into TRAIN (the model practices on this) and TEST (locked away — used only at the end to check if the model truly learned). Score on the test set is the only honest measure of how well a model will work on new data in the real world."
+          conceptSummary="Always split your data into TRAIN (the model practices on this) and TEST (locked away - used only at the end to check if the model truly learned). Score on the test set is the only honest measure of how well a model will work on new data in the real world."
         />
       }
     />

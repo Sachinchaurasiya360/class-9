@@ -1,7 +1,7 @@
 "use client";
 
 /* --------------------------------------------------------------------------
- * ChatBubble — single message in the Riku chat stream.
+ * ChatBubble - single message in the Riku chat stream.
  *
  * Riku bubbles sit on the left with the accent-yellow fill so they feel
  * like sticky notes. User bubbles sit on the right, white, and carry the

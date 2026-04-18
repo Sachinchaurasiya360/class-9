@@ -37,7 +37,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 /* ------------------------------------------------------------------ */
 
 function BuildADecisionTree() {
-  // Stable default dataset — two well-separated blobs so axis-aligned
+  // Stable default dataset - two well-separated blobs so axis-aligned
   // splits look clean at low depth.
   const data = useMemo(() => generateClassification2D(48, 17), []);
 
@@ -58,7 +58,7 @@ function BuildADecisionTree() {
 
       <RikuSays>
         Notice how every split is a straight vertical or horizontal line?
-        That&apos;s an &ldquo;axis-aligned&rdquo; split — trees only ever cut
+        That&apos;s an &ldquo;axis-aligned&rdquo; split - trees only ever cut
         one feature at a time. Simple, but surprisingly powerful.
       </RikuSays>
 
@@ -76,28 +76,28 @@ function BuildADecisionTree() {
 /* ------------------------------------------------------------------ */
 
 function TreeVisualization() {
-  // Moons are interlocking crescents — the tree has to stair-step to fit,
+  // Moons are interlocking crescents - the tree has to stair-step to fit,
   // which visually teaches the limitation of axis-aligned splits.
   const data = useMemo(() => generateMoons(70, 23), []);
 
   return (
     <div className="space-y-5">
       <RikuSays>
-        Here&apos;s a trickier dataset — two interlocking crescents. Watch what
+        Here&apos;s a trickier dataset - two interlocking crescents. Watch what
         happens as you crank the depth. The tree builds a little staircase of
         splits trying to follow the curves.
       </RikuSays>
 
       <div className="card-sketchy notebook-grid p-5 space-y-4">
         <h3 className="font-hand text-sm font-bold text-foreground text-center">
-          Curved data meets straight-line splits — let&apos;s see who wins
+          Curved data meets straight-line splits - let&apos;s see who wins
         </h3>
         <DecisionTreeViz data={data} maxDepth={6} />
       </div>
 
       <RikuSays>
         A shallow tree makes big mistakes on the curves. A deep tree fits every
-        wiggle — but that&apos;s not always what you want. (Keep that in mind
+        wiggle - but that&apos;s not always what you want. (Keep that in mind
         for the next tab.)
       </RikuSays>
 
@@ -116,15 +116,15 @@ function TreeVisualization() {
 /* ------------------------------------------------------------------ */
 
 function DepthVsAccuracy() {
-  // Noisier classification — cranking depth quickly shows overfitting.
+  // Noisier classification - cranking depth quickly shows overfitting.
   const data = useMemo(() => generateClassification2D(60, 7), []);
   const forestData = useMemo(() => generateClassification2D(50, 29), []);
 
   return (
     <div className="space-y-5">
       <RikuSays>
-        This is the classic overfitting demo. Start at depth 1 — too simple
-        (underfit). Slide to the max — the tree carves the plane into tiny
+        This is the classic overfitting demo. Start at depth 1 - too simple
+        (underfit). Slide to the max - the tree carves the plane into tiny
         boxes around every individual point. That&apos;s memorization, not
         learning.
       </RikuSays>
@@ -137,15 +137,15 @@ function DepthVsAccuracy() {
       </div>
 
       <RikuSays>
-        The sweet spot is usually in the middle — deep enough to capture the
+        The sweet spot is usually in the middle - deep enough to capture the
         real pattern, shallow enough to ignore the noise. Goldilocks would love
         ML.
       </RikuSays>
 
       <InfoBox variant="amber" title="Underfitting vs Overfitting">
-        A <strong>shallow tree</strong> (low depth) might be too simple — it
+        A <strong>shallow tree</strong> (low depth) might be too simple - it
         underfits, missing important patterns. A <strong>deep tree</strong>{" "}
-        (high depth) can memorize noise — it overfits. The sweet spot is a tree
+        (high depth) can memorize noise - it overfits. The sweet spot is a tree
         that captures the real pattern without being overly complex.
       </InfoBox>
 

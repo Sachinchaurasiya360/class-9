@@ -43,7 +43,7 @@ export default function CareerHubPage() {
             </h2>
           </div>
           <p className="font-hand text-sm text-foreground/85 mt-1">
-            Take the 15-question quiz — about 2 minutes — and we&apos;ll rank
+            Take the 15-question quiz - about 2 minutes - and we&apos;ll rank
             your top matches.
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function CareerHubPage() {
       >
         <Lightbulb className="w-5 h-5 text-foreground flex-shrink-0 mt-0.5" />
         <p className="font-hand text-sm text-foreground leading-snug">
-          <span className="font-bold">Don&apos;t stress —</span> your career
+          <span className="font-bold">Don&apos;t stress -</span> your career
           path will evolve. Pick something that excites you now, build a few
           projects, and let your curiosity pull you forward.
         </p>

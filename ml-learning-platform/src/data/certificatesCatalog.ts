@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------
- * Certificate catalog — 12 deterministic, frontend-only certificates.
+ * Certificate catalog - 12 deterministic, frontend-only certificates.
  *
  * Each definition has an `isEarned` closure that inspects a `CertCheckCtx`
  * snapshot of the current progress state and decides whether the student has
@@ -32,7 +32,7 @@ export type CertificateDef = {
 };
 
 /* --------------------------------------------------------------------------
- * Level lesson path arrays — hardcoded so isEarned checks stay pure.
+ * Level lesson path arrays - hardcoded so isEarned checks stay pure.
  * Must stay in sync with src/components/Sidebar.tsx LEVELS.
  * ------------------------------------------------------------------------ */
 
@@ -147,7 +147,7 @@ export const CERTIFICATES: CertificateDef[] = [
     title: "Data Literate",
     subtitle: "Level 2 Complete",
     description:
-      "Awarded for mastering coordinates, patterns, sorting, outliers and averages — the language of data.",
+      "Awarded for mastering coordinates, patterns, sorting, outliers and averages - the language of data.",
     requirement: "Complete all 5 Level 2 lessons",
     emoji: "📊",
     accent: "mint",
@@ -171,7 +171,7 @@ export const CERTIFICATES: CertificateDef[] = [
     title: "Classic ML Graduate",
     subtitle: "Level 4 Complete",
     description:
-      "Awarded for completing Supervised Learning — KNN, Decision Trees, metrics, and the confusion matrix.",
+      "Awarded for completing Supervised Learning - KNN, Decision Trees, metrics, and the confusion matrix.",
     requirement: "Complete all 6 Level 4 lessons",
     emoji: "🎓",
     accent: "coral",
@@ -219,7 +219,7 @@ export const CERTIFICATES: CertificateDef[] = [
     title: "Computer Vision Engineer",
     subtitle: "Level 8 Complete",
     description:
-      "Awarded for completing the Computer Vision track — images as data, filters, pooling and mini CNNs.",
+      "Awarded for completing the Computer Vision track - images as data, filters, pooling and mini CNNs.",
     requirement: "Complete all 5 Level 8 lessons",
     emoji: "👁️",
     accent: "mint",
@@ -228,7 +228,7 @@ export const CERTIFICATES: CertificateDef[] = [
   {
     id: "rpl-full-track",
     kind: "track",
-    title: "AI Literacy Certified — Full Track",
+    title: "AI Literacy Certified - Full Track",
     subtitle: "All 9 Levels Complete",
     description:
       "Awarded for finishing the entire Red Panda Learn AI Literacy curriculum, from bits to live camera AI.",
@@ -255,7 +255,7 @@ export const CERTIFICATES: CertificateDef[] = [
     title: "CBSE AI 417 Board Ready",
     subtitle: "Practice Exam Passed",
     description:
-      "Awarded for scoring at least 80% on the CBSE AI 417 practice exam — you&apos;re board ready.",
+      "Awarded for scoring at least 80% on the CBSE AI 417 practice exam - you&apos;re board ready.",
     requirement: "Score 80%+ on the practice exam",
     emoji: "📝",
     accent: "lav",

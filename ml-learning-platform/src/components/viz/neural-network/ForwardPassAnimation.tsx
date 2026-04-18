@@ -88,7 +88,7 @@ export function ForwardPassAnimation({
         role="img"
         aria-label="Forward pass animation"
       >
-        {/* connections — only drawn into already-computed layers */}
+        {/* connections - only drawn into already-computed layers */}
         {effectiveWeights.map((layerW, li) => {
           const isActive = li < stage;
           const isCurrent = li === stage;

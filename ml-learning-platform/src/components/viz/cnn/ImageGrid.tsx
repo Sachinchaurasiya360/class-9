@@ -11,7 +11,7 @@ import {
 } from "./imageUtils";
 
 export interface ImageGridProps {
-  /** Row-major 2D array. Values can be 0-255 or 0-1 — we auto-normalize. */
+  /** Row-major 2D array. Values can be 0-255 or 0-1 - we auto-normalize. */
   pixels?: Pixels2D;
   /** Logical width of the whole SVG in px. */
   width?: number;
@@ -27,7 +27,7 @@ export interface ImageGridProps {
   colormap?: ColormapName;
   /** Optional title rendered above the grid in handwriting font. */
   label?: string;
-  /** Optional highlight window { y, x, size } — draws a coral box. */
+  /** Optional highlight window { y, x, size } - draws a coral box. */
   highlight?: { y: number; x: number; size: number } | null;
   /** Optional coordinate to glow (e.g. current conv output cell). */
   glow?: { y: number; x: number } | null;
@@ -37,7 +37,7 @@ export interface ImageGridProps {
 }
 
 /**
- * <ImageGrid /> — the teaching workhorse. Renders a 2D array of pixel values
+ * <ImageGrid /> - the teaching workhorse. Renders a 2D array of pixel values
  * as a grid of colored squares using pure SVG. Supports numeric overlays,
  * colormap toggle, and optional highlight/glow markers used by ConvolutionViz.
  */

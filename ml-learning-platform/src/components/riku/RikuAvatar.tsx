@@ -1,7 +1,7 @@
 "use client";
 
 /* --------------------------------------------------------------------------
- * RikuAvatar — inline SVG of our red panda mascot. Kept scrappy on purpose
+ * RikuAvatar - inline SVG of our red panda mascot. Kept scrappy on purpose
  * so it matches the sketchy-notebook vibe of the rest of the UI. All paths
  * are built from simple circles/ellipses + a couple of triangles so it
  * renders crisp at any size.
@@ -68,7 +68,7 @@ export default function RikuAvatar({
         strokeWidth="2.5"
       />
 
-      {/* Face mask — two teardrop shapes meeting in the middle */}
+      {/* Face mask - two teardrop shapes meeting in the middle */}
       <path
         d="M50,38 Q30,38 24,58 Q26,76 42,78 Q50,72 50,56 Z"
         fill={MASK}
@@ -125,7 +125,7 @@ export default function RikuAvatar({
         </>
       )}
 
-      {/* Nose — small triangle */}
+      {/* Nose - small triangle */}
       <path
         d="M46,64 L54,64 L50,70 Z"
         fill={INK}

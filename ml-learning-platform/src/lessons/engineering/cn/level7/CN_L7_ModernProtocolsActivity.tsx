@@ -6,7 +6,7 @@ import EngineeringLessonShell from "@/components/engineering/EngineeringLessonSh
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — WebSocket vs REST                                         */
+/*  Tab 1 - WebSocket vs REST                                         */
 /* ------------------------------------------------------------------ */
 
 function WebSocketTab() {
@@ -274,7 +274,7 @@ function WebSocketTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — gRPC & Protocol Buffers                                    */
+/*  Tab 2 - gRPC & Protocol Buffers                                    */
 /* ------------------------------------------------------------------ */
 
 function GRPCTab() {
@@ -501,7 +501,7 @@ function GRPCTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Protocol Comparison                                        */
+/*  Tab 3 - Protocol Comparison                                        */
 /* ------------------------------------------------------------------ */
 
 interface ProtocolInfo {
@@ -797,7 +797,6 @@ export default function CN_L7_ModernProtocolsActivity() {
       lessonNumber={4}
       tabs={tabs}
       quiz={quiz}
-      gateRelevance="0-1 marks"
       placementRelevance="Very High"
     />
   );

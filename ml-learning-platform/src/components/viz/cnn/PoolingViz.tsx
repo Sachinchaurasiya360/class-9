@@ -38,7 +38,7 @@ const DEFAULT_INPUT: Pixels2D = [
 ];
 
 /**
- * <PoolingViz /> — teaches max / avg pooling by sliding a window over the
+ * <PoolingViz /> - teaches max / avg pooling by sliding a window over the
  * input and showing which cell "won" (max) or the averaged value (avg).
  */
 export default function PoolingViz({
@@ -119,7 +119,7 @@ export default function PoolingViz({
     return () => clearTimeout(t);
   }, [playing, stepIdx, steps.length, step, speedMs]);
 
-  // Build a per-cell overlay on the input grid — we want to ghost every
+  // Build a per-cell overlay on the input grid - we want to ghost every
   // pixel that has already been "consumed" by a prior window. Easy way:
   // mark the pixels the current window covers with a highlight plus the
   // single argmax (for max-pool).
@@ -237,8 +237,8 @@ export default function PoolingViz({
 
       <p className="mt-3 font-hand text-sm text-muted-foreground">
         {type === "max"
-          ? "max pooling keeps only the brightest pixel in each window — it preserves strong activations."
-          : "average pooling replaces each window with the mean — it smooths the feature map."}
+          ? "max pooling keeps only the brightest pixel in each window - it preserves strong activations."
+          : "average pooling replaces each window with the mean - it smooths the feature map."}
       </p>
     </div>
   );

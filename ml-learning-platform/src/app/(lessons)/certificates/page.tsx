@@ -112,7 +112,7 @@ export default function CertificatesPage() {
       xp: g.xp,
       projectsCompleted: g.stats.totalProjects,
       perfectQuizzes: g.stats.totalPerfectQuizzes,
-      // No examProgress util exists yet — wire in when src/utils/examProgress.ts ships.
+      // No examProgress util exists yet - wire in when src/utils/examProgress.ts ships.
       examBestScore: 0,
     }),
     [p.lessons, g.xp, g.stats.totalProjects, g.stats.totalPerfectQuizzes],

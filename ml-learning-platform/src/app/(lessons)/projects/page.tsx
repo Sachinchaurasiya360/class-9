@@ -44,7 +44,7 @@ export default function ProjectsPage() {
         </h1>
         <p className="font-hand text-base text-muted-foreground max-w-2xl">
           Build real AI projects you can show off. Each one walks you through a problem,
-          the data, the approach and what you'd measure — save drafts any time.
+          the data, the approach and what you'd measure - save drafts any time.
         </p>
       </header>
 

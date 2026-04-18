@@ -62,7 +62,7 @@ export function LossLandscape({
   }, [lossFn, lo, hi]);
 
   // Build contour rings as concentric ellipses centered on an estimated minimum.
-  // This is a simple approximation — for an arbitrary `lossFn` we sample level sets
+  // This is a simple approximation - for an arbitrary `lossFn` we sample level sets
   // by drawing smooth curves through the grid at fixed level values.
   const contours = useMemo(() => {
     const levels: number[] = [];

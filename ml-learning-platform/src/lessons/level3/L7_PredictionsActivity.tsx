@@ -71,7 +71,7 @@ const ROUNDS: Round[] = [
     sequence: [2, 6, 12, 20, 30],
     answer: 42,
     patternLabel: "differences increase by 2 each time",
-    hint: "Look at the differences: 4, 6, 8, 10 — what comes next?",
+    hint: "Look at the differences: 4, 6, 8, 10 - what comes next?",
   },
 ];
 
@@ -234,7 +234,7 @@ function GuessTheNumber() {
           </div>
         </div>
 
-        {/* Data viz scatter — pattern in chart form */}
+        {/* Data viz scatter - pattern in chart form */}
         <ScatterPlot
           data={scatterWithGuess}
           width={520}
@@ -303,7 +303,7 @@ function GuessTheNumber() {
 /* ------------------------------------------------------------------ */
 
 function PredictFromGraph() {
-  // Three toy datasets — students can cycle through them.
+  // Three toy datasets - students can cycle through them.
   const datasets: { name: string; data: Point[] }[] = useMemo(
     () => [
       { name: "Ice-cream sales vs temperature", data: generateLinearData(22, 0.7, 12, 7, 5) },
@@ -319,7 +319,7 @@ function PredictFromGraph() {
     <div className="space-y-5">
       <RikuSays>
         Draw a line through the cloud of dots, then extend it off the edge. That's the prediction!
-        Drag the slope and intercept — watch the error (MSE) shrink as your line fits better.
+        Drag the slope and intercept - watch the error (MSE) shrink as your line fits better.
       </RikuSays>
 
       <div className="card-sketchy p-4 space-y-3">
@@ -345,13 +345,13 @@ function PredictFromGraph() {
         <LinearRegressionViz data={ds.data} showResiduals showMSE />
 
         <p className="font-hand text-xs text-center" style={{ color: INK, opacity: 0.75 }}>
-          Each little red stick is a <b>residual</b> — how wrong the line is at that point. MSE is their average-squared length.
+          Each little red stick is a <b>residual</b> - how wrong the line is at that point. MSE is their average-squared length.
         </p>
       </div>
 
       <InfoBox variant="amber">
         <span className="font-hand text-base">
-          📈 Predicting from a graph means extending the pattern into unknown territory — exactly what weather forecasters and stock analysts do every day!
+          📈 Predicting from a graph means extending the pattern into unknown territory - exactly what weather forecasters and stock analysts do every day!
         </span>
       </InfoBox>
     </div>
@@ -480,7 +480,7 @@ function CoinFlipSimulator() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        With 3 flips you know nothing. With 300, the pattern is obvious. That's why ML is hungry for data —
+        With 3 flips you know nothing. With 300, the pattern is obvious. That's why ML is hungry for data -
         more flips, more confidence. Watch the running line drift toward the target as you flip.
       </RikuSays>
 
@@ -643,7 +643,7 @@ function CoinFlipSimulator() {
 
       <InfoBox variant="green">
         <span className="font-hand text-base">
-          🎲 With more data, predictions get better. After 2 flips you can't tell much. After 100, the pattern is clear — the foundation of statistics and ML!
+          🎲 With more data, predictions get better. After 2 flips you can't tell much. After 100, the pattern is clear - the foundation of statistics and ML!
         </span>
       </InfoBox>
     </div>

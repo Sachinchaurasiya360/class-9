@@ -75,7 +75,7 @@ function BinaryTranslator() {
     <div className="space-y-5">
       <RikuSays>
         A computer is a machine that speaks only ONE language: on/off, yes/no, 1/0. That&apos;s it.
-        Everything else — your name, this text, every emoji — is built on top of these eight little
+        Everything else - your name, this text, every emoji - is built on top of these eight little
         switches. Flip some and watch the number (and sometimes a letter!) appear.
       </RikuSays>
 
@@ -321,7 +321,7 @@ function EncodeMessage() {
       </InfoBox>
 
       <RikuSays>
-        Try typing your name. Each letter is exactly 8 bits — 1 byte per character. So
+        Try typing your name. Each letter is exactly 8 bits - 1 byte per character. So
         &quot;Riku&quot; is just 32 bits: four stacks of on/off switches sitting in a row. Your
         whole name, encoded.
       </RikuSays>
@@ -358,7 +358,7 @@ const COMPONENTS: ComponentInfo[] = [
     id: "cpu",
     label: "CPU",
     subtitle: "The Brain",
-    description: "The CPU is the brain. It reads instructions, does math, and makes decisions — billions of times per second.",
+    description: "The CPU is the brain. It reads instructions, does math, and makes decisions - billions of times per second.",
     icon: <Brain className="w-5 h-5" />,
     cx: 210, cy: 60,
     color: CORAL,
@@ -585,7 +585,7 @@ function InsideComputer() {
       </div>
 
       <InfoBox variant="green">
-        The CPU is the brain. It reads instructions from memory, does the math, and sends results to the output —
+        The CPU is the brain. It reads instructions from memory, does the math, and sends results to the output -
         billions of times per second.
       </InfoBox>
 
@@ -628,7 +628,7 @@ const quizQuestions = [
     options: ["It stays forever", "It gets bigger", "It disappears", "It moves to the screen"],
     correctIndex: 2,
     explanation:
-      "RAM is temporary memory — when the computer turns off, everything stored in RAM is lost. That's why you save files to a hard drive!",
+      "RAM is temporary memory - when the computer turns off, everything stored in RAM is lost. That's why you save files to a hard drive!",
   },
 ];
 
@@ -673,13 +673,13 @@ export default function L2_ComputersActivity() {
         <StorySection
           paragraphs={[
             "Aru stared at Byte, her little robot friend, and a thought struck her.",
-            "Aru: \"Byte, you understand everything I say. But how? You're a machine — you don't speak English inside your brain, do you?\"",
-            "Byte: \"Great question! Inside me, everything is just two things: 0 and 1. That's it. Every word you say, every picture you take, every song you play — it all becomes 0s and 1s.\"",
-            "Aru: \"Wait — so the word 'Hello' is just a bunch of zeros and ones?\"",
+            "Aru: \"Byte, you understand everything I say. But how? You're a machine - you don't speak English inside your brain, do you?\"",
+            "Byte: \"Great question! Inside me, everything is just two things: 0 and 1. That's it. Every word you say, every picture you take, every song you play - it all becomes 0s and 1s.\"",
+            "Aru: \"Wait - so the word 'Hello' is just a bunch of zeros and ones?\"",
             "Byte: \"Exactly! Let me show you how computers turn the world into numbers, and numbers into 0s and 1s.\""
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="Computers understand only two things: 0 and 1 (called binary). Everything — letters, numbers, images, music — gets converted into long sequences of 0s and 1s. Eight 0s and 1s together make a 'byte', which can represent 256 different values."
+          conceptSummary="Computers understand only two things: 0 and 1 (called binary). Everything - letters, numbers, images, music - gets converted into long sequences of 0s and 1s. Eight 0s and 1s together make a 'byte', which can represent 256 different values."
         />
       }
     />

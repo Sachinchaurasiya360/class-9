@@ -53,9 +53,9 @@ function BitBuilderTab() {
       </RikuSays>
 
       <p className="font-hand text-base text-center" style={{ color: INK }}>
-        A <span style={{ color: CORAL, fontWeight: 700 }}>bit</span> is the smallest piece of memory — just 0 or 1.
+        A <span style={{ color: CORAL, fontWeight: 700 }}>bit</span> is the smallest piece of memory - just 0 or 1.
         Stack <span style={{ color: LAVENDER, fontWeight: 700 }}>8 bits</span> together and you get a{" "}
-        <span style={{ color: MINT, fontWeight: 700 }}>byte</span> — enough to store one letter!
+        <span style={{ color: MINT, fontWeight: 700 }}>byte</span> - enough to store one letter!
       </p>
 
       <div className="card-sketchy" style={{ background: PAPER }}>
@@ -119,11 +119,11 @@ function BitBuilderTab() {
       </div>
 
       <InfoBox variant="blue">
-        Every letter you type, every emoji 😀, every pixel on this screen — it&apos;s all just bits flipping between 0 and 1. The whole digital world rests on that one tiny choice.
+        Every letter you type, every emoji 😀, every pixel on this screen - it&apos;s all just bits flipping between 0 and 1. The whole digital world rests on that one tiny choice.
       </InfoBox>
 
       <RikuSays>
-        Fun fact: the place values double each step — 128, 64, 32, 16, 8, 4, 2, 1. That&apos;s
+        Fun fact: the place values double each step - 128, 64, 32, 16, 8, 4, 2, 1. That&apos;s
         binary&apos;s whole trick. Mix and match those eight numbers and you can build anything from
         0 to 255.
       </RikuSays>
@@ -161,13 +161,13 @@ function FileSizeTab() {
     <div className="space-y-4">
       <RikuSays>
         File sizes grow FAST. A photo is millions of times bigger than a single letter. I had to
-        use a log scale here — each bar step is about 10x the one before it, otherwise the letter
+        use a log scale here - each bar step is about 10x the one before it, otherwise the letter
         would be a pixel and the movie would be a mile wide.
       </RikuSays>
 
       <p className="font-hand text-base text-center" style={{ color: INK }}>
         Files come in wildly different sizes. This bar chart uses a{" "}
-        <span style={{ color: CORAL, fontWeight: 700 }}>log scale</span> — each step is <b>10× bigger</b> than the last!
+        <span style={{ color: CORAL, fontWeight: 700 }}>log scale</span> - each step is <b>10× bigger</b> than the last!
       </p>
 
       <div className="card-sketchy" style={{ background: PAPER }}>
@@ -227,7 +227,7 @@ function FileSizeTab() {
       </InfoBox>
 
       <RikuSays>
-        Hover over each bar — I love the jump from &quot;text message&quot; to &quot;MP3 song&quot;.
+        Hover over each bar - I love the jump from &quot;text message&quot; to &quot;MP3 song&quot;.
         Audio has to describe the air itself, thousands of times a second. No wonder it eats bytes.
       </RikuSays>
     </div>
@@ -345,7 +345,7 @@ function StorageRaceTab() {
       </div>
 
       <InfoBox variant="green">
-        Notice how a tiny change in <b>photo size</b> changes the total dramatically. That&apos;s why &quot;compress your photos&quot; actually matters — every byte adds up.
+        Notice how a tiny change in <b>photo size</b> changes the total dramatically. That&apos;s why &quot;compress your photos&quot; actually matters - every byte adds up.
       </InfoBox>
 
       <RikuSays>
@@ -376,7 +376,7 @@ const quizQuestions = [
     question: "Why is everything inside a computer just 0s and 1s?",
     options: ["It's the cheapest letters", "Electronic switches are easiest with two states: off/on", "Old habit", "Random choice"],
     correctIndex: 1,
-    explanation: "Tiny electronic switches (transistors) are reliable when they only have to be 'off' or 'on' — that's a 0 or a 1.",
+    explanation: "Tiny electronic switches (transistors) are reliable when they only have to be 'off' or 'on' - that's a 0 or a 1.",
   },
   {
     question: "If a photo is 3 MB, about how many photos fit in 1 GB?",
@@ -403,19 +403,19 @@ export default function L1c_BitsBytesActivity() {
       lessonNumber={5}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Now you know how data is stored. Time to learn how computers find patterns in all those numbers — Level 2 awaits!"
+      nextLessonHint="Now you know how data is stored. Time to learn how computers find patterns in all those numbers - Level 2 awaits!"
       story={
         <StorySection
           paragraphs={[
             "Aru looked at her phone: \"Storage almost full.\" She frowned. \"I deleted so many things last week!\"",
-            "Byte: \"You probably took 200 photos at the beach. Each photo is about 3 MB — that's 600 MB gone, just from one trip.\"",
+            "Byte: \"You probably took 200 photos at the beach. Each photo is about 3 MB - that's 600 MB gone, just from one trip.\"",
             "Aru: \"Wait, 3 MB is one photo? But MB sounds tiny...\"",
             "Byte: \"That's because 1 MB is actually 8,000,000 bits. Each bit is one tiny on/off switch. A photo is millions of switches frozen in place.\"",
             "Aru: \"So when my phone runs out of space, it really means... it ran out of switches?\"",
             "Byte: \"Exactly. Welcome to the secret language of computers.\""
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="A bit is the smallest piece of memory: 0 or 1. 8 bits = 1 byte (enough for a letter). 1000 bytes = 1 KB. 1000 KB = 1 MB. 1000 MB = 1 GB. ML models like GPT-4 are around a terabyte — a trillion bytes — of these tiny switches working together."
+          conceptSummary="A bit is the smallest piece of memory: 0 or 1. 8 bits = 1 byte (enough for a letter). 1000 bytes = 1 KB. 1000 KB = 1 MB. 1000 MB = 1 GB. ML models like GPT-4 are around a terabyte - a trillion bytes - of these tiny switches working together."
         />
       }
     />

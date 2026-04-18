@@ -145,7 +145,7 @@ function StepByStepTab() {
     <div className="space-y-4">
       <RikuSays>
         Zoom in! This is what *one* neuron does under the hood. Every neuron
-        in the whole network is doing this exact same little dance —
+        in the whole network is doing this exact same little dance -
         multiply, add, squish. Millions of times per second.
       </RikuSays>
 
@@ -270,7 +270,7 @@ function WhyForwardTab() {
     <div className="space-y-4">
       <RikuSays>
         Quick vocabulary check! &quot;Forward&quot; and &quot;backward&quot;
-        are two different jobs the same network does — one when you *use* it,
+        are two different jobs the same network does - one when you *use* it,
         one when you *train* it. Don&apos;t mix them up on the quiz.
       </RikuSays>
 
@@ -367,8 +367,8 @@ function WhyForwardTab() {
       </RikuSays>
 
       <InfoBox variant="green">
-        Today you learned the FORWARD pass — using the network. Next lesson
-        (backpropagation) covers the BACKWARD pass — training it.
+        Today you learned the FORWARD pass - using the network. Next lesson
+        (backpropagation) covers the BACKWARD pass - training it.
       </InfoBox>
     </div>
   );
@@ -463,7 +463,7 @@ export default function L36_ForwardPassActivity() {
       lessonNumber={6}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="You can now follow how a network MAKES a prediction. Up next: how it LEARNS — by passing errors backward."
+      nextLessonHint="You can now follow how a network MAKES a prediction. Up next: how it LEARNS - by passing errors backward."
       story={
         <StorySection
           paragraphs={[
@@ -475,7 +475,7 @@ export default function L36_ForwardPassActivity() {
             "Byte: \"Every step. Numbers, animations, the whole thing. Press play.\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="A FORWARD PASS is when data flows through the network from inputs to output. Each neuron multiplies its inputs by weights, adds them up with a bias, runs through an activation function, and passes the result to the next layer. This is exactly what happens whenever you USE a neural network — making a prediction is just one big forward pass."
+          conceptSummary="A FORWARD PASS is when data flows through the network from inputs to output. Each neuron multiplies its inputs by weights, adds them up with a bias, runs through an activation function, and passes the result to the next layer. This is exactly what happens whenever you USE a neural network - making a prediction is just one big forward pass."
         />
       }
     />

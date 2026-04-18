@@ -10,7 +10,7 @@ import { LossLandscape } from "../../components/viz/neural-network";
 import { LineChart } from "../../components/viz/data-viz";
 
 /* ------------------------------------------------------------------ */
-/*  Riku says — local dialogue helper                                  */
+/*  Riku says - local dialogue helper                                  */
 /* ------------------------------------------------------------------ */
 function RikuSays({ children }: { children: React.ReactNode }) {
   return (
@@ -32,14 +32,14 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 /*  Loss surface presets for GradientDescentViz / LossLandscape        */
 /* ------------------------------------------------------------------ */
 
-/** Simple symmetric bowl on [0,100]² — gentle, classic descent. */
+/** Simple symmetric bowl on [0,100]² - gentle, classic descent. */
 function bowlLoss(w: number, b: number): number {
   const dw = (w - 50) / 22;
   const db = (b - 50) / 22;
   return dw * dw + db * db;
 }
 
-/** Skewed, stretched bowl — shows zig-zag descent. */
+/** Skewed, stretched bowl - shows zig-zag descent. */
 function skewedLoss(w: number, b: number): number {
   const dw = (w - 55) / 14;
   const db = (b - 48) / 30;
@@ -52,7 +52,7 @@ function doubleWellLoss(x: number, y: number): number {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Why We Need Gradients (1D intro)                           */
+/*  Tab 1 - Why We Need Gradients (1D intro)                           */
 /* ------------------------------------------------------------------ */
 function RollDownTab() {
   // Sample a smooth 1D loss curve with a single minimum near x = 0.6.
@@ -93,7 +93,7 @@ function RollDownTab() {
           animateOnMount
         />
         <p className="font-hand text-xs text-center text-muted-foreground mt-2">
-          The valley near the middle is the minimum — that&apos;s where we
+          The valley near the middle is the minimum - that&apos;s where we
           want to end up.
         </p>
       </div>
@@ -113,7 +113,7 @@ function RollDownTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Descent on a 2D Bowl                                       */
+/*  Tab 2 - Descent on a 2D Bowl                                       */
 /* ------------------------------------------------------------------ */
 function BowlDescentTab() {
   return (
@@ -126,7 +126,7 @@ function BowlDescentTab() {
 
       <RikuSays>
         Two parameters means two directions to worry about. But don&apos;t
-        panic — the math still just says &ldquo;go downhill&rdquo;.
+        panic - the math still just says &ldquo;go downhill&rdquo;.
       </RikuSays>
 
       <GradientDescentViz
@@ -150,7 +150,7 @@ function BowlDescentTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Tricky Landscapes                                          */
+/*  Tab 3 - Tricky Landscapes                                          */
 /* ------------------------------------------------------------------ */
 function TrickyLandscapesTab() {
   return (
@@ -162,7 +162,7 @@ function TrickyLandscapesTab() {
       </p>
 
       <RikuSays>
-        Skewed valleys are like a narrow canyon — descent zig-zags because
+        Skewed valleys are like a narrow canyon - descent zig-zags because
         one direction drops much faster than the other. Still works, just
         takes more steps.
       </RikuSays>
@@ -175,7 +175,7 @@ function TrickyLandscapesTab() {
 
       <RikuSays>
         Double wells have <em>two</em> lowest points. Gradient descent finds
-        whichever one is closer — which is why your starting position
+        whichever one is closer - which is why your starting position
         matters!
       </RikuSays>
 
@@ -190,7 +190,7 @@ function TrickyLandscapesTab() {
 
       <InfoBox variant="amber" title="Not All Valleys Are Equal">
         Real models have loss surfaces with long canyons, saddle points, and
-        many local minima. Plain gradient descent can get stuck — which is
+        many local minima. Plain gradient descent can get stuck - which is
         why we&apos;ll learn about learning rate and momentum next lesson.
       </InfoBox>
     </div>

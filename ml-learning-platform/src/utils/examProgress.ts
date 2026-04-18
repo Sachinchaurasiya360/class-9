@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { EXAM_QUESTIONS, getQuestionById } from "@/data/examBank";
 
 /* --------------------------------------------------------------------------
- * Exam Prep progress — persists attempts, computes accuracy per chapter,
+ * Exam Prep progress - persists attempts, computes accuracy per chapter,
  * and exposes the data needed by the review/weak-area features.
  *
  * Mirrors the progress.ts pattern: single module-level store, subscribe/
@@ -134,7 +134,7 @@ export function resetExamProgress(): void {
 }
 
 /* --------------------------------------------------------------------------
- * Analytics — weak area detection and review queue
+ * Analytics - weak area detection and review queue
  * ------------------------------------------------------------------------ */
 
 /** Returns the N chapters with the lowest accuracy among those actually attempted. */
@@ -214,17 +214,17 @@ export function getOverallStats(): {
   return { totalAttempted: att, totalCorrect: cor, accuracy: att === 0 ? 0 : cor / att };
 }
 
-/** Pure read of state without subscribing — useful in callbacks. */
+/** Pure read of state without subscribing - useful in callbacks. */
 export function getExamState(): ExamState {
   return state;
 }
 
-/** Count of questions in the review pile — handy for hub badge. */
+/** Count of questions in the review pile - handy for hub badge. */
 export function getReviewCount(): number {
   return getWrongQuestionIds().length;
 }
 
-/** Total number of questions in the bank — for display. */
+/** Total number of questions in the bank - for display. */
 export function getBankSize(): number {
   return EXAM_QUESTIONS.length;
 }

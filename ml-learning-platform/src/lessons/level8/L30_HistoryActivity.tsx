@@ -22,7 +22,7 @@ const PEACH = "#ffb88c";
 const PAPER = "#fffdf5";
 
 /* ------------------------------------------------------------------ */
-/*  Riku — warm, nerdy red-panda narrator                              */
+/*  Riku - warm, nerdy red-panda narrator                              */
 /* ------------------------------------------------------------------ */
 
 function RikuSays({ children }: { children: React.ReactNode }) {
@@ -58,8 +58,8 @@ const MILESTONES: Milestone[] = [
     year: 1943,
     title: "The First Brain Cell on Paper",
     who: "Warren McCulloch & Walter Pitts",
-    what: "A neuroscientist and a young logician teamed up and wrote a paper called 'A Logical Calculus of the Ideas Immanent in Nervous Activity'. In it they showed that a brain cell could be described with simple yes/no logic — inputs come in, get added up, and if the total crosses a threshold, the neuron 'fires'. There was no computer to run it on. It was pure math, drawn on paper.",
-    why: "It was the first time anyone said out loud: a thinking machine isn't magic — it's math. Every neural network you'll ever see, from the perceptron to GPT, is a direct descendant of this one paper.",
+    what: "A neuroscientist and a young logician teamed up and wrote a paper called 'A Logical Calculus of the Ideas Immanent in Nervous Activity'. In it they showed that a brain cell could be described with simple yes/no logic - inputs come in, get added up, and if the total crosses a threshold, the neuron 'fires'. There was no computer to run it on. It was pure math, drawn on paper.",
+    why: "It was the first time anyone said out loud: a thinking machine isn't magic - it's math. Every neural network you'll ever see, from the perceptron to GPT, is a direct descendant of this one paper.",
     color: PEACH,
     emoji: "🧠",
   },
@@ -67,8 +67,8 @@ const MILESTONES: Milestone[] = [
     year: 1950,
     title: "The Turing Test",
     who: "Alan Turing",
-    what: "In a paper called 'Computing Machinery and Intelligence', Turing dodged the impossible question 'can machines think?' and replaced it with a game: put a human and a machine behind a curtain, let a judge chat with both, and see if the judge can tell which is which. If not — call it intelligent. He also predicted that by 2000, computers would have enough memory to fool people 30% of the time.",
-    why: "It gave AI researchers a goal they could actually aim at. For the next 75 years, every chatbot, every language model, every voice assistant was — secretly or openly — chasing the Turing Test.",
+    what: "In a paper called 'Computing Machinery and Intelligence', Turing dodged the impossible question 'can machines think?' and replaced it with a game: put a human and a machine behind a curtain, let a judge chat with both, and see if the judge can tell which is which. If not - call it intelligent. He also predicted that by 2000, computers would have enough memory to fool people 30% of the time.",
+    why: "It gave AI researchers a goal they could actually aim at. For the next 75 years, every chatbot, every language model, every voice assistant was - secretly or openly - chasing the Turing Test.",
     color: SKY,
     emoji: "🤔",
   },
@@ -77,7 +77,7 @@ const MILESTONES: Milestone[] = [
     title: "AI Gets Its Name",
     who: "Dartmouth Workshop",
     what: "John McCarthy, Marvin Minsky, Claude Shannon and Nathaniel Rochester gathered ten researchers at Dartmouth College for a summer workshop. McCarthy coined a brand-new phrase for what they were doing: 'Artificial Intelligence'. They were so optimistic they thought they'd solve most of it in two months. They were a little off.",
-    why: "Before this summer, the field had no name. After it, AI was officially a discipline — with conferences, funding, and a flag to rally around.",
+    why: "Before this summer, the field had no name. After it, AI was officially a discipline - with conferences, funding, and a flag to rally around.",
     color: MINT,
     emoji: "🎓",
   },
@@ -85,7 +85,7 @@ const MILESTONES: Milestone[] = [
     year: 1958,
     title: "The Perceptron",
     who: "Frank Rosenblatt",
-    what: "At Cornell, Rosenblatt built the Mark I Perceptron — a real, physical machine the size of a refrigerator, with 400 light sensors wired to motorized potentiometers (the 'weights'). Show it a card with a shape, and it would adjust those weights until it learned to tell circles from squares. The New York Times called it 'the embryo of an electronic computer that the Navy expects will be able to walk, talk, see, write, reproduce itself and be conscious of its existence'.",
+    what: "At Cornell, Rosenblatt built the Mark I Perceptron - a real, physical machine the size of a refrigerator, with 400 light sensors wired to motorized potentiometers (the 'weights'). Show it a card with a shape, and it would adjust those weights until it learned to tell circles from squares. The New York Times called it 'the embryo of an electronic computer that the Navy expects will be able to walk, talk, see, write, reproduce itself and be conscious of its existence'.",
     why: "It was the first machine in history that learned from examples instead of being programmed step-by-step. That's the entire idea of machine learning, born in one humming metal cabinet.",
     color: CORAL,
     emoji: "⚡",
@@ -95,7 +95,7 @@ const MILESTONES: Milestone[] = [
     title: "The AI Winter Begins",
     who: "Marvin Minsky & Seymour Papert",
     what: "Two MIT professors published a book called 'Perceptrons' that mathematically proved a single-layer perceptron could not learn even the simple XOR function (output 1 only when exactly one input is on). The press took it as 'AI is impossible'. Government money vanished. Labs closed. Researchers quietly left the field. The freeze lasted nearly 15 years.",
-    why: "It was a brutal but useful lesson: one neuron is too weak. The fix was waiting in plain sight — stack neurons in layers — but nobody had a way to train those layers yet.",
+    why: "It was a brutal but useful lesson: one neuron is too weak. The fix was waiting in plain sight - stack neurons in layers - but nobody had a way to train those layers yet.",
     color: LAVENDER,
     emoji: "❄️",
   },
@@ -103,8 +103,8 @@ const MILESTONES: Milestone[] = [
     year: 1986,
     title: "Backpropagation Revives Neural Nets",
     who: "David Rumelhart, Geoffrey Hinton & Ronald Williams",
-    what: "Their paper 'Learning representations by back-propagating errors' showed how to train a network with many layers: run an example forward, measure how wrong the answer was, then push that error BACKWARD through the layers, nudging every weight a tiny bit in the direction that reduces the mistake. The math (the chain rule from calculus) had existed for centuries — they finally pointed it at neural nets.",
-    why: "Suddenly multi-layer networks could actually learn. This is the algorithm every modern model — yes, including ChatGPT — still uses to train. Hinton would later win the Nobel Prize partly for this.",
+    what: "Their paper 'Learning representations by back-propagating errors' showed how to train a network with many layers: run an example forward, measure how wrong the answer was, then push that error BACKWARD through the layers, nudging every weight a tiny bit in the direction that reduces the mistake. The math (the chain rule from calculus) had existed for centuries - they finally pointed it at neural nets.",
+    why: "Suddenly multi-layer networks could actually learn. This is the algorithm every modern model - yes, including ChatGPT - still uses to train. Hinton would later win the Nobel Prize partly for this.",
     color: MINT,
     emoji: "🔄",
   },
@@ -112,8 +112,8 @@ const MILESTONES: Milestone[] = [
     year: 1997,
     title: "Deep Blue Beats Kasparov",
     who: "IBM",
-    what: "After a humiliating loss the year before, IBM's chess machine Deep Blue came back and beat reigning world champion Garry Kasparov 3.5–2.5 in a six-game match in New York. Deep Blue wasn't really 'learning' — it was a custom supercomputer that could evaluate 200 million chess positions per second using brute force and hand-tuned rules. Kasparov accused IBM of cheating. They never played a rematch.",
-    why: "For the first time, a machine beat the very best human at something humans considered a peak of intelligence. It made the public start taking machines-vs-humans seriously again — and reminded everyone that compute was getting scary fast.",
+    what: "After a humiliating loss the year before, IBM's chess machine Deep Blue came back and beat reigning world champion Garry Kasparov 3.5–2.5 in a six-game match in New York. Deep Blue wasn't really 'learning' - it was a custom supercomputer that could evaluate 200 million chess positions per second using brute force and hand-tuned rules. Kasparov accused IBM of cheating. They never played a rematch.",
+    why: "For the first time, a machine beat the very best human at something humans considered a peak of intelligence. It made the public start taking machines-vs-humans seriously again - and reminded everyone that compute was getting scary fast.",
     color: YELLOW,
     emoji: "♟️",
   },
@@ -121,7 +121,7 @@ const MILESTONES: Milestone[] = [
     year: 2012,
     title: "AlexNet & The Deep Learning Boom",
     who: "Alex Krizhevsky, Ilya Sutskever & Geoffrey Hinton",
-    what: "An 8-layer convolutional network called AlexNet entered the ImageNet contest — a competition to label photos into 1,000 categories. The previous year's winner had ~26% errors. AlexNet got 15%. It won by a margin so huge the computer-vision world was in shock. The trick? Two consumer NVIDIA gaming GPUs in Alex's bedroom, training for a week on 1.2 million images.",
+    what: "An 8-layer convolutional network called AlexNet entered the ImageNet contest - a competition to label photos into 1,000 categories. The previous year's winner had ~26% errors. AlexNet got 15%. It won by a margin so huge the computer-vision world was in shock. The trick? Two consumer NVIDIA gaming GPUs in Alex's bedroom, training for a week on 1.2 million images.",
     why: "This is the moment 'deep learning' stopped being a niche trick and became THE way to do AI. Every company, every university, every research lab pivoted within months. The modern AI era starts here.",
     color: CORAL,
     emoji: "🎯",
@@ -130,8 +130,8 @@ const MILESTONES: Milestone[] = [
     year: 2016,
     title: "AlphaGo Beats Lee Sedol",
     who: "DeepMind",
-    what: "Go is a 2,500-year-old board game with more legal positions than atoms in the observable universe. Experts said computers were 10+ years away from beating top humans. Then DeepMind's AlphaGo — which trained by playing itself millions of times — beat 18-time world champion Lee Sedol 4 games to 1 in Seoul. In game 2, move 37, AlphaGo played a stone so strange that commentators thought it was a bug. It turned out to be brilliant.",
-    why: "It proved deep learning plus reinforcement learning could master things humans called 'intuition' or 'creativity'. It also reset everyone's timelines for what AI could do — by years.",
+    what: "Go is a 2,500-year-old board game with more legal positions than atoms in the observable universe. Experts said computers were 10+ years away from beating top humans. Then DeepMind's AlphaGo - which trained by playing itself millions of times - beat 18-time world champion Lee Sedol 4 games to 1 in Seoul. In game 2, move 37, AlphaGo played a stone so strange that commentators thought it was a bug. It turned out to be brilliant.",
+    why: "It proved deep learning plus reinforcement learning could master things humans called 'intuition' or 'creativity'. It also reset everyone's timelines for what AI could do - by years.",
     color: SKY,
     emoji: "🏆",
   },
@@ -139,8 +139,8 @@ const MILESTONES: Milestone[] = [
     year: 2017,
     title: "Transformers Are Born",
     who: "Vaswani et al. (Google Brain)",
-    what: "Eight researchers at Google published a paper with a now-legendary title: 'Attention Is All You Need'. They threw out the recurrent networks everyone was using for language and replaced them with a new architecture — the Transformer — built around a mechanism called 'self-attention' that lets every word in a sentence directly look at every other word. It trained much faster and got much better results.",
-    why: "Every modern large language model — GPT, Claude, Gemini, Llama, every AI chatbot you've ever talked to — is a Transformer. This single 15-page paper is arguably the most important AI paper of the 21st century.",
+    what: "Eight researchers at Google published a paper with a now-legendary title: 'Attention Is All You Need'. They threw out the recurrent networks everyone was using for language and replaced them with a new architecture - the Transformer - built around a mechanism called 'self-attention' that lets every word in a sentence directly look at every other word. It trained much faster and got much better results.",
+    why: "Every modern large language model - GPT, Claude, Gemini, Llama, every AI chatbot you've ever talked to - is a Transformer. This single 15-page paper is arguably the most important AI paper of the 21st century.",
     color: LAVENDER,
     emoji: "✨",
   },
@@ -148,7 +148,7 @@ const MILESTONES: Milestone[] = [
     year: 2022,
     title: "ChatGPT Goes Viral",
     who: "OpenAI",
-    what: "On November 30, OpenAI quietly put a chatbot called ChatGPT on the web as a 'research preview'. It could write essays, debug code, explain quantum physics to a 5-year-old, and tell jokes. Within 5 days it had 1 million users. Within 2 months, 100 million — the fastest-growing consumer product in history at that point. Schools panicked. Google declared a 'code red'.",
+    what: "On November 30, OpenAI quietly put a chatbot called ChatGPT on the web as a 'research preview'. It could write essays, debug code, explain quantum physics to a 5-year-old, and tell jokes. Within 5 days it had 1 million users. Within 2 months, 100 million - the fastest-growing consumer product in history at that point. Schools panicked. Google declared a 'code red'.",
     why: "AI stopped being something academics argued about and became something your grandma uses to write birthday cards. The whole world finally noticed what researchers had been quietly building for a decade.",
     color: MINT,
     emoji: "💬",
@@ -157,7 +157,7 @@ const MILESTONES: Milestone[] = [
     year: 2024,
     title: "AI Is Everywhere",
     who: "All of us",
-    what: "AI writes code in your editor, drafts emails in your inbox, generates art from a sentence, dubs movies into 50 languages, finds new antibiotics, folds proteins, drives cars, diagnoses X-rays, and tutors students. Models are now multimodal — they see, hear, and speak. The race between OpenAI, Anthropic, Google, Meta, and open-source labs is moving in weeks, not years.",
+    what: "AI writes code in your editor, drafts emails in your inbox, generates art from a sentence, dubs movies into 50 languages, finds new antibiotics, folds proteins, drives cars, diagnoses X-rays, and tutors students. Models are now multimodal - they see, hear, and speak. The race between OpenAI, Anthropic, Google, Meta, and open-source labs is moving in weeks, not years.",
     why: "And YOU are learning how it all works, from the inside. The kids reading this lesson are the same age Geoffrey Hinton, Yann LeCun and Yoshua Bengio were when they fell in love with neural nets. The next chapter of this story? It might literally be written by you.",
     color: YELLOW,
     emoji: "🚀",
@@ -199,7 +199,7 @@ function TimelineTab() {
 
       <RikuSays>
         Eighty years, one story. Every dot on this line is a moment when somebody
-        refused to give up on the idea that a machine could learn. Scroll slowly —
+        refused to give up on the idea that a machine could learn. Scroll slowly -
         each of these people was just a nerdy kid once, like you.
       </RikuSays>
 
@@ -396,7 +396,7 @@ function TimelineTab() {
 
       <RikuSays>
         The first 30 years were mostly dreams. The next 30 were mostly winter. The
-        last 15? Fireworks. Timing, data, and a little bit of GPU magic — that's
+        last 15? Fireworks. Timing, data, and a little bit of GPU magic - that's
         the whole recipe.
       </RikuSays>
 
@@ -457,7 +457,7 @@ const ERAS: EraDef[] = [
       "Deep Blue beat Kasparov at chess (1997)",
       "Researchers kept the neural dream alive in quiet labs",
     ],
-    summary: "Slow progress, stubborn scientists. The world didn't notice — yet.",
+    summary: "Slow progress, stubborn scientists. The world didn't notice - yet.",
     hero: <SVMViz />,
     rikuLine:
       "The 'AI winter' was the 80s and early 90s when everyone thought neural networks were a dead end. Classical tools like SVMs quietly won every benchmark. Turns out neural nets just needed more data and compute. Timing is everything.",
@@ -501,7 +501,7 @@ function ErasTab() {
   return (
     <div className="space-y-4">
       <p className="font-hand text-base text-foreground text-center">
-        ML history fits into three big eras. Click each to expand — and see the
+        ML history fits into three big eras. Click each to expand - and see the
         algorithm that defined it.
       </p>
 
@@ -618,13 +618,13 @@ const CHAIN_STAGES: ChainStage[] = [
       </div>
     ),
     rikuLine:
-      "One neuron, two weights, one bias. Drag the sliders if you're curious — this is literally the same math that powers every modern model, just… once.",
+      "One neuron, two weights, one bias. Drag the sliders if you're curious - this is literally the same math that powers every modern model, just… once.",
   },
   {
     label: "Classical ML",
     sub: "Decision trees & SVMs, 1990s",
     detail:
-      "While neural nets slept, classical methods ruled — splitting data into branches, drawing max-margin lines.",
+      "While neural nets slept, classical methods ruled - splitting data into branches, drawing max-margin lines.",
     color: MINT,
     viz: <DecisionTreeViz />,
     rikuLine:
@@ -652,7 +652,7 @@ const CHAIN_STAGES: ChainStage[] = [
       />
     ),
     rikuLine:
-      "Watch the pulse flow left to right. Each stage is millions of little multiplications. This architecture — plus GPUs — is the moment AI stopped being a niche and started being THE thing.",
+      "Watch the pulse flow left to right. Each stage is millions of little multiplications. This architecture - plus GPUs - is the moment AI stopped being a niche and started being THE thing.",
   },
   {
     label: "Transformer",
@@ -751,14 +751,14 @@ function ChainTab() {
 /*  Tab 4 – Your place in the story (with ImageNet accuracy chart)     */
 /* ------------------------------------------------------------------ */
 
-// ImageNet top-5 accuracy over the years — rough historical values.
+// ImageNet top-5 accuracy over the years - rough historical values.
 const IMAGENET_ACCURACY = [
   { x: 2010, y: 72 },
   { x: 2011, y: 74 },
   { x: 2012, y: 84 }, // AlexNet
   { x: 2013, y: 88 },
   { x: 2014, y: 93 }, // GoogLeNet / VGG
-  { x: 2015, y: 96 }, // ResNet — beats human-level
+  { x: 2015, y: 96 }, // ResNet - beats human-level
   { x: 2016, y: 97 },
   { x: 2017, y: 97.7 },
   { x: 2020, y: 98.8 },
@@ -789,7 +789,7 @@ function FutureTab() {
         </p>
       </div>
 
-      {/* ImageNet accuracy chart — the single most famous graph in ML history */}
+      {/* ImageNet accuracy chart - the single most famous graph in ML history */}
       <div className="card-sketchy p-4" style={{ background: PAPER }}>
         <p className="font-hand text-xs uppercase tracking-wider font-bold text-muted-foreground mb-1">
           The hockey-stick graph
@@ -828,7 +828,7 @@ function FutureTab() {
         {[
           {
             year: "1958",
-            text: "Rosenblatt built the first perceptron — a single neuron.",
+            text: "Rosenblatt built the first perceptron - a single neuron.",
             color: PEACH,
           },
           {
@@ -877,7 +877,7 @@ function FutureTab() {
       </RikuSays>
 
       <InfoBox variant="amber">
-        Every researcher you read about today started exactly where you are now —
+        Every researcher you read about today started exactly where you are now -
         curious, learning, asking &lsquo;how does this work?&rsquo;. Keep going.
       </InfoBox>
 
@@ -897,7 +897,7 @@ function FutureTab() {
         <div
           className="card-sketchy p-6 relative overflow-hidden"
           style={{
-            background: `repeating-linear-gradient(45deg, ${PAPER}, ${PAPER} 14px, ${YELLOW}11 14px, ${YELLOW}11 28px)`,
+            background: PAPER,
             border: `4px double ${INK}`,
             animation: "fadeInSlide 0.6s ease-out",
           }}
@@ -941,7 +941,7 @@ function FutureTab() {
               style={{ color: INK }}
             >
               has journeyed through 30 lessons covering neurons, gradients,
-              clusters, convolutions and 80 years of ML history — and now stands
+              clusters, convolutions and 80 years of ML history - and now stands
               at the doorway of building the future of AI.
             </p>
 
@@ -1006,7 +1006,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "Frank Rosenblatt built the Perceptron in 1958 — the first machine that could learn from examples instead of being programmed step-by-step.",
+      "Frank Rosenblatt built the Perceptron in 1958 - the first machine that could learn from examples instead of being programmed step-by-step.",
   },
   {
     question: "What was the 'AI Winter'?",
@@ -1095,15 +1095,15 @@ export default function L30_HistoryActivity() {
       lessonNumber={30}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="You've reached the end — but really, this is just the beginning. Keep tinkering, keep building, keep asking questions. The next breakthrough might be yours."
+      nextLessonHint="You've reached the end - but really, this is just the beginning. Keep tinkering, keep building, keep asking questions. The next breakthrough might be yours."
       story={
         <StorySection
           paragraphs={[
-            "Aru leaned back, looking at all the lessons she'd finished. 30 of them. Neurons, gradients, clusters, convolutions — all of it.",
+            "Aru leaned back, looking at all the lessons she'd finished. 30 of them. Neurons, gradients, clusters, convolutions - all of it.",
             "Aru: \"Byte... how did people even figure all this out? Did one person just invent it?\"",
-            "Byte: \"Ha! No way. ML has an 80-year story — full of dreams, failures, frozen winters, and sudden explosions. The first 'learning machine' was built before your grandparents were born.\"",
+            "Byte: \"Ha! No way. ML has an 80-year story - full of dreams, failures, frozen winters, and sudden explosions. The first 'learning machine' was built before your grandparents were born.\"",
             "Aru: \"Wait, REALLY? Show me!\"",
-            "Byte: \"Buckle up. We're going on a 2-minute trip through the entire history of machine learning — from 1943 to today. And by the end, you'll see why YOU are part of this story.\"",
+            "Byte: \"Buckle up. We're going on a 2-minute trip through the entire history of machine learning - from 1943 to today. And by the end, you'll see why YOU are part of this story.\"",
           ]}
           conceptTitle="The Journey"
           conceptSummary="Machine learning didn't appear overnight. It took 80 years, dozens of brilliant minds, two 'AI Winters', and a few magical breakthroughs to get from a single artificial neuron to ChatGPT. Understanding this history helps you understand where AI is going next."

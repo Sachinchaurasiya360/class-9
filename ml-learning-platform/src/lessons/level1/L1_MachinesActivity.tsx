@@ -273,7 +273,7 @@ function InputOutputTab() {
       </InfoBox>
 
       <RikuSays>
-        Notice something? Swap the <b>rule</b> and you get a different output from the same input. That&apos;s the whole trick — a machine is really just a <i>function</i> waiting to be fed.
+        Notice something? Swap the <b>rule</b> and you get a different output from the same input. That&apos;s the whole trick - a machine is really just a <i>function</i> waiting to be fed.
       </RikuSays>
     </div>
   );
@@ -625,7 +625,7 @@ function SpeedTab() {
   return (
     <div className="space-y-4">
       <RikuSays>
-        Here&apos;s where machines get scary-good: <b>speed</b>. You and me? We can add maybe one pair of numbers per second. A modern chip does <i>billions</i>. Race a computer and see who blinks first — spoiler, it&apos;s you.
+        Here&apos;s where machines get scary-good: <b>speed</b>. You and me? We can add maybe one pair of numbers per second. A modern chip does <i>billions</i>. Race a computer and see who blinks first - spoiler, it&apos;s you.
       </RikuSays>
 
       <div className="card-sketchy space-y-2">
@@ -731,7 +731,7 @@ const EXAMPLES: {
     input: "Press B4 + insert ₹20",
     rule: "If money ≥ price, drop item B4",
     output: "Cold drink falls out",
-    story: "Same button, same coins, same drink — every single time. Aru tested it five times in a row!",
+    story: "Same button, same coins, same drink - every single time. Aru tested it five times in a row!",
     color: CORAL,
   },
   {
@@ -740,7 +740,7 @@ const EXAMPLES: {
     input: "Type 7 × 8",
     rule: "Multiply the two numbers",
     output: "Shows 56",
-    story: "It doesn't 'know' math — it just follows the multiplication instruction perfectly, billions of times.",
+    story: "It doesn't 'know' math - it just follows the multiplication instruction perfectly, billions of times.",
     color: MINT,
   },
   {
@@ -758,7 +758,7 @@ const EXAMPLES: {
     input: "Clothes + soap + 'Cotton' button",
     rule: "Fill → wash 30min → rinse → spin → drain",
     output: "Clean wet clothes",
-    story: "Press the same button with the same load — you'll get the exact same wash cycle, perfectly repeated.",
+    story: "Press the same button with the same load - you'll get the exact same wash cycle, perfectly repeated.",
     color: SKY,
   },
   {
@@ -776,7 +776,7 @@ const EXAMPLES: {
     input: "Press shutter button",
     rule: "Capture light from sensor → save as image",
     output: "A new photo file",
-    story: "Same scene, same settings → same picture. The machine doesn't decide what's pretty — it just records.",
+    story: "Same scene, same settings → same picture. The machine doesn't decide what's pretty - it just records.",
     color: PEACH,
   },
 ];
@@ -785,11 +785,11 @@ function ExamplesTab() {
   return (
     <div className="space-y-4">
       <RikuSays>
-        Once you see the <b>input → rule → output</b> pattern, you can&apos;t un-see it. Microwaves, ATMs, traffic lights — they&apos;re all the same idea in different plastic shells.
+        Once you see the <b>input → rule → output</b> pattern, you can&apos;t un-see it. Microwaves, ATMs, traffic lights - they&apos;re all the same idea in different plastic shells.
       </RikuSays>
 
       <p className="text-center font-hand text-base" style={{ color: INK }}>
-        Look around — machines are everywhere! Each one is just{" "}
+        Look around - machines are everywhere! Each one is just{" "}
         <span style={{ color: CORAL, fontWeight: 700 }}>input</span> →{" "}
         <span style={{ color: LAVENDER, fontWeight: 700 }}>rule</span> →{" "}
         <span style={{ color: MINT, fontWeight: 700 }}>output</span>.
@@ -872,7 +872,7 @@ function ExamplesTab() {
       </div>
 
       <InfoBox variant="blue">
-        Pick any object near you — a fan, a microwave, a doorbell. Can you write down its{" "}
+        Pick any object near you - a fan, a microwave, a doorbell. Can you write down its{" "}
         <b>input</b>, <b>rule</b>, and <b>output</b>? That's the secret of every machine in the world.
       </InfoBox>
 
@@ -900,20 +900,20 @@ const quizQuestions = [
     options: ["Yes, always", "No, the order matters", "Only sometimes", "Instructions cannot be swapped"],
     correctIndex: 1,
     explanation:
-      "Order matters! Moving right then down is different from moving down then right — you end up in a different place.",
+      "Order matters! Moving right then down is different from moving down then right - you end up in a different place.",
   },
   {
     question: "About how many calculations can a modern computer do per second?",
     options: ["Hundreds", "Thousands", "Millions", "Billions"],
     correctIndex: 3,
-    explanation: "Modern computers can perform billions of calculations per second — much faster than any human!",
+    explanation: "Modern computers can perform billions of calculations per second - much faster than any human!",
   },
   {
     question: "What happens if you give a machine the same input and the same rule twice?",
     options: ["Different output each time", "The same output both times", "The machine breaks", "It depends on the weather"],
     correctIndex: 1,
     explanation:
-      "Machines are deterministic — the same input with the same rule always produces the same output.",
+      "Machines are deterministic - the same input with the same rule always produces the same output.",
   },
 ];
 
@@ -963,11 +963,11 @@ export default function L1_MachinesActivity() {
       story={
         <StorySection
           paragraphs={[
-            "Aru was standing in front of a vending machine at the mall, watching it work. She pressed B4, and out came a bag of chips. She pressed B4 again — same chips. Every single time.",
+            "Aru was standing in front of a vending machine at the mall, watching it work. She pressed B4, and out came a bag of chips. She pressed B4 again - same chips. Every single time.",
             "Aru: \"How does it know what to give me? Does someone sit inside and hand things out?\"",
-            "Byte: \"Ha! No one is inside. The machine follows instructions — simple rules like 'if someone presses B4, drop the item from slot B4.' It doesn't think. It just follows the steps, every time, perfectly.\"",
+            "Byte: \"Ha! No one is inside. The machine follows instructions - simple rules like 'if someone presses B4, drop the item from slot B4.' It doesn't think. It just follows the steps, every time, perfectly.\"",
             "Aru: \"So every machine is just... following instructions?\"",
-            "Byte: \"Exactly! A washing machine, a calculator, even a traffic light — they all follow a set of instructions. And that's what we're going to explore today.\""
+            "Byte: \"Exactly! A washing machine, a calculator, even a traffic light - they all follow a set of instructions. And that's what we're going to explore today.\""
           ]}
           conceptTitle="Key Concept"
           conceptSummary="A machine is anything that takes an input, follows a set of instructions, and produces an output. The same input + same instructions = same output, every time. This predictability is what makes machines so reliable."

@@ -14,7 +14,7 @@ export type SVMVizProps = {
 
 // Extremely simplified "SVM-ish" solver for 2D: compute the centroid of each
 // class, use the perpendicular bisector as the max-margin line. For linearly
-// separable blobs this is close-ish to the real max-margin hyperplane — which
+// separable blobs this is close-ish to the real max-margin hyperplane - which
 // is plenty for an educational sketch.
 function linearMargin(points: Point[]) {
   const c0 = { x: 0, y: 0, n: 0 };
@@ -81,7 +81,7 @@ export default function SVMViz({ data: propData }: SVMVizProps) {
   const proj = makeProjector(VIEWBOX, 6);
   const margin = useMemo(() => linearMargin(data), [data]);
 
-  // Effective margin scales with inverse of C — higher C = tighter margin.
+  // Effective margin scales with inverse of C - higher C = tighter margin.
   const effMargin = margin ? margin.margin / Math.max(0.1, C) : 0;
 
   // A point is "support vector" if within roughly effMargin of the line.

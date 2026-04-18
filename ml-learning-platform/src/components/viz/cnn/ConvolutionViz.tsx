@@ -32,7 +32,7 @@ export interface ConvolutionVizProps {
 }
 
 /**
- * <ConvolutionViz /> — the hero CNN teaching component. Shows an input image
+ * <ConvolutionViz /> - the hero CNN teaching component. Shows an input image
  * with the current filter window highlighted, produces a live feature map on
  * the right, and offers Play / Step / Reset controls to scrub through every
  * position of the filter.
@@ -62,7 +62,7 @@ export default function ConvolutionViz({
 
   const { min: fmMin, max: fmMax } = useMemo(() => minMax(featureMap), [featureMap]);
 
-  // Flat list of every valid window position — iterate once.
+  // Flat list of every valid window position - iterate once.
   const steps = useMemo(() => {
     const list: { y: number; x: number }[] = [];
     for (let y = 0; y < outH; y++) {

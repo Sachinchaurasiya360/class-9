@@ -31,7 +31,7 @@ export interface KernelEditorProps {
 }
 
 /**
- * <KernelEditor /> — an editable NxN filter. Click a cell to bump it up by
+ * <KernelEditor /> - an editable NxN filter. Click a cell to bump it up by
  * `step`; shift-click (or right-click) to bump it down. A small set of
  * preset buttons let students jump to classic kernels. Great paired with
  * <ConvolutionViz /> so students "build their own filter and see the effect".

@@ -20,7 +20,7 @@ export interface NeuronProps {
   label?: string;
 }
 
-/** Single artificial neuron — shows inputs, weights, weighted sum, activation, output. */
+/** Single artificial neuron - shows inputs, weights, weighted sum, activation, output. */
 export function Neuron({
   inputs,
   weights,

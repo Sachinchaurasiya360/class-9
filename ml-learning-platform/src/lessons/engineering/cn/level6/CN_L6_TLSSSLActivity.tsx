@@ -6,7 +6,7 @@ import EngineeringLessonShell from "@/components/engineering/EngineeringLessonSh
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — TLS Handshake                                              */
+/*  Tab 1 - TLS Handshake                                              */
 /* ------------------------------------------------------------------ */
 
 interface HandshakeStep {
@@ -206,7 +206,7 @@ function HandshakeTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Certificate Chain of Trust                                  */
+/*  Tab 2 - Certificate Chain of Trust                                  */
 /* ------------------------------------------------------------------ */
 
 function CertificatesTab() {
@@ -404,7 +404,7 @@ function CertificatesTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — TLS 1.2 vs 1.3                                            */
+/*  Tab 3 - TLS 1.2 vs 1.3                                            */
 /* ------------------------------------------------------------------ */
 
 function VersionsTab() {
@@ -651,7 +651,6 @@ export default function CN_L6_TLSSSLActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="Firewalls & VPN"
-      gateRelevance="2-3 marks"
       placementRelevance="High"
     />
   );

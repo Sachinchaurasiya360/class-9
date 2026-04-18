@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { awardProjectComplete } from "./gamification";
 
 /* --------------------------------------------------------------------------
- * Project draft store — mirrors src/utils/progress.ts pattern
+ * Project draft store - mirrors src/utils/progress.ts pattern
  * (useSyncExternalStore + localStorage). Persists every section edit so the
  * student can close the tab and resume any time.
  * ------------------------------------------------------------------------ */

@@ -26,7 +26,7 @@ export default function ExamPrepHubPage() {
   const examState = useExamState();
   const [practiceExpanded, setPracticeExpanded] = useState(false);
 
-  // Re-compute derived stats off the subscribed state — since the helpers
+  // Re-compute derived stats off the subscribed state - since the helpers
   // read the same module-level state, useExamState triggers rerenders.
   void examState;
   const { totalAttempted, accuracy } = getOverallStats();
@@ -53,7 +53,7 @@ export default function ExamPrepHubPage() {
             </div>
             <div>
               <h1 className="font-hand text-3xl sm:text-4xl font-bold text-foreground">
-                Exam Prep — CBSE AI 417
+                Exam Prep - CBSE AI 417
               </h1>
               <p className="font-hand text-sm text-muted-foreground">
                 Board-exam ready practice for Class 9-10 students
@@ -62,7 +62,7 @@ export default function ExamPrepHubPage() {
           </div>
           <p className="font-hand text-base text-foreground/80 max-w-2xl">
             Chapter-wise drills, full-length timed papers, and a review pile that
-            remembers the questions you struggled with. Everything runs locally — your
+            remembers the questions you struggled with. Everything runs locally - your
             progress stays on this device.
           </p>
         </div>
@@ -79,19 +79,19 @@ export default function ExamPrepHubPage() {
         <StatCard
           icon={<TrendingUp className="w-5 h-5" />}
           label="Accuracy"
-          value={totalAttempted === 0 ? "—" : `${Math.round(accuracy * 100)}%`}
+          value={totalAttempted === 0 ? "-" : `${Math.round(accuracy * 100)}%`}
           bg="var(--accent-mint)"
         />
         <StatCard
           icon={<Trophy className="w-5 h-5" />}
           label="Best test"
-          value={examState.bestTestScore > 0 ? `${examState.bestTestScore}%` : "—"}
+          value={examState.bestTestScore > 0 ? `${examState.bestTestScore}%` : "-"}
           bg="var(--accent-yellow)"
         />
         <StatCard
           icon={<AlertCircle className="w-5 h-5" />}
           label="Weak area"
-          value={weakestName ?? "—"}
+          value={weakestName ?? "-"}
           bg="var(--accent-coral)"
           small
         />

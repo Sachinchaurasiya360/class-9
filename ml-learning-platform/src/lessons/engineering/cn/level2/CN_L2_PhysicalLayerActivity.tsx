@@ -658,13 +658,12 @@ const tabs: EngTabDef[] = [
 export default function CN_L2_PhysicalLayerActivity() {
   return (
     <EngineeringLessonShell
-      title="Physical Layer — Signals & Capacity"
+      title="Physical Layer - Signals & Capacity"
       level={2}
       lessonNumber={1}
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="Framing & Error Detection"
-      gateRelevance="2-3 marks"
       placementRelevance="Low"
     />
   );

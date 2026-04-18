@@ -21,7 +21,7 @@ import type {
 } from "@/components/engineering/EngineeringLessonShell";
 
 /* ================================================================== */
-/*  Tab 1 — DHCP DORA Process Animated                                  */
+/*  Tab 1 - DHCP DORA Process Animated                                  */
 /* ================================================================== */
 
 interface DORAStep {
@@ -249,7 +249,7 @@ function DHCPDORATab() {
         {/* Status bar */}
         <rect x={50} y={185} width={600} height={25} rx={6} fill="var(--eng-bg)" stroke="var(--eng-border)" strokeWidth={1} />
         <text x={350} y={202} textAnchor="middle" fontSize={10} fontFamily="var(--eng-font)" fontWeight={600} fill={stepData ? stepData.color : "var(--eng-text-muted)"}>
-          {stepData ? `${stepData.label}: ${stepData.type === "broadcast" ? "Broadcast" : "Unicast"} from ${stepData.from}` : "Ready — click Play to start"}
+          {stepData ? `${stepData.label}: ${stepData.type === "broadcast" ? "Broadcast" : "Unicast"} from ${stepData.from}` : "Ready - click Play to start"}
         </text>
       </svg>
 
@@ -301,7 +301,7 @@ function DHCPDORATab() {
 }
 
 /* ================================================================== */
-/*  Tab 2 — IP Leasing & Renewal                                       */
+/*  Tab 2 - IP Leasing & Renewal                                       */
 /* ================================================================== */
 
 function LeasingTab() {
@@ -364,7 +364,7 @@ function LeasingTab() {
       <div className="card-eng p-5" style={{ marginBottom: 20 }}>
         <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
           <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "0.95rem", color: "var(--eng-text)", margin: 0 }}>
-            IP Lease Timer — 192.168.1.100
+            IP Lease Timer - 192.168.1.100
           </h4>
           <button onClick={startTimer} className="btn-eng" style={{ fontSize: "0.8rem" }}>
             <RefreshCw className="w-3.5 h-3.5" style={{ marginRight: 4 }} /> Start Lease
@@ -503,7 +503,7 @@ function LeasingTab() {
 }
 
 /* ================================================================== */
-/*  Tab 3 — Interactive DORA Practice                                   */
+/*  Tab 3 - Interactive DORA Practice                                   */
 /* ================================================================== */
 
 function PracticeTab() {
@@ -551,7 +551,7 @@ function PracticeTab() {
     {
       question: "A client's lease is at 60% used. What happens at this point?",
       options: [
-        "Nothing — lease is still valid",
+        "Nothing - lease is still valid",
         "The client sends a unicast DHCPREQUEST to renew with the original server",
         "The client broadcasts to find a new server",
         "The IP address is immediately released",
@@ -748,7 +748,7 @@ const quiz: EngQuizQuestion[] = [
       "Discover, Open, Request, Accept",
     ],
     correctIndex: 1,
-    explanation: "DORA stands for Discover, Offer, Request, Acknowledge — the four-step process for obtaining an IP address from a DHCP server.",
+    explanation: "DORA stands for Discover, Offer, Request, Acknowledge - the four-step process for obtaining an IP address from a DHCP server.",
   },
   {
     question: "Why is DHCPDISCOVER sent as a broadcast?",
@@ -819,13 +819,12 @@ export default function CN_L5_DHCPActivity() {
 
   return (
     <EngineeringLessonShell
-      title="DHCP — Dynamic Host Configuration"
+      title="DHCP - Dynamic Host Configuration"
       level={5}
       lessonNumber={4}
       tabs={tabs}
       quiz={quiz}
-      nextLessonHint="Network Security — Cryptography Basics"
-      gateRelevance="1-2 marks"
+      nextLessonHint="Network Security - Cryptography Basics"
       placementRelevance="Low"
     />
   );

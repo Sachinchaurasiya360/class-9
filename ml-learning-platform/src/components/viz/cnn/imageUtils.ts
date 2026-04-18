@@ -1,5 +1,5 @@
 // Pure TS helpers for the CNN / image visualization library.
-// No external deps — just math and typed arrays.
+// No external deps - just math and typed arrays.
 
 import type {
   ColormapName,
@@ -47,7 +47,7 @@ export function clonePixels(img: Pixels2D): Pixels2D {
 }
 
 // ---------------------------------------------------------------------------
-// normalizeImage — scales arbitrary pixel range to [0, 1].
+// normalizeImage - scales arbitrary pixel range to [0, 1].
 // If min/max are not supplied, they are computed from the image itself.
 // ---------------------------------------------------------------------------
 export function normalizeImage(
@@ -74,7 +74,7 @@ export function normalizeImage(
 
 // ---------------------------------------------------------------------------
 // Convolution. Simple single-channel 2D convolution (cross-correlation really,
-// no kernel flip — matches the convention most teaching materials use).
+// no kernel flip - matches the convention most teaching materials use).
 // Supports integer stride and symmetric zero-padding.
 // ---------------------------------------------------------------------------
 export function convolve2d(
@@ -198,7 +198,7 @@ export function maxPoolArgmax(
 }
 
 // ---------------------------------------------------------------------------
-// Colormaps — map a normalized value v in [0, 1] to an rgb/rgba string.
+// Colormaps - map a normalized value v in [0, 1] to an rgb/rgba string.
 // We clamp automatically so callers can pass raw activations.
 // ---------------------------------------------------------------------------
 function clamp01(v: number): number {
@@ -262,7 +262,7 @@ export function getColormap(name: ColormapName): (v: number) => string {
   return gradient(COLORMAP_STOPS[name] ?? COLORMAP_STOPS.gray);
 }
 
-// Nice text color for a given normalized pixel value — used so numeric
+// Nice text color for a given normalized pixel value - used so numeric
 // overlays stay legible on both light and dark cells.
 export function textColorForValue(v: number): string {
   return clamp01(v) > 0.55 ? "#fdfbf6" : "#2b2a35";
@@ -314,7 +314,7 @@ export const PRESET_FILTERS: Record<string, FilterKernel> = {
   ],
 };
 
-// Ordered list — useful for rendering FilterBank with nice labels.
+// Ordered list - useful for rendering FilterBank with nice labels.
 export const DEFAULT_FILTER_BANK: NamedFilter[] = [
   {
     name: "edge-horizontal",
@@ -345,7 +345,7 @@ export const DEFAULT_FILTER_BANK: NamedFilter[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// DEMO_IMAGES — a handful of hand-drawn 8x8 / 12x12 grayscale demo images.
+// DEMO_IMAGES - a handful of hand-drawn 8x8 / 12x12 grayscale demo images.
 // Values are 0 (background) to 1 (full ink) so colormaps show them nicely.
 // ---------------------------------------------------------------------------
 function fromMask(mask: string[]): Pixels2D {
@@ -437,11 +437,11 @@ export const DEMO_IMAGES: Record<string, Pixels2D> = {
   ]),
 };
 
-// Wide default image for ConvolutionViz — something with clear edges.
+// Wide default image for ConvolutionViz - something with clear edges.
 export const DEFAULT_DEMO_IMAGE: Pixels2D = DEMO_IMAGES.letterX;
 
 // ---------------------------------------------------------------------------
-// Small helper — absolute min / max for styling and axis ticks.
+// Small helper - absolute min / max for styling and axis ticks.
 // ---------------------------------------------------------------------------
 export function minMax(img: Pixels2D): { min: number; max: number } {
   let lo = Infinity;

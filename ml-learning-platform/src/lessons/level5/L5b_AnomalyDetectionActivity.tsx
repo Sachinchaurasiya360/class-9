@@ -93,7 +93,7 @@ function SpotOddTab() {
       <p className="font-hand text-base text-center" style={{ color: INK }}>
         Most points belong to the{" "}
         <span style={{ color: MINT, fontWeight: 700 }}>normal cluster</span>. A few are{" "}
-        <span style={{ color: CORAL, fontWeight: 700 }}>anomalies</span> — they don't
+        <span style={{ color: CORAL, fontWeight: 700 }}>anomalies</span> - they don't
         fit the pattern.
       </p>
 
@@ -378,7 +378,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "Anomaly detection finds the few examples that look very different from the rest — fraud, bugs, attacks, breakdowns.",
+      "Anomaly detection finds the few examples that look very different from the rest - fraud, bugs, attacks, breakdowns.",
   },
   {
     question: "How does an anomaly detector usually decide an example is weird?",
@@ -395,7 +395,7 @@ const quizQuestions = [
   {
     question: "Why is anomaly detection 'unsupervised'?",
     options: [
-      "It needs no labels — it learns what 'normal' looks like by itself",
+      "It needs no labels - it learns what 'normal' looks like by itself",
       "It runs without electricity",
       "Nobody supervises it",
       "It's wild",
@@ -414,7 +414,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "A loose threshold means even far-out points count as 'normal' — so real fraud or failures slip past undetected.",
+      "A loose threshold means even far-out points count as 'normal' - so real fraud or failures slip past undetected.",
   },
 ];
 
@@ -456,8 +456,8 @@ export default function L5b_AnomalyDetectionActivity() {
           paragraphs={[
             "Aru got a text from her bank: \"Did you just spend $400 on shoes in Brazil at 2 AM?\"",
             "Aru: \"Brazil?! I'm in my bedroom!\" She tapped 'NO' and the card was frozen instantly.",
-            "Byte: \"That was anomaly detection, doing its job. Your bank doesn't know what fraud LOOKS like exactly — it just knows what YOUR normal looks like. Coffee shops, your school cafeteria, that one bookstore. Brazil at 2 AM? Way outside normal.\"",
-            "Aru: \"So it didn't need anyone to teach it 'this is fraud' — it just spotted the weirdness?\"",
+            "Byte: \"That was anomaly detection, doing its job. Your bank doesn't know what fraud LOOKS like exactly - it just knows what YOUR normal looks like. Coffee shops, your school cafeteria, that one bookstore. Brazil at 2 AM? Way outside normal.\"",
+            "Aru: \"So it didn't need anyone to teach it 'this is fraud' - it just spotted the weirdness?\"",
             "Byte: \"Exactly. That's the magic of unsupervised anomaly detection. Learn what normal looks like, then ring the alarm when something doesn't fit.\"",
           ]}
           conceptTitle="Key Concept"

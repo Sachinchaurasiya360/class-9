@@ -12,7 +12,7 @@ export interface UseWebcamResult {
 
 /**
  * Manages a `getUserMedia` webcam stream and binds it to a <video> element.
- * - Call `start()` from a user gesture (click) — browsers require it.
+ * - Call `start()` from a user gesture (click) - browsers require it.
  * - The stream is released on `stop()` or component unmount.
  * - Mirrors the video horizontally via CSS in the consumer (we don't flip pixels).
  */

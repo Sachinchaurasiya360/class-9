@@ -34,7 +34,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Watch It Work                                              */
+/*  Tab 1 - Watch It Work                                              */
 /* ------------------------------------------------------------------ */
 function WatchItWorkTab() {
   const blobs = useMemo<Point[]>(() => generateClusters(3, 18, 42), []);
@@ -65,7 +65,7 @@ function WatchItWorkTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Step Through                                               */
+/*  Tab 2 - Step Through                                               */
 /* ------------------------------------------------------------------ */
 function StepThroughTab() {
   // Different seed so students see a fresh configuration on tab 2.
@@ -97,7 +97,7 @@ function StepThroughTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — On Different Shapes                                        */
+/*  Tab 3 - On Different Shapes                                        */
 /* ------------------------------------------------------------------ */
 type ShapeKind = "blobs" | "moons" | "circles";
 
@@ -234,7 +234,7 @@ const quizQuestions = [
     ],
     correctIndex: 2,
     explanation:
-      "K-Means converges when the assign step produces the same clusters as the previous iteration — nothing changes anymore.",
+      "K-Means converges when the assign step produces the same clusters as the previous iteration - nothing changes anymore.",
   },
   {
     question: "Why is K-Means called K-'Means'?",
@@ -292,8 +292,8 @@ export default function L16_KMeansActivity() {
             "Aru had 30 colorful marbles scattered across the floor. Some were close together, others far apart.",
             "Aru: \"Byte, I want to sort these into groups. But how do I know which go together?\"",
             "Byte: \"Let me show you how I'd sort them into groups. I pick K center points, assign each marble to the nearest center, then move the centers to the middle of their groups. Repeat until stable!\"",
-            "Aru: \"That's like magic — the centers just... find the right spots?\"",
-            "Byte: \"It's not magic — it's math! Each step makes the groups a little tighter. That's K-Means clustering.\"",
+            "Aru: \"That's like magic - the centers just... find the right spots?\"",
+            "Byte: \"It's not magic - it's math! Each step makes the groups a little tighter. That's K-Means clustering.\"",
           ]}
           conceptTitle="Key Concept"
           conceptSummary="K-Means clustering works in two alternating steps: (1) assign each point to the nearest centroid, and (2) move each centroid to the mean of its assigned points. Repeat until the assignments stop changing."

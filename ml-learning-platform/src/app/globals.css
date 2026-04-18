@@ -39,23 +39,17 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ---------- Notebook grid background ---------- */
+/* ---------- Notebook grid background (SVG pattern, no gradients) ---------- */
 .notebook-grid {
-  background-image:
-    linear-gradient(to right, rgba(43, 42, 53, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(43, 42, 53, 0.06) 1px, transparent 1px);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'><path d='M 28 0 L 0 0 0 28' fill='none' stroke='rgba(43,42,53,0.06)' stroke-width='1'/></svg>");
   background-size: 28px 28px;
 }
 
 .notebook-paper {
   background-color: #fdfbf6;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 31px,
-    rgba(107, 182, 255, 0.18) 31px,
-    rgba(107, 182, 255, 0.18) 32px
-  );
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><line x1='0' y1='31' x2='32' y2='31' stroke='rgba(107,182,255,0.18)' stroke-width='1'/></svg>");
+  background-size: 32px 32px;
+  background-repeat: repeat;
 }
 
 /* ---------- Sketchy buttons ---------- */
@@ -117,23 +111,23 @@ html, body {
   box-shadow: 4px 4px 0 #2b2a35;
 }
 
-/* ---------- Marker highlights ---------- */
+/* ---------- Marker highlights (solid underbar, no gradient) ---------- */
 .marker-highlight-yellow {
-  background: linear-gradient(120deg, transparent 2%, #ffd93d 2%, #ffd93d 98%, transparent 98%);
+  background-color: #ffd93d;
   background-size: 100% 60%;
   background-repeat: no-repeat;
   background-position: 0 88%;
   padding: 0 0.15em;
 }
 .marker-highlight-coral {
-  background: linear-gradient(120deg, transparent 2%, rgba(255, 107, 107, 0.55) 2%, rgba(255, 107, 107, 0.55) 98%, transparent 98%);
+  background-color: rgba(255, 107, 107, 0.55);
   background-size: 100% 60%;
   background-repeat: no-repeat;
   background-position: 0 88%;
   padding: 0 0.15em;
 }
 .marker-highlight-mint {
-  background: linear-gradient(120deg, transparent 2%, rgba(78, 205, 196, 0.55) 2%, rgba(78, 205, 196, 0.55) 98%, transparent 98%);
+  background-color: rgba(78, 205, 196, 0.55);
   background-size: 100% 60%;
   background-repeat: no-repeat;
   background-position: 0 88%;
@@ -296,7 +290,7 @@ html, body {
 .hero-tree-node { animation: hero-tree-bfs 3.5s ease-in-out infinite; }
 
 /* ================================================================== */
-/*  Engineering Track — Clean, professional design (no sketchy)       */
+/*  Engineering Track - Clean, professional design (no sketchy)       */
 /* ================================================================== */
 
 /* ---------- Engineering theme tokens ---------- */

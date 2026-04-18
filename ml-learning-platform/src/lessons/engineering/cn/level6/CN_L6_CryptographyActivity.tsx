@@ -1,9 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Shield, Lock, Unlock, Key, RefreshCw, ArrowRight, ArrowLeftRight } from "lucide-react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Shield, Lock, Unlock, Key, RefreshCw, ArrowRight, ArrowLeftRight, Info } from "lucide-react";
 import EngineeringLessonShell from "@/components/engineering/EngineeringLessonShell";
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
+import {
+  AlgoCanvas,
+  PseudocodePanel,
+  VariablesPanel,
+  InputEditor,
+  useStepPlayer,
+} from "@/components/engineering/algo";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -12,7 +19,7 @@ import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/Engine
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Symmetric Encryption                                       */
+/*  Tab 1 - Symmetric Encryption                                       */
 /* ------------------------------------------------------------------ */
 
 function SymmetricTab() {
@@ -84,7 +91,7 @@ function SymmetricTab() {
         </h3>
         <div style={{ display: "flex", justifyContent: "center" }}>
           <svg viewBox="0 0 300 300" width="260" height="260" style={{ overflow: "visible" }}>
-            {/* Outer ring — plain alphabet */}
+            {/* Outer ring - plain alphabet */}
             <circle cx="150" cy="150" r="130" fill="none" stroke="var(--eng-border)" strokeWidth="2" />
             <circle cx="150" cy="150" r="105" fill="none" stroke="var(--eng-border)" strokeWidth="1" strokeDasharray="2 4" />
             {ALPHABET.split("").map((char, i) => {
@@ -111,7 +118,7 @@ function SymmetricTab() {
               );
             })}
 
-            {/* Inner ring — shifted alphabet (rotates) */}
+            {/* Inner ring - shifted alphabet (rotates) */}
             <g
               ref={wheelRef}
               style={{
@@ -317,242 +324,461 @@ function SymmetricTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Asymmetric Encryption                                      */
+/*  Tab 2 - Asymmetric Encryption                                      */
 /* ------------------------------------------------------------------ */
 
-function AsymmetricTab() {
-  const [message, setMessage] = useState("SECRET");
-  const [phase, setPhase] = useState<"idle" | "encrypting" | "encrypted" | "decrypting" | "decrypted">("idle");
-  const [lockAnim, setLockAnim] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+/* ---------- RSA helpers ---------- */
 
-  const cleanup = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }, []);
+function isPrime(n: number): boolean {
+  if (n < 2) return false;
+  if (n < 4) return true;
+  if (n % 2 === 0) return false;
+  for (let i = 3; i * i <= n; i += 2) if (n % i === 0) return false;
+  return true;
+}
 
-  useEffect(() => cleanup, [cleanup]);
+function gcd(a: number, b: number): number {
+  while (b !== 0) { [a, b] = [b, a % b]; }
+  return a;
+}
 
-  const handleEncrypt = useCallback(() => {
-    cleanup();
-    setPhase("encrypting");
-    setLockAnim(0);
-    let frame = 0;
-    timerRef.current = setInterval(() => {
-      frame++;
-      setLockAnim(frame / 20);
-      if (frame >= 20) {
-        cleanup();
-        setPhase("encrypted");
-      }
-    }, 40);
-  }, [cleanup]);
+function modInverse(e: number, phi: number): number {
+  // Extended Euclid
+  let [oldR, r] = [e, phi];
+  let [oldS, s] = [1, 0];
+  while (r !== 0) {
+    const q = Math.floor(oldR / r);
+    [oldR, r] = [r, oldR - q * r];
+    [oldS, s] = [s, oldS - q * s];
+  }
+  return ((oldS % phi) + phi) % phi;
+}
 
-  const handleDecrypt = useCallback(() => {
-    cleanup();
-    setPhase("decrypting");
-    setLockAnim(1);
-    let frame = 20;
-    timerRef.current = setInterval(() => {
-      frame--;
-      setLockAnim(frame / 20);
-      if (frame <= 0) {
-        cleanup();
-        setPhase("decrypted");
-      }
-    }, 40);
-  }, [cleanup]);
+function modPow(base: number, exp: number, mod: number): number {
+  let result = 1;
+  base = base % mod;
+  while (exp > 0) {
+    if (exp & 1) result = (result * base) % mod;
+    exp = Math.floor(exp / 2);
+    base = (base * base) % mod;
+  }
+  return result;
+}
 
-  const handleReset = useCallback(() => {
-    cleanup();
-    setPhase("idle");
-    setLockAnim(0);
-  }, [cleanup]);
+/* ---------- RSA Frame Builder ---------- */
 
-  // Scrambled version of message for "encrypted" display
-  const scrambled = message
-    .split("")
-    .map((_, i) => String.fromCharCode(33 + ((message.charCodeAt(i) * 7 + 13) % 94)))
-    .join("");
+interface RSAFrame {
+  line: number;
+  vars: Record<string, string | number | boolean | undefined>;
+  message: string;
+  stage: "keygen" | "encrypt" | "decrypt" | "done";
+  p: number;
+  q: number;
+  n: number;
+  phi: number;
+  e: number;
+  d: number;
+  M: number | null;
+  C: number | null;
+  recovered: number | null;
+  flashKeys?: string[];
+}
+
+const RSA_PSEUDO = [
+  "// KEY GENERATION",
+  "pick primes p, q",
+  "n   = p * q",
+  "phi = (p-1) * (q-1)",
+  "choose e with 1 < e < phi, gcd(e, phi) = 1",
+  "d   = e^(-1) mod phi     // modular inverse",
+  "publicKey  = (e, n)      // share openly",
+  "privateKey = (d, n)      // keep secret",
+  "// ENCRYPT  (with public key)",
+  "C = M^e mod n",
+  "// DECRYPT  (with private key)",
+  "M = C^d mod n",
+];
+
+function buildRSAFrames(pIn: number, qIn: number, eIn: number, msg: number): RSAFrame[] {
+  const frames: RSAFrame[] = [];
+
+  // Validate inputs; fall back to sensible defaults for a stable demo
+  const p = isPrime(pIn) && pIn > 1 ? pIn : 61;
+  const q = isPrime(qIn) && qIn > 1 && qIn !== pIn ? qIn : 53;
+  const n = p * q;
+  const phi = (p - 1) * (q - 1);
+
+  // Pick e: must be coprime with phi, 1 < e < phi
+  let e = eIn;
+  if (!(e > 1 && e < phi && gcd(e, phi) === 1)) {
+    // Try small values
+    const candidates = [17, 3, 5, 7, 11, 13, 23, 29];
+    e = candidates.find((c) => c < phi && gcd(c, phi) === 1) ?? 3;
+  }
+  const d = modInverse(e, phi);
+
+  const M = msg % n; // must be < n
+
+  // Stage 0: pick p, q
+  frames.push({
+    line: 1,
+    vars: { p, q },
+    message: `Start RSA key generation. Pick two distinct primes: p=${p}, q=${q}. In real RSA these are ~2048-bit primes; we use small ones so the math fits on screen.`,
+    stage: "keygen",
+    p, q, n, phi, e, d, M: null, C: null, recovered: null,
+    flashKeys: ["p", "q"],
+  });
+
+  // Stage 1: compute n
+  frames.push({
+    line: 2,
+    vars: { p, q, "n = p*q": `${p}*${q} = ${n}` },
+    message: `Compute n = p * q = ${p} * ${q} = ${n}. This n is the modulus. Both public and private keys use it.`,
+    stage: "keygen",
+    p, q, n, phi, e, d, M: null, C: null, recovered: null,
+    flashKeys: ["n = p*q"],
+  });
+
+  // Stage 2: compute phi
+  frames.push({
+    line: 3,
+    vars: { phi: `(${p}-1)*(${q}-1) = ${phi}` },
+    message: `Compute Euler's totient phi(n) = (p-1)*(q-1) = ${p - 1}*${q - 1} = ${phi}. Factoring n to find phi is what attackers cannot do efficiently.`,
+    stage: "keygen",
+    p, q, n, phi, e, d, M: null, C: null, recovered: null,
+    flashKeys: ["phi"],
+  });
+
+  // Stage 3: choose e
+  frames.push({
+    line: 4,
+    vars: { e, "gcd(e, phi)": gcd(e, phi) },
+    message: `Pick e=${e}. Requirement: 1 < e < phi and gcd(e, phi)=1 so that e is invertible mod phi. Common choice is 65537 in real life.`,
+    stage: "keygen",
+    p, q, n, phi, e, d, M: null, C: null, recovered: null,
+    flashKeys: ["e"],
+  });
+
+  // Stage 4: compute d
+  frames.push({
+    line: 5,
+    vars: { d, check: `${e}*${d} mod ${phi} = ${(e * d) % phi}` },
+    message: `Compute d = e^(-1) mod phi = ${d}. This is the modular inverse: e*d ≡ 1 (mod phi). The Extended Euclidean algorithm finds it.`,
+    stage: "keygen",
+    p, q, n, phi, e, d, M: null, C: null, recovered: null,
+    flashKeys: ["d"],
+  });
+
+  // Stage 5: keys announced
+  frames.push({
+    line: 6,
+    vars: { publicKey: `(e=${e}, n=${n})`, privateKey: `(d=${d}, n=${n})` },
+    message: `Publish the public key (${e}, ${n}). Keep the private key (${d}, ${n}) secret. Discard p, q, phi.`,
+    stage: "keygen",
+    p, q, n, phi, e, d, M: null, C: null, recovered: null,
+    flashKeys: ["publicKey", "privateKey"],
+  });
+
+  // Stage 6: encryption
+  const C = modPow(M, e, n);
+  frames.push({
+    line: 9,
+    vars: { M, e, n, formula: `${M}^${e} mod ${n}` },
+    message: `Encrypt: plaintext M=${M}. Using the public key, compute C = M^e mod n.`,
+    stage: "encrypt",
+    p, q, n, phi, e, d, M, C: null, recovered: null,
+    flashKeys: ["M", "formula"],
+  });
+
+  frames.push({
+    line: 9,
+    vars: { "ciphertext C": C },
+    message: `C = ${M}^${e} mod ${n} = ${C}. This is the ciphertext. Anyone with the public key can encrypt; only the holder of d can decrypt.`,
+    stage: "encrypt",
+    p, q, n, phi, e, d, M, C, recovered: null,
+    flashKeys: ["ciphertext C"],
+  });
+
+  // Stage 7: decryption
+  const recovered = modPow(C, d, n);
+  frames.push({
+    line: 11,
+    vars: { C, d, n, formula: `${C}^${d} mod ${n}` },
+    message: `Decrypt: Alice uses her private key (d=${d}, n=${n}) to compute M = C^d mod n.`,
+    stage: "decrypt",
+    p, q, n, phi, e, d, M, C, recovered: null,
+    flashKeys: ["C", "d"],
+  });
+
+  frames.push({
+    line: 11,
+    vars: { recovered, match: recovered === M ? "yes" : "no" },
+    message: `M = ${C}^${d} mod ${n} = ${recovered}. ${recovered === M ? `Matches the original plaintext M=${M}. Success!` : `Something went wrong.`} The math works because of Euler's theorem.`,
+    stage: "done",
+    p, q, n, phi, e, d, M, C, recovered,
+    flashKeys: ["recovered"],
+  });
+
+  return frames;
+}
+
+/* ---------- RSA Visualization ---------- */
+
+function RSAVisualization({ frame }: { frame: RSAFrame }) {
+  const stageColor = frame.stage === "keygen"
+    ? "var(--eng-primary)"
+    : frame.stage === "encrypt"
+      ? "#f59e0b"
+      : frame.stage === "decrypt"
+        ? "var(--eng-danger)"
+        : "var(--eng-success)";
 
   return (
-    <div className="space-y-6">
-      <div className="info-eng">
-        <strong>Asymmetric encryption</strong> uses a <em>key pair</em>: a <span style={{ color: "var(--eng-success)", fontWeight: 700 }}>public key</span> (shared openly) encrypts data, and only the matching <span style={{ color: "var(--eng-danger)", fontWeight: 700 }}>private key</span> (kept secret) can decrypt it.
+    <div
+      style={{
+        padding: 16,
+        borderRadius: "var(--eng-radius)",
+        background: "var(--eng-surface)",
+        border: "1px solid var(--eng-border)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 14,
+      }}
+    >
+      {/* Stage banner */}
+      <div
+        style={{
+          padding: "8px 12px",
+          borderRadius: 8,
+          background: `${stageColor}15`,
+          border: `1px solid ${stageColor}`,
+          fontFamily: "var(--eng-font)",
+          fontSize: "0.82rem",
+          fontWeight: 700,
+          color: stageColor,
+          textAlign: "center",
+        }}
+      >
+        {frame.stage === "keygen" && "Stage: Key Generation"}
+        {frame.stage === "encrypt" && "Stage: Encrypt with Public Key"}
+        {frame.stage === "decrypt" && "Stage: Decrypt with Private Key"}
+        {frame.stage === "done" && "Stage: Recovered Plaintext"}
       </div>
 
-      {/* Key pair generation visual */}
-      <div className="card-eng p-5">
-        <h3 style={{ fontFamily: "var(--eng-font)", fontWeight: 600, fontSize: "1rem", color: "var(--eng-text)", marginBottom: 16 }}>
-          RSA Key Generation (Simplified)
-        </h3>
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <svg viewBox="0 0 500 180" width="100%" style={{ maxWidth: 500 }}>
-            {/* Step boxes */}
-            {[
-              { x: 10, label: "Pick two\nprimes p, q", detail: "p=61, q=53" },
-              { x: 130, label: "Compute\nn = p * q", detail: "n = 3233" },
-              { x: 250, label: "Compute\nphi(n)", detail: "phi = 3120" },
-              { x: 370, label: "Choose e,\nfind d", detail: "e=17, d=2753" },
-            ].map((step, i) => (
-              <g key={i}>
-                <rect
-                  x={step.x}
-                  y="20"
-                  width="110"
-                  height="60"
-                  rx="8"
-                  fill="var(--eng-surface)"
-                  stroke="var(--eng-primary)"
-                  strokeWidth="1.5"
-                />
-                <text x={step.x + 55} y="44" textAnchor="middle" style={{ fontSize: "9px", fontFamily: "var(--eng-font)", fontWeight: 600, fill: "var(--eng-text)" }}>
-                  {step.label.split("\n").map((line, j) => (
-                    <tspan key={j} x={step.x + 55} dy={j === 0 ? 0 : 12}>{line}</tspan>
-                  ))}
-                </text>
-                <text x={step.x + 55} y="70" textAnchor="middle" style={{ fontSize: "8px", fontFamily: "monospace", fill: "var(--eng-text-muted)" }}>
-                  {step.detail}
-                </text>
-                {i < 3 && (
-                  <line x1={step.x + 110} y1="50" x2={step.x + 130} y2="50" stroke="var(--eng-primary)" strokeWidth="1.5" markerEnd="url(#arrowBlue)" />
-                )}
-              </g>
-            ))}
-
-            <defs>
-              <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--eng-primary)" />
-              </marker>
-            </defs>
-
-            {/* Output keys */}
-            <rect x="80" y="110" width="140" height="50" rx="8" fill="rgba(16,185,129,0.1)" stroke="var(--eng-success)" strokeWidth="2" />
-            <text x="150" y="130" textAnchor="middle" style={{ fontSize: "9px", fontFamily: "var(--eng-font)", fontWeight: 700, fill: "var(--eng-success)" }}>
-              Public Key
-            </text>
-            <text x="150" y="148" textAnchor="middle" style={{ fontSize: "9px", fontFamily: "monospace", fill: "var(--eng-text-muted)" }}>
-              (e=17, n=3233)
-            </text>
-
-            <rect x="280" y="110" width="140" height="50" rx="8" fill="rgba(239,68,68,0.1)" stroke="var(--eng-danger)" strokeWidth="2" />
-            <text x="350" y="130" textAnchor="middle" style={{ fontSize: "9px", fontFamily: "var(--eng-font)", fontWeight: 700, fill: "var(--eng-danger)" }}>
-              Private Key
-            </text>
-            <text x="350" y="148" textAnchor="middle" style={{ fontSize: "9px", fontFamily: "monospace", fill: "var(--eng-text-muted)" }}>
-              (d=2753, n=3233)
-            </text>
-
-            {/* Arrows from step 4 to keys */}
-            <line x1="425" y1="80" x2="220" y2="110" stroke="var(--eng-success)" strokeWidth="1.5" strokeDasharray="4 3" />
-            <line x1="425" y1="80" x2="350" y2="110" stroke="var(--eng-danger)" strokeWidth="1.5" strokeDasharray="4 3" />
-          </svg>
+      {/* Key cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div
+          style={{
+            padding: 12,
+            borderRadius: 8,
+            background: "rgba(16,185,129,0.08)",
+            border: "2px solid var(--eng-success)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <Unlock className="w-4 h-4" style={{ color: "var(--eng-success)" }} />
+            <span style={{ fontFamily: "var(--eng-font)", fontWeight: 700, color: "var(--eng-success)", fontSize: "0.82rem" }}>
+              Public Key (shared)
+            </span>
+          </div>
+          <div style={{ fontFamily: "monospace", fontSize: "0.85rem", color: "var(--eng-text)" }}>
+            (e = {frame.e}, n = {frame.n})
+          </div>
+        </div>
+        <div
+          style={{
+            padding: 12,
+            borderRadius: 8,
+            background: "rgba(239,68,68,0.08)",
+            border: "2px solid var(--eng-danger)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <Key className="w-4 h-4" style={{ color: "var(--eng-danger)" }} />
+            <span style={{ fontFamily: "var(--eng-font)", fontWeight: 700, color: "var(--eng-danger)", fontSize: "0.82rem" }}>
+              Private Key (secret)
+            </span>
+          </div>
+          <div style={{ fontFamily: "monospace", fontSize: "0.85rem", color: "var(--eng-text)" }}>
+            (d = {frame.stage === "keygen" && frame.d === 0 ? "?" : frame.d}, n = {frame.n})
+          </div>
         </div>
       </div>
 
-      {/* Lock/Unlock animation */}
-      <div className="card-eng p-5">
-        <h3 style={{ fontFamily: "var(--eng-font)", fontWeight: 600, fontSize: "1rem", color: "var(--eng-text)", marginBottom: 16 }}>
-          Public Key Encrypts, Private Key Decrypts
-        </h3>
-
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <svg viewBox="0 0 460 200" width="100%" style={{ maxWidth: 460 }}>
-            {/* Sender */}
-            <rect x="10" y="50" width="100" height="100" rx="10" fill="var(--eng-surface)" stroke="var(--eng-border)" strokeWidth="1.5" />
-            <text x="60" y="90" textAnchor="middle" style={{ fontSize: "10px", fontFamily: "var(--eng-font)", fontWeight: 600, fill: "var(--eng-text)" }}>Sender</text>
-            <text x="60" y="108" textAnchor="middle" style={{ fontSize: "9px", fontFamily: "monospace", fill: "var(--eng-text-muted)" }}>
-              {phase === "idle" ? message : phase === "decrypted" ? message : scrambled}
-            </text>
-
-            {/* Lock icon in center */}
-            <g style={{ transform: `translate(200px, 60px)` }}>
-              {/* Lock body */}
-              <rect x="0" y={30} width="60" height="40" rx="6" fill={lockAnim > 0.5 ? "var(--eng-danger)" : "var(--eng-success)"} style={{ transition: "fill 0.3s" }} />
-              {/* Lock shackle */}
-              <path
-                d={lockAnim > 0.5
-                  ? "M 12 30 L 12 18 A 18 18 0 0 1 48 18 L 48 30"
-                  : "M 12 30 L 12 18 A 18 18 0 0 1 48 18 L 48 10"
-                }
-                fill="none"
-                stroke={lockAnim > 0.5 ? "var(--eng-danger)" : "var(--eng-success)"}
-                strokeWidth="5"
-                strokeLinecap="round"
-                style={{ transition: "all 0.5s ease" }}
-              />
-              {/* Keyhole */}
-              <circle cx="30" cy="50" r="5" fill="white" />
-              <rect x="28" y="50" width="4" height="10" rx="1" fill="white" />
-              <text x="30" y="90" textAnchor="middle" style={{ fontSize: "9px", fontFamily: "var(--eng-font)", fontWeight: 700, fill: "var(--eng-text)" }}>
-                {phase === "idle" ? "Ready" : phase === "encrypting" ? "Locking..." : phase === "encrypted" ? "Locked" : phase === "decrypting" ? "Unlocking..." : "Unlocked"}
-              </text>
-            </g>
-
-            {/* Receiver */}
-            <rect x="350" y="50" width="100" height="100" rx="10" fill="var(--eng-surface)" stroke="var(--eng-border)" strokeWidth="1.5" />
-            <text x="400" y="90" textAnchor="middle" style={{ fontSize: "10px", fontFamily: "var(--eng-font)", fontWeight: 600, fill: "var(--eng-text)" }}>Receiver</text>
-            <text x="400" y="108" textAnchor="middle" style={{ fontSize: "9px", fontFamily: "monospace", fill: phase === "decrypted" ? "var(--eng-success)" : "var(--eng-text-muted)" }}>
-              {phase === "decrypted" ? message : phase === "encrypted" || phase === "decrypting" ? scrambled : "---"}
-            </text>
-
-            {/* Arrows */}
-            <line x1="110" y1="100" x2="195" y2="100" stroke="var(--eng-success)" strokeWidth="2" markerEnd="url(#arrowGreen)" strokeDasharray={phase === "encrypting" ? "6 4" : "0"}>
-              {phase === "encrypting" && (
-                <animate attributeName="stroke-dashoffset" from="20" to="0" dur="0.5s" repeatCount="indefinite" />
-              )}
-            </line>
-            <line x1="265" y1="100" x2="345" y2="100" stroke="var(--eng-danger)" strokeWidth="2" markerEnd="url(#arrowRed)" strokeDasharray={phase === "decrypting" ? "6 4" : "0"}>
-              {phase === "decrypting" && (
-                <animate attributeName="stroke-dashoffset" from="20" to="0" dur="0.5s" repeatCount="indefinite" />
-              )}
-            </line>
-
-            {/* Key labels */}
-            <text x="155" y="85" textAnchor="middle" style={{ fontSize: "8px", fontFamily: "var(--eng-font)", fontWeight: 700, fill: "var(--eng-success)" }}>
-              Public Key
-            </text>
-            <text x="310" y="85" textAnchor="middle" style={{ fontSize: "8px", fontFamily: "var(--eng-font)", fontWeight: 700, fill: "var(--eng-danger)" }}>
-              Private Key
-            </text>
-
-            <defs>
-              <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--eng-success)" />
-              </marker>
-              <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--eng-danger)" />
-              </marker>
-            </defs>
-          </svg>
-        </div>
-
-        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 16 }}>
-          <button className="btn-eng" onClick={handleEncrypt} disabled={phase !== "idle"} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Lock className="w-4 h-4" /> Encrypt with Public Key
-          </button>
-          <button className="btn-eng-outline" onClick={handleDecrypt} disabled={phase !== "encrypted"} style={{ display: "flex", alignItems: "center", gap: 6, background: phase === "encrypted" ? "rgba(239,68,68,0.1)" : undefined }}>
-            <Key className="w-4 h-4" /> Decrypt with Private Key
-          </button>
-          {phase !== "idle" && (
-            <button className="btn-eng-outline" onClick={handleReset} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <RefreshCw className="w-4 h-4" /> Reset
-            </button>
-          )}
-        </div>
+      {/* Keygen math breakdown */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8 }}>
+        <StatTile label="p" value={frame.p} active={frame.stage === "keygen"} />
+        <StatTile label="q" value={frame.q} active={frame.stage === "keygen"} />
+        <StatTile label="n = p·q" value={frame.n} active={frame.stage === "keygen"} />
+        <StatTile label="φ(n)" value={frame.phi} active={frame.stage === "keygen"} />
+        <StatTile label="e" value={frame.e} active={frame.stage !== "done"} />
+        <StatTile label="d = e⁻¹ mod φ" value={frame.d} active={frame.stage === "decrypt" || frame.stage === "done"} />
       </div>
 
-      <div className="info-eng">
-        <strong>RSA</strong> is the most well-known asymmetric algorithm. Others include <strong>ECC</strong> (Elliptic Curve Cryptography) and <strong>Diffie-Hellman</strong> key exchange.
+      {/* Message pipeline */}
+      <div
+        style={{
+          padding: 14,
+          borderRadius: 8,
+          background: "var(--eng-bg)",
+          border: "1px solid var(--eng-border)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          {/* Plaintext */}
+          <MsgBox
+            label="Plaintext M"
+            value={frame.M !== null ? String(frame.M) : "?"}
+            color="var(--eng-primary)"
+            active={frame.stage === "encrypt" || frame.stage === "done"}
+          />
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <ArrowRight className="w-4 h-4" style={{ color: stageColor }} />
+            <span style={{ fontFamily: "monospace", fontSize: "0.75rem", color: "var(--eng-text-muted)" }}>
+              M^e mod n
+            </span>
+            <ArrowRight className="w-4 h-4" style={{ color: stageColor }} />
+          </div>
+          {/* Ciphertext */}
+          <MsgBox
+            label="Ciphertext C"
+            value={frame.C !== null ? String(frame.C) : "?"}
+            color="#f59e0b"
+            active={frame.stage !== "keygen" && frame.C !== null}
+          />
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <ArrowRight className="w-4 h-4" style={{ color: stageColor }} />
+            <span style={{ fontFamily: "monospace", fontSize: "0.75rem", color: "var(--eng-text-muted)" }}>
+              C^d mod n
+            </span>
+            <ArrowRight className="w-4 h-4" style={{ color: stageColor }} />
+          </div>
+          {/* Recovered */}
+          <MsgBox
+            label="Recovered M'"
+            value={frame.recovered !== null ? String(frame.recovered) : "?"}
+            color="var(--eng-success)"
+            active={frame.stage === "done"}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
+function StatTile({ label, value, active }: { label: string; value: number; active: boolean }) {
+  return (
+    <div
+      style={{
+        padding: "8px 10px",
+        borderRadius: 6,
+        background: active ? "rgba(59,130,246,0.08)" : "var(--eng-bg)",
+        border: `1px solid ${active ? "var(--eng-primary)" : "var(--eng-border)"}`,
+        transition: "all 0.25s ease",
+      }}
+    >
+      <div style={{ fontFamily: "var(--eng-font)", fontSize: "0.65rem", color: "var(--eng-text-muted)", marginBottom: 2 }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: "monospace", fontSize: "0.85rem", fontWeight: 700, color: active ? "var(--eng-primary)" : "var(--eng-text)" }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function MsgBox({ label, value, color, active }: { label: string; value: string; color: string; active: boolean }) {
+  return (
+    <div
+      style={{
+        padding: "10px 14px",
+        borderRadius: 10,
+        background: active ? `${color}14` : "var(--eng-surface)",
+        border: `2px solid ${active ? color : "var(--eng-border)"}`,
+        minWidth: 90,
+        textAlign: "center",
+        opacity: active ? 1 : 0.55,
+        transition: "all 0.3s ease",
+      }}
+    >
+      <div style={{ fontFamily: "var(--eng-font)", fontSize: "0.65rem", color: "var(--eng-text-muted)", marginBottom: 4 }}>
+        {label}
+      </div>
+      <div style={{ fontFamily: "monospace", fontSize: "1.1rem", fontWeight: 700, color: active ? color : "var(--eng-text-muted)" }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function parseRSAInput(raw: string): { p: number; q: number; e: number; M: number } {
+  const m = raw.trim().match(/p\s*=\s*(\d+)\s*,\s*q\s*=\s*(\d+)\s*,\s*e\s*=\s*(\d+)\s*,\s*M\s*=\s*(\d+)/i);
+  if (m) return { p: Number(m[1]), q: Number(m[2]), e: Number(m[3]), M: Number(m[4]) };
+  return { p: 61, q: 53, e: 17, M: 65 };
+}
+
+function AsymmetricTab() {
+  const [raw, setRaw] = useState("p=61, q=53, e=17, M=65");
+  const parsed = useMemo(() => parseRSAInput(raw), [raw]);
+  const frames = useMemo(() => buildRSAFrames(parsed.p, parsed.q, parsed.e, parsed.M), [parsed]);
+  const player = useStepPlayer(frames);
+  const frame = player.current!;
+
+  return (
+    <div className="eng-fadeIn" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div className="info-eng" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <Info className="w-4 h-4 shrink-0" style={{ marginTop: 2, color: "var(--eng-primary)" }} />
+        <span>
+          Full RSA walkthrough with real modular arithmetic. Pick two primes p, q, a public exponent e, and a message M. Watch key generation, then encryption and decryption.
+        </span>
+      </div>
+
+      <AlgoCanvas
+        title={`RSA: p=${parsed.p}, q=${parsed.q}, e=${parsed.e}, M=${parsed.M}`}
+        player={player}
+        input={
+          <InputEditor
+            label="p, q, e, M"
+            value={raw}
+            onApply={setRaw}
+            presets={[
+              { label: "classic", value: "p=61, q=53, e=17, M=65" },
+              { label: "small", value: "p=3, q=11, e=3, M=4" },
+              { label: "medium", value: "p=17, q=23, e=7, M=100" },
+              { label: "another", value: "p=13, q=31, e=11, M=50" },
+            ]}
+            placeholder="p=61, q=53, e=17, M=65"
+            helper="Format: p=<prime>, q=<prime>, e=<coprime with phi>, M=<msg < n>"
+          />
+        }
+        pseudocode={<PseudocodePanel lines={RSA_PSEUDO} activeLine={frame.line} />}
+        variables={<VariablesPanel vars={frame.vars} flashKeys={frame.flashKeys} />}
+        status={frame.message}
+        legend={
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <Swatch color="var(--eng-success)" label="Public key" />
+            <Swatch color="var(--eng-danger)" label="Private key" />
+            <Swatch color="#f59e0b" label="Ciphertext" />
+          </div>
+        }
+      >
+        <RSAVisualization frame={frame} />
+      </AlgoCanvas>
+    </div>
+  );
+}
+
+function Swatch({ color, label }: { color: string; label: string }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--eng-font)", fontSize: "0.72rem", color: "var(--eng-text-muted)" }}>
+      <span style={{ width: 12, height: 12, borderRadius: 3, background: color }} />
+      {label}
+    </span>
+  );
+}
+
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Symmetric vs Asymmetric Comparison                         */
+/*  Tab 3 - Symmetric vs Asymmetric Comparison                         */
 /* ------------------------------------------------------------------ */
 
 function CompareTab() {
@@ -782,7 +1008,6 @@ export default function CN_L6_CryptographyActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="TLS/SSL -- Secure Communication"
-      gateRelevance="2-3 marks"
       placementRelevance="Medium"
     />
   );

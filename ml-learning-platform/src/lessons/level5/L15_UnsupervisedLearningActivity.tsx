@@ -34,7 +34,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Shared dataset — 3 well-separated blobs used for the concept tab    */
+/*  Shared dataset - 3 well-separated blobs used for the concept tab    */
 /* ------------------------------------------------------------------ */
 const CONCEPT_BLOBS: Point[] = generateClusters(3, 14, 7);
 const CATEGORY_NAMES = ["Cat", "Dog", "Bird"];
@@ -56,7 +56,7 @@ function toLabeledScatter(points: Point[]): DataPoint[] {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Concept: supervised vs unsupervised                        */
+/*  Tab 1 - Concept: supervised vs unsupervised                        */
 /* ------------------------------------------------------------------ */
 function ConceptTab() {
   const [mode, setMode] = useState<"unlabeled" | "labeled">("unlabeled");
@@ -103,8 +103,8 @@ function ConceptTab() {
           height={320}
           title={
             mode === "unlabeled"
-              ? "Unlabeled data — just dots, no categories"
-              : "Labeled data — every dot has a name"
+              ? "Unlabeled data - just dots, no categories"
+              : "Labeled data - every dot has a name"
           }
           xLabel="Feature 1"
           yLabel="Feature 2"
@@ -131,7 +131,7 @@ function ConceptTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Real-world examples                                        */
+/*  Tab 2 - Real-world examples                                        */
 /* ------------------------------------------------------------------ */
 interface ExampleCard {
   title: string;
@@ -224,7 +224,7 @@ function ExamplesTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Interactive: watch clusters emerge without labels          */
+/*  Tab 3 - Interactive: watch clusters emerge without labels          */
 /* ------------------------------------------------------------------ */
 function TryItTab() {
   const playgroundPoints = useMemo(() => generateClusters(3, 18, 42), []);
@@ -291,7 +291,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "Customer segmentation groups people by purchasing behavior without pre-defined labels — a classic unsupervised task.",
+      "Customer segmentation groups people by purchasing behavior without pre-defined labels - a classic unsupervised task.",
   },
   {
     question: "In unsupervised learning, who decides the group names?",
@@ -342,15 +342,15 @@ export default function L15_UnsupervisedLearningActivity() {
       lessonNumber={1}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Learn K-Means — the most popular clustering algorithm!"
+      nextLessonHint="Next: Learn K-Means - the most popular clustering algorithm!"
       story={
         <StorySection
           paragraphs={[
-            "Aru dumped a big box of mixed buttons onto the kitchen table. There were red ones, blue ones, big ones, tiny ones — all jumbled up.",
+            "Aru dumped a big box of mixed buttons onto the kitchen table. There were red ones, blue ones, big ones, tiny ones - all jumbled up.",
             "Aru: \"Byte, can you sort these for me? I don't even know what the categories should be!\"",
-            "Byte: \"I have no labels for these, but I can see some look similar — same color, same size. I can GROUP them without anyone telling me the categories. That's unsupervised learning!\"",
+            "Byte: \"I have no labels for these, but I can see some look similar - same color, same size. I can GROUP them without anyone telling me the categories. That's unsupervised learning!\"",
             "Aru: \"So you just... figure out the groups yourself?\"",
-            "Byte: \"Exactly! I look at how similar things are and put alike items together. No teacher needed — just patterns in the data.\"",
+            "Byte: \"Exactly! I look at how similar things are and put alike items together. No teacher needed - just patterns in the data.\"",
           ]}
           conceptTitle="Key Concept"
           conceptSummary="Unsupervised learning finds hidden patterns in data that has no labels. Instead of being told the answer, the algorithm discovers natural groups and structures all on its own."

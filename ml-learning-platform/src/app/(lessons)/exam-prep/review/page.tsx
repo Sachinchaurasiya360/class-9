@@ -33,7 +33,7 @@ export default function ReviewModePage() {
   const [sessionResults, setSessionResults] = useState<boolean[]>([]);
   const [finished, setFinished] = useState(false);
 
-  // Live-update set of IDs still considered "wrong" based on current state —
+  // Live-update set of IDs still considered "wrong" based on current state -
   // used to decide whether a question still belongs in the review pile
   const stillWrongSet = useMemo(
     () => new Set(getWrongQuestionIds()),

@@ -1,7 +1,7 @@
 "use client";
 
 /* --------------------------------------------------------------------------
- * /riku — full-page chat interface with our red panda mascot.
+ * /riku - full-page chat interface with our red panda mascot.
  *
  * Canned / rule-based responses powered by src/utils/rikuResponses.ts.
  * Chat history persists to localStorage (last 50 messages) so the stream

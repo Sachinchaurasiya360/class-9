@@ -30,7 +30,7 @@ interface Packet {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Firewall                                                   */
+/*  Tab 1 - Firewall                                                   */
 /* ------------------------------------------------------------------ */
 
 const FIREWALL_RULES: FirewallRule[] = [
@@ -317,7 +317,7 @@ function FirewallTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — VPN                                                        */
+/*  Tab 2 - VPN                                                        */
 /* ------------------------------------------------------------------ */
 
 function VPNTab() {
@@ -500,7 +500,7 @@ function VPNTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — DMZ Architecture                                           */
+/*  Tab 3 - DMZ Architecture                                           */
 /* ------------------------------------------------------------------ */
 
 function DMZTab() {
@@ -806,7 +806,6 @@ export default function CN_L6_FirewallsVPNActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="Network Attacks & Defenses"
-      gateRelevance="1-2 marks"
       placementRelevance="Medium"
     />
   );

@@ -1,20 +1,28 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Shield, Binary, Hash, CheckCircle2, XCircle, RotateCcw } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { Shield, Binary, Hash, CheckCircle2, XCircle } from "lucide-react";
 import EngineeringLessonShell from "@/components/engineering/EngineeringLessonShell";
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
+import {
+  AlgoCanvas,
+  PseudocodePanel,
+  VariablesPanel,
+  InputEditor,
+  MemoryCells,
+  useStepPlayer,
+} from "@/components/engineering/algo";
+import type { CellState } from "@/components/engineering/algo";
 
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 /*  Tab 1: Error Detection - Parity Bit Demo                          */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 
 function ErrorDetectionTab() {
   const [bits, setBits] = useState([1, 0, 1, 1, 0, 0, 1]);
   const [parityType, setParityType] = useState<"even" | "odd">("even");
   const [flippedIdx, setFlippedIdx] = useState<number | null>(null);
   const [showCheck, setShowCheck] = useState(false);
-  const [animatingBit, setAnimatingBit] = useState<number | null>(null);
 
   const onesCount = bits.reduce((a, b) => a + b, 0);
   const parityBit = parityType === "even" ? onesCount % 2 : (onesCount + 1) % 2;
@@ -24,9 +32,6 @@ function ErrorDetectionTab() {
   const isValid = parityType === "even" ? checkOnes % 2 === 0 : checkOnes % 2 === 1;
 
   const handleFlipBit = useCallback((idx: number) => {
-    setAnimatingBit(idx);
-    setTimeout(() => setAnimatingBit(null), 400);
-
     if (idx < bits.length) {
       setBits((prev) => {
         const next = [...prev];
@@ -61,7 +66,7 @@ function ErrorDetectionTab() {
       </p>
 
       {/* Parity type toggle */}
-      <div className="flex gap-2" style={{ marginBottom: 20 }}>
+      <div className="flex gap-2" style={{ marginBottom: 20, flexWrap: "wrap" }}>
         {(["even", "odd"] as const).map((p) => (
           <button
             key={p}
@@ -76,7 +81,7 @@ function ErrorDetectionTab() {
           Randomize
         </button>
         <button onClick={handleReset} className="btn-eng-outline" style={{ fontSize: "0.8rem" }}>
-          <RotateCcw className="w-3.5 h-3.5" />
+          Reset
         </button>
       </div>
 
@@ -86,8 +91,6 @@ function ErrorDetectionTab() {
           {fullWord.map((bit, idx) => {
             const isParityBit = idx === fullWord.length - 1;
             const isFlipped = idx === flippedIdx;
-            const isAnimating = idx === animatingBit;
-
             return (
               <div
                 key={idx}
@@ -108,13 +111,12 @@ function ErrorDetectionTab() {
                       : "var(--eng-surface)",
                   cursor: isParityBit ? "default" : "pointer",
                   transition: "all 0.3s ease",
-                  transform: isAnimating ? "scale(1.2) rotateY(180deg)" : "scale(1) rotateY(0deg)",
                   position: "relative",
                 }}
               >
                 <span
                   style={{
-                    fontFamily: "monospace",
+                    fontFamily: '"SF Mono", Menlo, Consolas, monospace',
                     fontSize: "1.4rem",
                     fontWeight: 700,
                     color: isFlipped ? "var(--eng-danger)" : isParityBit ? "var(--eng-primary)" : "var(--eng-text)",
@@ -139,7 +141,7 @@ function ErrorDetectionTab() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 16 }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 16, flexWrap: "wrap" }}>
           <span style={{ fontFamily: "var(--eng-font)", fontSize: "0.8rem", color: "var(--eng-text-muted)" }}>
             1s count: <strong style={{ color: "var(--eng-text)" }}>{checkOnes}</strong>
           </span>
@@ -196,63 +198,164 @@ function ErrorDetectionTab() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Tab 2: CRC Polynomial Division Animation                          */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
+/*  Tab 2: CRC Polynomial Division (AlgoCanvas)                        */
+/* ================================================================== */
 
-function CRCTab() {
-  const [dataInput, setDataInput] = useState("1101011");
-  const [generatorInput, setGeneratorInput] = useState("1011");
-  const [steps, setSteps] = useState<{ dividend: string; divisor: string; result: string; position: number }[]>([]);
-  const [currentStep, setCurrentStep] = useState(-1);
-  const [remainder, setRemainder] = useState("");
-  const [transmitted, setTransmitted] = useState("");
-  const [isComputing, setIsComputing] = useState(false);
+interface CRCFrame {
+  line: number;
+  message: string;
+  vars: Record<string, string | number | boolean | undefined>;
+  bits: string[];                        // current working buffer, one bit per cell
+  states: (CellState | undefined)[];     // per-bit highlight
+  pointer: number | null;                // current leading-1 position
+  remainder?: string;
+  transmitted?: string;
+}
 
-  const computeCRC = useCallback(() => {
-    const data = dataInput.replace(/[^01]/g, "");
-    const gen = generatorInput.replace(/[^01]/g, "");
-    if (data.length < 2 || gen.length < 2) return;
+const CRC_PSEUDO = [
+  "function CRC(data, gen):",
+  "  buffer ← data + '0' × (len(gen) - 1)",
+  "  for i ← 0 to len(buffer) - len(gen):",
+  "    if buffer[i] == 1:",
+  "      for j ← 0 to len(gen) - 1:",
+  "        buffer[i+j] ← buffer[i+j] XOR gen[j]",
+  "  remainder ← last (len(gen) - 1) bits of buffer",
+  "  return data + remainder",
+];
 
-    const paddedData = data + "0".repeat(gen.length - 1);
-    const allSteps: { dividend: string; divisor: string; result: string; position: number }[] = [];
+function buildCRCFrames(dataRaw: string, genRaw: string): CRCFrame[] {
+  const data = dataRaw.replace(/[^01]/g, "") || "1101011";
+  const gen = genRaw.replace(/[^01]/g, "") || "1011";
+  const g = gen.length;
+  const frames: CRCFrame[] = [];
 
-    let working = paddedData.split("").map(Number);
-    const genBits = gen.split("").map(Number);
+  const initial = data + "0".repeat(g - 1);
+  const buf = initial.split("");
 
-    for (let i = 0; i <= working.length - genBits.length; i++) {
-      if (working[i] === 0) continue;
+  frames.push({
+    line: 0,
+    message: `CRC computation: data = ${data}, generator = ${gen}`,
+    vars: { data, gen, dataLen: data.length, genLen: g },
+    bits: [...buf],
+    states: buf.map(() => undefined),
+    pointer: null,
+  });
 
-      const dividendStr = working.slice(i, i + genBits.length).join("");
-      const resultBits: number[] = [];
+  frames.push({
+    line: 1,
+    message: `Append ${g - 1} zeros to data - this is what we divide.`,
+    vars: { data, gen, buffer: buf.join("") },
+    bits: [...buf],
+    states: buf.map((_, i) => (i < data.length ? "active" : "compare")),
+    pointer: null,
+  });
 
-      for (let j = 0; j < genBits.length; j++) {
-        resultBits.push(working[i + j] ^ genBits[j]);
-        working[i + j] = working[i + j] ^ genBits[j];
-      }
+  for (let i = 0; i <= buf.length - g; i++) {
+    frames.push({
+      line: 2,
+      message: `i = ${i}: examine bit at position ${i}.`,
+      vars: { i, bit: buf[i], buffer: buf.join("") },
+      bits: [...buf],
+      states: buf.map((_, k) => (k === i ? "active" : undefined)),
+      pointer: i,
+    });
 
-      allSteps.push({
-        dividend: dividendStr,
-        divisor: gen,
-        result: resultBits.join(""),
-        position: i,
+    if (buf[i] !== "1") {
+      frames.push({
+        line: 3,
+        message: `buffer[${i}] is 0 - skip. No XOR needed.`,
+        vars: { i, bit: 0, buffer: buf.join("") },
+        bits: [...buf],
+        states: buf.map((_, k) => (k === i ? "mismatch" : undefined)),
+        pointer: i,
       });
+      continue;
     }
 
-    const rem = working.slice(working.length - (gen.length - 1)).join("");
-    const tx = data + rem;
-
-    setSteps(allSteps);
-    setRemainder(rem);
-    setTransmitted(tx);
-    setCurrentStep(-1);
-    setIsComputing(true);
-
-    // Animate steps
-    allSteps.forEach((_, idx) => {
-      setTimeout(() => setCurrentStep(idx), (idx + 1) * 800);
+    frames.push({
+      line: 3,
+      message: `buffer[${i}] is 1 - XOR generator ${gen} here.`,
+      vars: { i, bit: 1, buffer: buf.join("") },
+      bits: [...buf],
+      states: buf.map((_, k) => (k >= i && k < i + g ? "compare" : undefined)),
+      pointer: i,
     });
-  }, [dataInput, generatorInput]);
+
+    frames.push({
+      line: 4,
+      message: `Align generator ${gen} under positions [${i}..${i + g - 1}] and XOR bit-by-bit.`,
+      vars: { i, generator: gen, buffer: buf.join("") },
+      bits: [...buf],
+      states: buf.map((_, k) => (k >= i && k < i + g ? "compare" : undefined)),
+      pointer: i,
+    });
+
+    for (let j = 0; j < g; j++) {
+      const oldBit = buf[i + j];
+      const newBit = String(Number(buf[i + j]) ^ Number(gen[j]));
+      buf[i + j] = newBit;
+      frames.push({
+        line: 5,
+        message: `XOR: buffer[${i + j}] = ${oldBit} ⊕ ${gen[j]} = ${newBit}`,
+        vars: { i, j, xor: `${oldBit}⊕${gen[j]}=${newBit}`, buffer: buf.join("") },
+        bits: [...buf],
+        states: buf.map((_, k) => {
+          if (k === i + j) return "swap";
+          if (k >= i && k < i + g) return "compare";
+          return undefined;
+        }),
+        pointer: i,
+      });
+    }
+  }
+
+  const rem = buf.slice(buf.length - (g - 1)).join("");
+  const tx = data + rem;
+
+  frames.push({
+    line: 6,
+    message: `Remainder = last ${g - 1} bits = ${rem}`,
+    vars: { remainder: rem, buffer: buf.join("") },
+    bits: [...buf],
+    states: buf.map((_, k) => (k >= buf.length - (g - 1) ? "done" : undefined)),
+    pointer: null,
+    remainder: rem,
+  });
+
+  frames.push({
+    line: 7,
+    message: `Transmit: data (${data}) + CRC (${rem}) = ${tx}`,
+    vars: { remainder: rem, transmitted: tx },
+    bits: tx.split(""),
+    states: tx.split("").map((_, k) => (k < data.length ? "active" : "done")),
+    pointer: null,
+    remainder: rem,
+    transmitted: tx,
+  });
+
+  return frames;
+}
+
+function CRCTab() {
+  const [inputStr, setInputStr] = useState("1101011 | 1011");
+
+  const [data, gen] = useMemo(() => {
+    const parts = inputStr.split("|").map((s) => s.trim());
+    return [parts[0] || "1101011", parts[1] || "1011"];
+  }, [inputStr]);
+
+  const frames = useMemo(() => buildCRCFrames(data, gen), [data, gen]);
+  const player = useStepPlayer(frames);
+  const frame = player.current!;
+
+  const flashKeys = useMemo(() => {
+    const out: string[] = [];
+    if (frame.vars.xor !== undefined) out.push("xor");
+    if (frame.vars.remainder !== undefined) out.push("remainder");
+    if (frame.vars.transmitted !== undefined) out.push("transmitted");
+    return out;
+  }, [frame]);
 
   return (
     <div>
@@ -260,165 +363,102 @@ function CRCTab() {
         CRC Polynomial Division
       </h3>
       <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", color: "var(--eng-text-muted)", margin: "0 0 16px", lineHeight: 1.6 }}>
-        Enter a data word and generator polynomial to see CRC computation step by step with XOR operations.
+        Enter a data word and generator (binary), then step through modulo-2 division XOR-by-XOR. The remainder is the CRC.
       </p>
 
-      {/* Input */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, marginBottom: 20 }}>
-        <div>
-          <label style={{ fontFamily: "var(--eng-font)", fontSize: "0.75rem", color: "var(--eng-text-muted)", display: "block", marginBottom: 4 }}>
-            Data (binary)
-          </label>
-          <input
-            type="text"
-            value={dataInput}
-            onChange={(e) => { setDataInput(e.target.value); setIsComputing(false); }}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              fontFamily: "monospace",
-              fontSize: "1rem",
-              border: "1px solid var(--eng-border)",
-              borderRadius: 6,
-              background: "var(--eng-surface)",
-              color: "var(--eng-text)",
+      <AlgoCanvas
+        title="CRC Computation"
+        player={player}
+        input={
+          <InputEditor
+            label="Data | Generator (both binary)"
+            value={inputStr}
+            helper="Format: data | generator, e.g. 1101011 | 1011"
+            placeholder="1101011 | 1011"
+            presets={[
+              { label: "Classic", value: "1101011 | 1011" },
+              { label: "CRC-3", value: "10110 | 1101" },
+              { label: "CRC-4", value: "10011010 | 10011" },
+              { label: "All ones", value: "11111111 | 1101" },
+            ]}
+            onApply={(v) => {
+              if (/\|/.test(v)) setInputStr(v);
             }}
-            placeholder="1101011"
-          />
-        </div>
-        <div>
-          <label style={{ fontFamily: "var(--eng-font)", fontSize: "0.75rem", color: "var(--eng-text-muted)", display: "block", marginBottom: 4 }}>
-            Generator (binary)
-          </label>
-          <input
-            type="text"
-            value={generatorInput}
-            onChange={(e) => { setGeneratorInput(e.target.value); setIsComputing(false); }}
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              fontFamily: "monospace",
-              fontSize: "1rem",
-              border: "1px solid var(--eng-border)",
-              borderRadius: 6,
-              background: "var(--eng-surface)",
-              color: "var(--eng-text)",
+            onRandom={() => {
+              const dlen = 6 + Math.floor(Math.random() * 4);
+              const glen = 3 + Math.floor(Math.random() * 2);
+              const d = Array.from({ length: dlen }, () => (Math.random() > 0.5 ? "1" : "0")).join("");
+              let gg = "1" + Array.from({ length: glen - 1 }, () => (Math.random() > 0.5 ? "1" : "0")).join("");
+              if (gg[gg.length - 1] === "0") gg = gg.slice(0, -1) + "1";
+              setInputStr(`${d} | ${gg}`);
             }}
-            placeholder="1011"
           />
-        </div>
-        <div style={{ display: "flex", alignItems: "flex-end" }}>
-          <button onClick={computeCRC} className="btn-eng" style={{ fontSize: "0.85rem" }}>
-            Compute CRC
-          </button>
-        </div>
-      </div>
-
-      {isComputing && (
-        <div className="eng-fadeIn">
-          {/* Step-by-step XOR visualization */}
-          <div className="card-eng" style={{ padding: 20, marginBottom: 16, overflowX: "auto" }}>
-            <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 600, fontSize: "0.9rem", color: "var(--eng-text)", margin: "0 0 12px" }}>
-              XOR Division Steps
-            </h4>
-
-            <div style={{ fontFamily: "monospace", fontSize: "0.95rem", lineHeight: 2.2 }}>
-              {/* Show padded data */}
-              <div style={{ color: "var(--eng-text)", marginBottom: 4 }}>
-                <span style={{ color: "var(--eng-primary)", fontWeight: 700 }}>{dataInput}</span>
-                <span style={{ color: "var(--eng-danger)" }}>{"0".repeat(generatorInput.length - 1)}</span>
-                <span style={{ fontFamily: "var(--eng-font)", fontSize: "0.7rem", color: "var(--eng-text-muted)", marginLeft: 12 }}>
-                  (data + {generatorInput.length - 1} zeros)
-                </span>
+        }
+        pseudocode={<PseudocodePanel lines={CRC_PSEUDO} activeLine={frame.line} />}
+        variables={<VariablesPanel vars={frame.vars} flashKeys={flashKeys} />}
+        legend={
+          <span>
+            <span style={{ color: "#3b82f6", fontWeight: 700 }}>active</span> = current leading bit ·
+            <span style={{ color: "#f59e0b", fontWeight: 700, marginLeft: 6 }}>compare</span> = generator window ·
+            <span style={{ color: "#ef4444", fontWeight: 700, marginLeft: 6 }}>XOR</span> = bit being flipped ·
+            <span style={{ color: "#10b981", fontWeight: 700, marginLeft: 6 }}>done</span> = remainder / CRC
+          </span>
+        }
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+          <MemoryCells
+            values={frame.bits}
+            states={frame.states}
+            pointers={frame.pointer !== null ? { "i": frame.pointer } : {}}
+            cellWidth={36}
+          />
+          {frame.remainder !== undefined && (
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+              <div
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: 8,
+                  border: "2px solid #10b981",
+                  background: "rgba(16,185,129,0.08)",
+                  fontFamily: '"SF Mono", Menlo, Consolas, monospace',
+                  fontSize: "0.95rem",
+                  fontWeight: 700,
+                  color: "#047857",
+                }}
+              >
+                CRC remainder = {frame.remainder}
               </div>
-
-              {/* Division steps */}
-              {steps.map((step, idx) => {
-                const visible = idx <= currentStep;
-                return (
-                  <div
-                    key={idx}
-                    className={visible ? "eng-fadeIn" : ""}
-                    style={{
-                      opacity: visible ? 1 : 0.15,
-                      transition: "opacity 0.5s ease",
-                      borderLeft: idx === currentStep ? "3px solid var(--eng-primary)" : "3px solid transparent",
-                      paddingLeft: 8,
-                      marginBottom: 4,
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: 4 }}>
-                      <span style={{ width: step.position * 9.6, display: "inline-block" }} />
-                      <span>
-                        {step.dividend.split("").map((b, i) => (
-                          <span
-                            key={i}
-                            style={{
-                              color: b === "1" ? "var(--eng-primary)" : "var(--eng-text-muted)",
-                              fontWeight: b === "1" ? 700 : 400,
-                            }}
-                          >
-                            {b}
-                          </span>
-                        ))}
-                      </span>
-                      <span style={{ fontFamily: "var(--eng-font)", fontSize: "0.65rem", color: "var(--eng-text-muted)", alignSelf: "center" }}>
-                        XOR {step.divisor}
-                      </span>
-                    </div>
-                    <div style={{ display: "flex", gap: 4 }}>
-                      <span style={{ width: step.position * 9.6, display: "inline-block" }} />
-                      <span style={{ borderBottom: "1px solid var(--eng-border)", display: "inline-block" }}>
-                        {step.divisor.split("").map((b, i) => (
-                          <span key={i} style={{ color: "var(--eng-danger)", fontWeight: 600 }}>{b}</span>
-                        ))}
-                      </span>
-                    </div>
-                    <div style={{ display: "flex", gap: 4 }}>
-                      <span style={{ width: step.position * 9.6, display: "inline-block" }} />
-                      <span>
-                        {step.result.split("").map((b, i) => (
-                          <span key={i} style={{ color: b === "1" ? "var(--eng-success)" : "var(--eng-text-muted)" }}>{b}</span>
-                        ))}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Result */}
-          {currentStep >= steps.length - 1 && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div className="card-eng eng-fadeIn" style={{ padding: 16, borderLeft: "3px solid var(--eng-primary)" }}>
-                <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.75rem", color: "var(--eng-text-muted)", margin: "0 0 4px" }}>CRC Remainder</p>
-                <p style={{ fontFamily: "monospace", fontSize: "1.3rem", fontWeight: 700, color: "var(--eng-primary)", margin: 0 }}>
-                  {remainder}
-                </p>
-              </div>
-              <div className="card-eng eng-fadeIn" style={{ padding: 16, borderLeft: "3px solid var(--eng-success)" }}>
-                <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.75rem", color: "var(--eng-text-muted)", margin: "0 0 4px" }}>Transmitted Word</p>
-                <p style={{ fontFamily: "monospace", fontSize: "1.3rem", fontWeight: 700, color: "var(--eng-success)", margin: 0 }}>
-                  <span>{dataInput}</span>
-                  <span style={{ color: "var(--eng-danger)" }}>{remainder}</span>
-                </p>
-              </div>
+              {frame.transmitted && (
+                <div
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: 8,
+                    border: "2px solid var(--eng-primary)",
+                    background: "var(--eng-primary-light)",
+                    fontFamily: '"SF Mono", Menlo, Consolas, monospace',
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    color: "var(--eng-primary)",
+                  }}
+                >
+                  Transmit = {frame.transmitted}
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+      </AlgoCanvas>
 
       <div className="info-eng" style={{ fontSize: "0.85rem", marginTop: 16 }}>
-        <strong>CRC (Cyclic Redundancy Check):</strong> The sender appends (generator length - 1) zeros to data, divides by the generator using XOR, and appends the remainder. The receiver divides the received word by the same generator - a zero remainder means no error.
+        <strong>CRC (Cyclic Redundancy Check):</strong> sender appends (len(gen)-1) zeros, performs XOR division, and sends data+remainder. Receiver re-divides; a zero remainder means no error.
       </div>
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Tab 3: Hamming Code Visualizer                                    */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
+/*  Tab 3: Hamming(7,4) Code Visualizer                                */
+/* ================================================================== */
 
 function HammingTab() {
   const [dataBits, setDataBits] = useState([1, 0, 1, 1]);
@@ -426,42 +466,34 @@ function HammingTab() {
   const [showCorrection, setShowCorrection] = useState(false);
   const [highlightGroup, setHighlightGroup] = useState<number | null>(null);
 
-  // Hamming(7,4): positions 1-7, parity at 1,2,4
+  // Hamming(7,4): positions 1-7 (0-indexed 0..6), parity at 1,2,4 (indexes 0,1,3)
   const computeHamming = useCallback((data: number[]) => {
     const code = new Array(7).fill(0);
-    // Data bits at positions 3,5,6,7 (1-indexed)
-    code[2] = data[0]; // pos 3
-    code[4] = data[1]; // pos 5
-    code[5] = data[2]; // pos 6
-    code[6] = data[3]; // pos 7
-
-    // Parity bits
-    code[0] = code[2] ^ code[4] ^ code[6]; // p1: covers 1,3,5,7
-    code[1] = code[2] ^ code[5] ^ code[6]; // p2: covers 2,3,6,7
-    code[3] = code[4] ^ code[5] ^ code[6]; // p4: covers 4,5,6,7
-
+    code[2] = data[0];
+    code[4] = data[1];
+    code[5] = data[2];
+    code[6] = data[3];
+    code[0] = code[2] ^ code[4] ^ code[6];
+    code[1] = code[2] ^ code[5] ^ code[6];
+    code[3] = code[4] ^ code[5] ^ code[6];
     return code;
   }, []);
 
   const hammingCode = computeHamming(dataBits);
   const displayCode = [...hammingCode];
-
-  // Inject error
   if (errorPos !== null && errorPos >= 0 && errorPos < 7) {
     displayCode[errorPos] = displayCode[errorPos] ^ 1;
   }
 
-  // Syndrome calculation
   const s1 = displayCode[0] ^ displayCode[2] ^ displayCode[4] ^ displayCode[6];
   const s2 = displayCode[1] ^ displayCode[2] ^ displayCode[5] ^ displayCode[6];
   const s4 = displayCode[3] ^ displayCode[4] ^ displayCode[5] ^ displayCode[6];
   const syndrome = s1 * 1 + s2 * 2 + s4 * 4;
 
-  // Check groups (1-indexed positions covered by each parity bit)
   const checkGroups: Record<number, number[]> = {
-    1: [0, 2, 4, 6], // p1: positions 1,3,5,7
-    2: [1, 2, 5, 6], // p2: positions 2,3,6,7
-    4: [3, 4, 5, 6], // p4: positions 4,5,6,7
+    1: [0, 2, 4, 6],
+    2: [1, 2, 5, 6],
+    4: [3, 4, 5, 6],
   };
 
   const posLabels = ["P1", "P2", "D1", "P4", "D2", "D3", "D4"];
@@ -477,7 +509,6 @@ function HammingTab() {
         See how Hamming code encodes 4 data bits into 7 bits with 3 parity bits, detects and corrects single-bit errors.
       </p>
 
-      {/* Data bit input */}
       <div className="card-eng" style={{ padding: 16, marginBottom: 16 }}>
         <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 600, fontSize: "0.9rem", color: "var(--eng-text)", margin: "0 0 12px" }}>
           Input Data Bits (4 bits)
@@ -499,7 +530,7 @@ function HammingTab() {
                 borderRadius: 8,
                 border: "2px solid var(--eng-border)",
                 background: "var(--eng-surface)",
-                fontFamily: "monospace",
+                fontFamily: '"SF Mono", Menlo, Consolas, monospace',
                 fontSize: "1.3rem",
                 fontWeight: 700,
                 color: "var(--eng-text)",
@@ -513,7 +544,6 @@ function HammingTab() {
         </div>
       </div>
 
-      {/* Hamming code display */}
       <div className="card-eng" style={{ padding: 20, marginBottom: 16 }}>
         <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 600, fontSize: "0.9rem", color: "var(--eng-text)", margin: "0 0 4px" }}>
           Hamming(7,4) Codeword
@@ -522,7 +552,7 @@ function HammingTab() {
           Click a bit to inject an error. Hover over check group buttons to highlight covered positions.
         </p>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
           {displayCode.map((bit, idx) => {
             const isError = idx === errorPos;
             const isParity = idx === 0 || idx === 1 || idx === 3;
@@ -558,7 +588,7 @@ function HammingTab() {
                   position: "relative",
                 }}
               >
-                <span style={{ fontFamily: "monospace", fontSize: "1.4rem", fontWeight: 700, color: isError ? "var(--eng-danger)" : "var(--eng-text)" }}>
+                <span style={{ fontFamily: '"SF Mono", Menlo, Consolas, monospace', fontSize: "1.4rem", fontWeight: 700, color: isError ? "var(--eng-danger)" : "var(--eng-text)" }}>
                   {bit}
                 </span>
                 <span style={{ fontFamily: "var(--eng-font)", fontSize: "0.55rem", color: isParity ? posColors[idx] : "var(--eng-text-muted)", fontWeight: isParity ? 700 : 400 }}>
@@ -569,8 +599,7 @@ function HammingTab() {
           })}
         </div>
 
-        {/* Check group buttons */}
-        <div className="flex gap-2 justify-center" style={{ marginBottom: 16 }}>
+        <div className="flex gap-2 justify-center" style={{ marginBottom: 16, flexWrap: "wrap" }}>
           {([1, 2, 4] as const).map((g) => (
             <button
               key={g}
@@ -584,7 +613,6 @@ function HammingTab() {
           ))}
         </div>
 
-        {/* Detect & Correct */}
         <div style={{ textAlign: "center" }}>
           <button onClick={() => setShowCorrection(true)} className="btn-eng" style={{ fontSize: "0.85rem" }}>
             Detect &amp; Correct Error
@@ -592,13 +620,12 @@ function HammingTab() {
         </div>
       </div>
 
-      {/* Syndrome result */}
       {showCorrection && (
         <div className="card-eng eng-fadeIn" style={{ padding: 16, borderLeft: `3px solid ${syndrome === 0 ? "var(--eng-success)" : "var(--eng-warning)"}` }}>
           <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 12, alignItems: "center" }}>
             <div style={{ textAlign: "center" }}>
               <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.7rem", color: "var(--eng-text-muted)", margin: "0 0 2px" }}>Syndrome</p>
-              <p style={{ fontFamily: "monospace", fontSize: "1.5rem", fontWeight: 700, color: syndrome === 0 ? "var(--eng-success)" : "var(--eng-warning)", margin: 0 }}>
+              <p style={{ fontFamily: '"SF Mono", Menlo, Consolas, monospace', fontSize: "1.5rem", fontWeight: 700, color: syndrome === 0 ? "var(--eng-success)" : "var(--eng-warning)", margin: 0 }}>
                 {s4}{s2}{s1} = {syndrome}
               </p>
             </div>
@@ -630,9 +657,9 @@ function HammingTab() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Quiz Questions                                                     */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
+/*  Quiz + Export                                                      */
+/* ================================================================== */
 
 const quiz: EngQuizQuestion[] = [
   {
@@ -667,34 +694,11 @@ const quiz: EngQuizQuestion[] = [
   },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Tabs Definition                                                    */
-/* ------------------------------------------------------------------ */
-
 const tabs: EngTabDef[] = [
-  {
-    id: "error-detection",
-    label: "Error Detection",
-    icon: <Shield className="w-4 h-4" />,
-    content: <ErrorDetectionTab />,
-  },
-  {
-    id: "crc",
-    label: "CRC",
-    icon: <Hash className="w-4 h-4" />,
-    content: <CRCTab />,
-  },
-  {
-    id: "hamming",
-    label: "Hamming",
-    icon: <Binary className="w-4 h-4" />,
-    content: <HammingTab />,
-  },
+  { id: "error-detection", label: "Error Detection", icon: <Shield className="w-4 h-4" />, content: <ErrorDetectionTab /> },
+  { id: "crc", label: "CRC", icon: <Hash className="w-4 h-4" />, content: <CRCTab /> },
+  { id: "hamming", label: "Hamming", icon: <Binary className="w-4 h-4" />, content: <HammingTab /> },
 ];
-
-/* ------------------------------------------------------------------ */
-/*  Main Export                                                        */
-/* ------------------------------------------------------------------ */
 
 export default function CN_L2_FramingErrorActivity() {
   return (
@@ -705,7 +709,6 @@ export default function CN_L2_FramingErrorActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="ARQ Protocols"
-      gateRelevance="3-4 marks"
       placementRelevance="Low"
     />
   );

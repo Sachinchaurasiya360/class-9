@@ -75,7 +75,7 @@ export function BackpropagationViz({
     };
   }, [playing, backStage, stepBackward]);
 
-  // Color for a gradient magnitude — redder = bigger.
+  // Color for a gradient magnitude - redder = bigger.
   function gradColor(g: number): string {
     const t = Math.min(1, Math.abs(g) / maxAbsGrad);
     const r = Math.round(255 * (0.8 * t + 0.2));

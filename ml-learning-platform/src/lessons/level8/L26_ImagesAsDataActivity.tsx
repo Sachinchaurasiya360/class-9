@@ -30,7 +30,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Helpers — scale the 0..1 DEMO_IMAGES values into 0..255 so          */
+/*  Helpers - scale the 0..1 DEMO_IMAGES values into 0..255 so          */
 /*  students see the familiar "pixel brightness" number.                */
 /* ------------------------------------------------------------------ */
 function to255(img: Pixels2D): Pixels2D {
@@ -48,7 +48,7 @@ const SMILEY_255 = to255(DEMO_IMAGES.smiley);
 const LETTER_X_255 = to255(DEMO_IMAGES.letterX);
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Grayscale Grid of Numbers                                   */
+/*  Tab 1 - Grayscale Grid of Numbers                                   */
 /* ------------------------------------------------------------------ */
 function PixelGridTab() {
   const [which, setWhich] = useState<"digit3" | "smiley" | "letterX">("digit3");
@@ -109,7 +109,7 @@ function PixelGridTab() {
 
       <div className="card-sketchy p-4 notebook-grid flex flex-col items-center gap-3">
         <p className="font-hand text-xs uppercase tracking-wider font-bold text-muted-foreground text-center">
-          {W}×{H} pixel grid — every cell is a single number (0 = black, 255 = white)
+          {W}×{H} pixel grid - every cell is a single number (0 = black, 255 = white)
         </p>
         <ImageGrid
           pixels={pixels}
@@ -126,7 +126,7 @@ function PixelGridTab() {
       <InfoBox variant="blue">
         <span className="font-hand text-base">
           🖼️ Every digital image is just a grid of numbers. Each number is how bright one tiny
-          pixel is. The computer never sees a picture — it only sees math!
+          pixel is. The computer never sees a picture - it only sees math!
         </span>
       </InfoBox>
     </div>
@@ -134,7 +134,7 @@ function PixelGridTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Brightness = Number (pixel histogram)                       */
+/*  Tab 2 - Brightness = Number (pixel histogram)                       */
 /* ------------------------------------------------------------------ */
 function BrightnessTab() {
   const [which, setWhich] = useState<"digit3" | "smiley" | "letterX">("smiley");
@@ -244,7 +244,7 @@ function BrightnessTab() {
       <InfoBox variant="amber">
         <span className="font-hand text-base">
           🔬 Every brightness value is just a number between 0 and 255. The
-          histogram counts how many pixels sit in each bucket — a quick
+          histogram counts how many pixels sit in each bucket - a quick
           fingerprint of the whole image.
         </span>
       </InfoBox>
@@ -253,10 +253,10 @@ function BrightnessTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Color = 3 Grids (R, G, B)                                   */
+/*  Tab 3 - Color = 3 Grids (R, G, B)                                   */
 /* ------------------------------------------------------------------ */
 function ColorChannelsTab() {
-  // Build a synthetic little 8x8 "color card" — three separate channel grids.
+  // Build a synthetic little 8x8 "color card" - three separate channel grids.
   // Each channel is its own Pixels2D, 0..255.
   const rChannel: Pixels2D = useMemo(() => {
     const out: Pixels2D = [];
@@ -300,7 +300,7 @@ function ColorChannelsTab() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        A color image isn&apos;t one grid — it&apos;s <b>three</b> grids stacked up. One for red,
+        A color image isn&apos;t one grid - it&apos;s <b>three</b> grids stacked up. One for red,
         one for green, one for blue. Each pixel becomes three numbers. Every
         color on your screen is a recipe: &quot;this much red, this much green,
         this much blue.&quot;
@@ -418,7 +418,7 @@ function ColorChannelsTab() {
 
       <InfoBox variant="green">
         <span className="font-hand text-base">
-          🎨 Color images use three numbers per pixel — one each for Red,
+          🎨 Color images use three numbers per pixel - one each for Red,
           Green, Blue. (255, 0, 0) is pure red, (0, 255, 0) is pure green,
           (255, 255, 0) mixes to yellow. Three grids, stacked.
         </span>
@@ -441,7 +441,7 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "A pixel (picture element) is the smallest unit of a digital image — a tiny square with a color or brightness value.",
+      "A pixel (picture element) is the smallest unit of a digital image - a tiny square with a color or brightness value.",
   },
   {
     question: "How does a computer represent a grayscale image?",
@@ -465,7 +465,7 @@ const quizQuestions = [
     ],
     correctIndex: 2,
     explanation:
-      "Digital screens use RGB — Red, Green, and Blue channels — mixed together to produce every color.",
+      "Digital screens use RGB - Red, Green, and Blue channels - mixed together to produce every color.",
   },
   {
     question: "What happens when you zoom into a digital image far enough?",
@@ -516,18 +516,18 @@ export default function L26_ImagesAsDataActivity() {
       lessonNumber={1}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Next: Learn about filters — how computers detect edges and patterns in images!"
+      nextLessonHint="Next: Learn about filters - how computers detect edges and patterns in images!"
       story={
         <StorySection
           paragraphs={[
             "Aru held up her phone and snapped a photo of Byte sitting on the desk.",
             "Aru: \"Look Byte, I took your picture! But how does the computer actually store this?\"",
-            "Byte: \"Zoom in really close — see those tiny squares? Each one is a pixel, and each pixel is just a number for brightness!\"",
+            "Byte: \"Zoom in really close - see those tiny squares? Each one is a pixel, and each pixel is just a number for brightness!\"",
             "Aru: \"So my beautiful photo is... just a bunch of numbers?\"",
             "Byte: \"Exactly! An image is just a grid of numbers. Computers don't see pictures, they see math!\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="A digital image is a grid of pixels. Each pixel is just a number (0-255 for grayscale). Color images use three numbers per pixel — one each for Red, Green, and Blue."
+          conceptSummary="A digital image is a grid of pixels. Each pixel is just a number (0-255 for grayscale). Color images use three numbers per pixel - one each for Red, Green, and Blue."
         />
       }
     />

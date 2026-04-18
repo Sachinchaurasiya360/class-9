@@ -34,11 +34,11 @@ export default function Lesson8Conv() {
 
 ## Core concepts
 
-- **`Pixels2D = number[][]`** — row-major 2D array, `pixels[y][x]`. Values can
-  be 0-255 or 0-1 — every component auto-normalizes unless you pass
+- **`Pixels2D = number[][]`** - row-major 2D array, `pixels[y][x]`. Values can
+  be 0-255 or 0-1 - every component auto-normalizes unless you pass
   `valueRange`.
-- **`FilterKernel = number[][]`** — the convolution kernel, usually 3×3.
-- **Deterministic demos** — all default images / filters are constants, and
+- **`FilterKernel = number[][]`** - the convolution kernel, usually 3×3.
+- **Deterministic demos** - all default images / filters are constants, and
   any randomness uses `mulberry32(seed)` so lessons look identical across
   reloads.
 
@@ -52,11 +52,11 @@ The teaching workhorse. Renders a 2D array as a grid of colored cells.
 | --- | --- | --- | --- |
 | `pixels` | `Pixels2D` | `DEMO_IMAGES.smiley` | 2D pixel array |
 | `cellSize` | `number` | `28` | Per-cell edge in px |
-| `width` / `height` | `number` | — | Alternative sizing |
+| `width` / `height` | `number` | - | Alternative sizing |
 | `showValues` | `boolean` | `false` | Overlay numeric values |
 | `valueRange` | `[number, number]` | auto | Force a normalization range |
 | `colormap` | `"gray" \| "coral" \| "mint" \| "viridis"` | `"gray"` | Color scheme |
-| `label` | `string` | — | Handwritten caption above the grid |
+| `label` | `string` | - | Handwritten caption above the grid |
 | `highlight` | `{y, x, size} \| null` | `null` | Coral dashed box around a window |
 | `glow` | `{y, x} \| null` | `null` | Yellow glow around a single cell |
 
@@ -78,8 +78,8 @@ controls scrub through every window position.
 | `filter` | `FilterKernel` | `PRESET_FILTERS["edge-vertical"]` | 3×3 kernel |
 | `stride` | `number` | `1` | Filter advance step |
 | `padding` | `number` | `0` | Zero padding |
-| `showStep` | `{y, x}` | — | Start at a specific output cell |
-| `onStepChange` | `(step) => void` | — | Fires every step |
+| `showStep` | `{y, x}` | - | Start at a specific output cell |
+| `onStepChange` | `(step) => void` | - | Fires every step |
 | `speedMs` | `number` | `550` | ms per auto-play step |
 | `title` | `string` | `"Convolution"` | Header |
 
@@ -93,7 +93,7 @@ controls scrub through every window position.
 
 The component also renders a per-window breakdown showing
 `pixel × kernel = product` for every cell under the filter, plus the running
-sum — so students can verify the arithmetic by hand.
+sum - so students can verify the arithmetic by hand.
 
 ---
 
@@ -106,9 +106,9 @@ negative weights (dark) at a glance.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `filters` | `NamedFilter[]` | `DEFAULT_FILTER_BANK` (6 classics) | Filters to show |
-| `labels` | `string[]` | — | Override labels |
+| `labels` | `string[]` | - | Override labels |
 | `selectedIdx` | `number` | uncontrolled | Controlled selection |
-| `onSelect` | `(idx, kernel) => void` | — | Fires on click |
+| `onSelect` | `(idx, kernel) => void` | - | Fires on click |
 | `cellSize` | `number` | `18` | Mini-cell size |
 
 Default filters: `edge-horizontal`, `edge-vertical`, `blur`, `sharpen`,
@@ -143,18 +143,18 @@ Side-by-side input → output with a sliding pooling window. For max-pool the
 ## FeatureMap
 
 Static read-only display of a 2D activation map. Similar to `ImageGrid` but
-with chunkier borders and a default coral colormap — used for "what the CNN
+with chunkier borders and a default coral colormap - used for "what the CNN
 sees" post-conv displays.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `values` | `Pixels2D` | built-in 6×6 blob | Activation values |
 | `highlight` | `{y, x} \| null` | `null` | Yellow halo on one cell |
-| `label` | `string` | — | Caption |
+| `label` | `string` | - | Caption |
 | `colormap` | `ColormapName` | `"coral"` | Color scheme |
 | `cellSize` | `number` | `30` | Per-cell edge |
 | `showValues` | `boolean` | `false` | Overlay numerics |
-| `note` | `string` | — | Caption under the map |
+| `note` | `string` | - | Caption under the map |
 | `withCard` | `boolean` | `true` | Wrap in a sketchy card |
 
 ```tsx
@@ -202,7 +202,7 @@ to named kernels.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `kernel` | `FilterKernel` | uncontrolled | Controlled kernel |
-| `onChange` | `(kernel) => void` | — | Fires on edits |
+| `onChange` | `(kernel) => void` | - | Fires on edits |
 | `size` | `3 \| 5` | `3` | Kernel edge |
 | `minValue` / `maxValue` | `number` | `-2` / `2` | Clamp range |
 | `step` | `number` | `1` | Bump increment |
@@ -245,7 +245,7 @@ These components are for intuition building, not production ML:
 - **Single-channel only.** Every image / feature map is one channel. Real
   CNNs stack RGB channels then multi-channel feature maps.
 - **No batching.** One image at a time.
-- **Cross-correlation, not convolution.** We skip the kernel flip — every
+- **Cross-correlation, not convolution.** We skip the kernel flip - every
   teaching reference uses this convention.
 - **No biases or activations.** `convolve2d` returns raw dot products; there
   is no ReLU or bias term. Students add this verbally.

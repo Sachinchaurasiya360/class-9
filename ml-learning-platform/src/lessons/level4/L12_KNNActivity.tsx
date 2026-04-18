@@ -57,12 +57,12 @@ function KChangesEverything() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        Pick K = 1 and you trust literally one neighbor. Bold move. Often wrong. Try clicking around and bumping K up and down — the classification can flip!
+        Pick K = 1 and you trust literally one neighbor. Bold move. Often wrong. Try clicking around and bumping K up and down - the classification can flip!
       </RikuSays>
 
       <div className="card-sketchy notebook-grid p-5 space-y-3">
         <h3 className="font-hand text-sm font-bold text-foreground text-center">
-          Same data, same test point — just change K. Start with K = 1 and drag the slider all the way up.
+          Same data, same test point - just change K. Start with K = 1 and drag the slider all the way up.
         </h3>
         <KNNViz initialK={1} />
       </div>
@@ -97,7 +97,7 @@ function DistanceMatters() {
       </div>
 
       <RikuSays>
-        Fun fact: in high-dimensional spaces, the choice of distance metric matters way more than it does in these friendly 2D toy plots. Welcome to the &quot;curse of dimensionality&quot; — a future lesson problem.
+        Fun fact: in high-dimensional spaces, the choice of distance metric matters way more than it does in these friendly 2D toy plots. Welcome to the &quot;curse of dimensionality&quot; - a future lesson problem.
       </RikuSays>
 
       <InfoBox variant="indigo" title="Distance Metrics">

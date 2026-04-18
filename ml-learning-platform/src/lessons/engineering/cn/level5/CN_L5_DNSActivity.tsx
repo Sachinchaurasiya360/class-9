@@ -1,25 +1,29 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  Globe,
   Search,
   Database,
-  ArrowRight,
-  ArrowDown,
   Clock,
   Server,
-  RefreshCw,
   Layers,
+  Info,
 } from "lucide-react";
 import EngineeringLessonShell from "@/components/engineering/EngineeringLessonShell";
 import type {
   EngTabDef,
   EngQuizQuestion,
 } from "@/components/engineering/EngineeringLessonShell";
+import {
+  AlgoCanvas,
+  PseudocodePanel,
+  VariablesPanel,
+  InputEditor,
+  useStepPlayer,
+} from "@/components/engineering/algo";
 
 /* ================================================================== */
-/*  Tab 1 — DNS Hierarchy Tree                                         */
+/*  Tab 1 - DNS Hierarchy Tree                                         */
 /* ================================================================== */
 
 function DNSHierarchyTab() {
@@ -91,10 +95,8 @@ function DNSHierarchyTab() {
       </p>
 
       <svg viewBox="0 0 800 480" style={{ width: "100%", maxWidth: 800, display: "block", margin: "0 auto 20px" }}>
-        {/* Root */}
         <TreeNode x={400} y={40} label="." sublabel="Root" selected={selectedNode === "root"} onClick={() => setSelectedNode("root")} pulse={animPhase === 0} />
 
-        {/* TLDs */}
         <TreeLine x1={400} y1={60} x2={150} y2={130} phase={animPhase} threshold={1} />
         <TreeLine x1={400} y1={60} x2={300} y2={130} phase={animPhase} threshold={1} />
         <TreeLine x1={400} y1={60} x2={500} y2={130} phase={animPhase} threshold={1} />
@@ -105,7 +107,6 @@ function DNSHierarchyTab() {
         <TreeNode x={500} y={140} label=".edu" sublabel="TLD" selected={selectedNode === ".edu"} onClick={() => setSelectedNode(".edu")} pulse={animPhase === 1} />
         <TreeNode x={650} y={140} label=".in" sublabel="ccTLD" selected={selectedNode === ".in"} onClick={() => setSelectedNode(".in")} pulse={animPhase === 1} />
 
-        {/* Authoritative */}
         <TreeLine x1={150} y1={160} x2={100} y2={240} phase={animPhase} threshold={2} />
         <TreeLine x1={150} y1={160} x2={210} y2={240} phase={animPhase} threshold={2} />
         <TreeLine x1={300} y1={160} x2={300} y2={240} phase={animPhase} threshold={2} />
@@ -116,12 +117,10 @@ function DNSHierarchyTab() {
         <TreeNode x={300} y={250} label="wikipedia.org" sublabel="Auth NS" selected={selectedNode === "wikipedia.org"} onClick={() => setSelectedNode("wikipedia.org")} pulse={animPhase === 2} small />
         <TreeNode x={500} y={250} label="mit.edu" sublabel="Auth NS" selected={selectedNode === "mit.edu"} onClick={() => setSelectedNode("mit.edu")} pulse={animPhase === 2} small />
 
-        {/* Layer labels */}
         <text x={770} y={45} fill="var(--eng-text-muted)" fontSize={11} fontFamily="var(--eng-font)" fontWeight={600} textAnchor="end">Root Level</text>
         <text x={770} y={145} fill="var(--eng-text-muted)" fontSize={11} fontFamily="var(--eng-font)" fontWeight={600} textAnchor="end">TLD Level</text>
         <text x={770} y={255} fill="var(--eng-text-muted)" fontSize={11} fontFamily="var(--eng-font)" fontWeight={600} textAnchor="end">Authoritative</text>
 
-        {/* Dashed zone separators */}
         <line x1={20} y1={90} x2={780} y2={90} stroke="var(--eng-border)" strokeWidth={1} strokeDasharray="6 4" />
         <line x1={20} y1={195} x2={780} y2={195} stroke="var(--eng-border)" strokeWidth={1} strokeDasharray="6 4" />
       </svg>
@@ -152,8 +151,6 @@ function DNSHierarchyTab() {
     </div>
   );
 }
-
-/* ---- Tree helper components ---- */
 
 function TreeNode({ x, y, label, sublabel, selected, onClick, pulse, small }: {
   x: number; y: number; label: string; sublabel: string;
@@ -212,172 +209,481 @@ function TreeLine({ x1, y1, x2, y2, phase, threshold }: {
 }
 
 /* ================================================================== */
-/*  Tab 2 — DNS Resolution Animation                                    */
+/*  Tab 2 - DNS Resolution (AlgoCanvas)                                */
 /* ================================================================== */
 
-function DNSResolutionTab() {
-  const [mode, setMode] = useState<"recursive" | "iterative">("recursive");
-  const [step, setStep] = useState(0);
-  const [running, setRunning] = useState(false);
+// Simulated DNS "universe" - domain -> IP (for didactic purposes)
+const DNS_DB: Record<string, { ip: string; authNs: string }> = {
+  "google.com":    { ip: "142.250.195.46",  authNs: "ns1.google.com" },
+  "www.google.com":{ ip: "142.250.195.46",  authNs: "ns1.google.com" },
+  "youtube.com":   { ip: "142.250.80.46",   authNs: "ns1.google.com" },
+  "github.com":    { ip: "140.82.121.4",    authNs: "ns1.github.com" },
+  "example.com":   { ip: "93.184.216.34",   authNs: "ns1.example.com" },
+  "wikipedia.org": { ip: "208.80.154.224",  authNs: "ns1.wikimedia.org" },
+  "mit.edu":       { ip: "23.6.229.197",    authNs: "ns1.mit.edu" },
+  "stackoverflow.com": { ip: "151.101.193.69", authNs: "ns1.fastly.net" },
+};
 
-  const recursiveSteps = [
-    { from: "client", to: "resolver", label: "Query: www.example.com?", desc: "Client sends query to local DNS resolver (configured via DHCP)" },
-    { from: "resolver", to: "root", label: "Query: www.example.com?", desc: "Resolver asks root server — root replies with .com TLD server address" },
-    { from: "root", to: "resolver", label: "Referral: .com TLD at 192.5.6.30", desc: "Root server refers resolver to the .com TLD nameserver" },
-    { from: "resolver", to: "tld", label: "Query: www.example.com?", desc: "Resolver asks .com TLD — TLD replies with authoritative NS for example.com" },
-    { from: "tld", to: "resolver", label: "Referral: example.com NS at 93.184.216.34", desc: "TLD refers resolver to example.com's authoritative nameserver" },
-    { from: "resolver", to: "auth", label: "Query: www.example.com?", desc: "Resolver asks authoritative server for the final answer" },
-    { from: "auth", to: "resolver", label: "Answer: A 93.184.216.34", desc: "Authoritative server returns the IP address record" },
-    { from: "resolver", to: "client", label: "Answer: 93.184.216.34", desc: "Resolver caches the result and returns it to the client" },
-  ];
+function parseDomain(d: string): { domain: string; tld: string; sld: string; apex: string } | null {
+  const clean = d.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  const parts = clean.split(".");
+  if (parts.length < 2) return null;
+  const tld = parts[parts.length - 1];
+  const sld = parts[parts.length - 2];
+  const apex = `${sld}.${tld}`;
+  return { domain: clean, tld: `.${tld}`, sld, apex };
+}
 
-  const iterativeSteps = [
-    { from: "client", to: "resolver", label: "Query: www.example.com?", desc: "Client sends query to local DNS resolver" },
-    { from: "resolver", to: "root", label: "Query: www.example.com?", desc: "Resolver asks root server" },
-    { from: "root", to: "resolver", label: "Referral: ask .com TLD", desc: "Root says 'I don't know, but ask .com TLD server'" },
-    { from: "resolver", to: "tld", label: "Query: www.example.com?", desc: "Resolver follows the referral and asks TLD" },
-    { from: "tld", to: "resolver", label: "Referral: ask example.com NS", desc: "TLD says 'ask example.com's authoritative NS'" },
-    { from: "resolver", to: "auth", label: "Query: www.example.com?", desc: "Resolver follows referral to authoritative" },
-    { from: "auth", to: "resolver", label: "Answer: A 93.184.216.34", desc: "Authoritative returns the IP address" },
-    { from: "resolver", to: "client", label: "Answer: 93.184.216.34", desc: "Resolver returns the answer to client" },
-  ];
+type DNSNode = "client" | "resolver" | "root" | "tld" | "auth";
 
-  const steps = mode === "recursive" ? recursiveSteps : iterativeSteps;
+interface DNSMessage {
+  from: DNSNode;
+  to: DNSNode;
+  label: string;
+  type: "query" | "referral" | "answer";
+}
 
-  const playAnim = useCallback(() => {
-    setStep(0);
-    setRunning(true);
-  }, []);
+interface DNSFrame {
+  line: number;
+  vars: Record<string, string | number | boolean | undefined>;
+  message: string;
+  drawn: DNSMessage[];       // arrows drawn so far
+  activeIdx: number | null;  // newest arrow (animated)
+  cacheHit: boolean;
+  finalIP: string | null;
+  flashKeys?: string[];
+}
 
-  useEffect(() => {
-    if (!running) return;
-    if (step >= steps.length) { setRunning(false); return; }
-    const id = setTimeout(() => setStep((s) => s + 1), 1200);
-    return () => clearTimeout(id);
-  }, [step, running, steps.length]);
+const DNS_PSEUDO = [
+  "function resolve(domain):",
+  "  if cache.has(domain): return cache[domain]     // fast path",
+  "  ask ROOT for TLD of domain",
+  "  ROOT -> referral to TLD server",
+  "  ask TLD for authoritative NS",
+  "  TLD -> referral to auth NS",
+  "  ask auth NS for A record",
+  "  auth NS -> A record (IP)",
+  "  cache[domain] = ip; return ip",
+];
 
-  const servers: Record<string, { x: number; y: number; label: string; color: string }> = {
-    client: { x: 80, y: 300, label: "Client", color: "#6366f1" },
-    resolver: { x: 250, y: 300, label: "Local Resolver", color: "var(--eng-primary)" },
-    root: { x: 420, y: 80, label: "Root Server", color: "#ef4444" },
-    tld: { x: 580, y: 80, label: ".com TLD", color: "#f59e0b" },
-    auth: { x: 700, y: 300, label: "Auth NS", color: "#10b981" },
+function buildDNSFrames(rawDomain: string, cacheHit: boolean): DNSFrame[] {
+  const frames: DNSFrame[] = [];
+  const parsed = parseDomain(rawDomain);
+  if (!parsed) {
+    frames.push({
+      line: 0,
+      vars: { error: "Invalid domain" },
+      message: `"${rawDomain}" is not a valid domain name. Try something like example.com.`,
+      drawn: [],
+      activeIdx: null,
+      cacheHit: false,
+      finalIP: null,
+    });
+    return frames;
+  }
+  const { domain, tld, apex } = parsed;
+  const rec = DNS_DB[domain] ?? DNS_DB[apex];
+  const ip = rec?.ip ?? "(no record found)";
+  const authNs = rec?.authNs ?? `ns1${apex}`;
+
+  // Initial
+  frames.push({
+    line: 0,
+    vars: { query: domain },
+    message: `Your browser wants to visit ${domain}. First step: ask the local resolver (usually your ISP's or 8.8.8.8) for the IP.`,
+    drawn: [],
+    activeIdx: null,
+    cacheHit,
+    finalIP: null,
+    flashKeys: ["query"],
+  });
+
+  const drawn: DNSMessage[] = [];
+
+  // Client -> Resolver query
+  drawn.push({ from: "client", to: "resolver", label: `Q: ${domain}?`, type: "query" });
+  frames.push({
+    line: 0,
+    vars: { from: "client", to: "resolver", Q: domain },
+    message: `Client sends the query to the local DNS resolver.`,
+    drawn: drawn.slice(),
+    activeIdx: drawn.length - 1,
+    cacheHit,
+    finalIP: null,
+  });
+
+  if (cacheHit) {
+    // Fast path: resolver has the answer cached
+    drawn.push({ from: "resolver", to: "client", label: `A: ${ip} (cached)`, type: "answer" });
+    frames.push({
+      line: 1,
+      vars: { cache: "HIT", answer: ip, TTL: "valid" },
+      message: `Resolver's cache has ${domain} -> ${ip}. Return the answer immediately. No recursion needed. This is the ~90% case in practice.`,
+      drawn: drawn.slice(),
+      activeIdx: drawn.length - 1,
+      cacheHit: true,
+      finalIP: ip,
+      flashKeys: ["cache", "answer"],
+    });
+    return frames;
+  }
+
+  frames.push({
+    line: 1,
+    vars: { cache: "MISS" },
+    message: `Resolver has no cached answer for ${domain}. It begins iterative resolution down the DNS hierarchy.`,
+    drawn: drawn.slice(),
+    activeIdx: null,
+    cacheHit: false,
+    finalIP: null,
+    flashKeys: ["cache"],
+  });
+
+  // Resolver -> Root
+  drawn.push({ from: "resolver", to: "root", label: `Q: ${domain}?`, type: "query" });
+  frames.push({
+    line: 2,
+    vars: { step: "ask root", target: "one of 13 root servers" },
+    message: `Resolver asks a Root server (e.g., a.root-servers.net) where ${domain} lives.`,
+    drawn: drawn.slice(),
+    activeIdx: drawn.length - 1,
+    cacheHit: false,
+    finalIP: null,
+  });
+
+  // Root -> Resolver referral
+  drawn.push({ from: "root", to: "resolver", label: `Ref: ${tld} at TLD`, type: "referral" });
+  frames.push({
+    line: 3,
+    vars: { root: "replies", referral: `${tld} TLD server` },
+    message: `Root doesn't know ${domain}, but it knows the ${tld} TLD servers. It returns a REFERRAL: "ask the ${tld} TLD".`,
+    drawn: drawn.slice(),
+    activeIdx: drawn.length - 1,
+    cacheHit: false,
+    finalIP: null,
+    flashKeys: ["referral"],
+  });
+
+  // Resolver -> TLD
+  drawn.push({ from: "resolver", to: "tld", label: `Q: ${domain}?`, type: "query" });
+  frames.push({
+    line: 4,
+    vars: { step: "ask TLD", tld },
+    message: `Resolver follows the referral and asks the ${tld} TLD server.`,
+    drawn: drawn.slice(),
+    activeIdx: drawn.length - 1,
+    cacheHit: false,
+    finalIP: null,
+  });
+
+  // TLD -> Resolver referral
+  drawn.push({ from: "tld", to: "resolver", label: `Ref: ${authNs}`, type: "referral" });
+  frames.push({
+    line: 5,
+    vars: { tld: "replies", authNS: authNs },
+    message: `${tld} TLD doesn't hold the answer either. It refers the resolver to ${apex}'s authoritative nameserver: ${authNs}.`,
+    drawn: drawn.slice(),
+    activeIdx: drawn.length - 1,
+    cacheHit: false,
+    finalIP: null,
+    flashKeys: ["authNS"],
+  });
+
+  // Resolver -> Auth
+  drawn.push({ from: "resolver", to: "auth", label: `Q: ${domain}?`, type: "query" });
+  frames.push({
+    line: 6,
+    vars: { step: "ask auth NS", server: authNs },
+    message: `Resolver asks ${authNs} (the authoritative server for ${apex}) for the A record of ${domain}.`,
+    drawn: drawn.slice(),
+    activeIdx: drawn.length - 1,
+    cacheHit: false,
+    finalIP: null,
+  });
+
+  // Auth -> Resolver answer
+  drawn.push({ from: "auth", to: "resolver", label: `A: ${ip}`, type: "answer" });
+  frames.push({
+    line: 7,
+    vars: { answer: ip, TTL: "3600s" },
+    message: `Authoritative server returns the A record: ${ip}. It also includes a TTL (usually 1 hour) for caching.`,
+    drawn: drawn.slice(),
+    activeIdx: drawn.length - 1,
+    cacheHit: false,
+    finalIP: ip,
+    flashKeys: ["answer"],
+  });
+
+  // Resolver -> Client
+  drawn.push({ from: "resolver", to: "client", label: `A: ${ip}`, type: "answer" });
+  frames.push({
+    line: 8,
+    vars: { cache: "stored", returned: ip },
+    message: `Resolver caches the mapping (so the next query hits fast) and returns ${ip} to the client. Browser can now open a TCP connection.`,
+    drawn: drawn.slice(),
+    activeIdx: drawn.length - 1,
+    cacheHit: false,
+    finalIP: ip,
+    flashKeys: ["cache", "returned"],
+  });
+
+  return frames;
+}
+
+function DNSResolutionDiagram({ frame }: { frame: DNSFrame }) {
+  const nodes: Record<DNSNode, { x: number; y: number; label: string; color: string }> = {
+    client:   { x: 80,  y: 300, label: "Client",       color: "#6366f1" },
+    resolver: { x: 260, y: 300, label: "Resolver",     color: "var(--eng-primary)" },
+    root:     { x: 420, y: 80,  label: "Root",         color: "#ef4444" },
+    tld:      { x: 580, y: 80,  label: "TLD",          color: "#f59e0b" },
+    auth:     { x: 700, y: 300, label: "Auth NS",      color: "#10b981" },
   };
 
+  const colorFor = (type: DNSMessage["type"]) =>
+    type === "answer" ? "#10b981" : type === "referral" ? "#8b5cf6" : "var(--eng-primary)";
+
   return (
-    <div>
-      <h2 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "1.25rem", color: "var(--eng-text)", margin: "0 0 8px" }}>
-        DNS Resolution Process
-      </h2>
-      <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.9rem", color: "var(--eng-text-muted)", margin: "0 0 16px", lineHeight: 1.6 }}>
-        Watch how a DNS query traverses the hierarchy to resolve a domain name into an IP address.
-      </p>
-
-      {/* Mode toggle */}
-      <div className="flex gap-2" style={{ marginBottom: 16 }}>
-        <button
-          onClick={() => { setMode("recursive"); setStep(0); setRunning(false); }}
-          className={mode === "recursive" ? "btn-eng" : "btn-eng-outline"}
-          style={{ fontSize: "0.85rem" }}
-        >
-          Recursive Query
-        </button>
-        <button
-          onClick={() => { setMode("iterative"); setStep(0); setRunning(false); }}
-          className={mode === "iterative" ? "btn-eng" : "btn-eng-outline"}
-          style={{ fontSize: "0.85rem" }}
-        >
-          Iterative Query
-        </button>
-        <button onClick={playAnim} className="btn-eng-outline" style={{ fontSize: "0.85rem", marginLeft: "auto" }}>
-          <RefreshCw className="w-4 h-4" style={{ marginRight: 4 }} /> Play
-        </button>
-      </div>
-
-      <svg viewBox="0 0 800 400" style={{ width: "100%", maxWidth: 800, display: "block", margin: "0 auto 16px", background: "var(--eng-surface)", borderRadius: 12, border: "1px solid var(--eng-border)" }}>
-        {/* Server nodes */}
-        {Object.entries(servers).map(([key, s]) => (
-          <g key={key}>
-            <rect x={s.x - 45} y={s.y - 28} width={90} height={56} rx={10} fill="var(--eng-surface)" stroke={s.color} strokeWidth={2} />
-            <Server x={s.x - 8} y={s.y - 14} width={16} height={16} style={{ color: s.color }} />
-            <text x={s.x} y={s.y + 10} textAnchor="middle" fontSize={10} fontWeight={600} fontFamily="var(--eng-font)" fill="var(--eng-text)">
-              {s.label}
-            </text>
-          </g>
-        ))}
-
-        {/* Animated arrows for completed steps */}
-        {steps.slice(0, step).map((st, i) => {
-          const fromS = servers[st.from];
-          const toS = servers[st.to];
-          const isReply = st.label.startsWith("Answer") || st.label.startsWith("Referral");
-          const offset = isReply ? 12 : -12;
+    <div
+      style={{
+        padding: 14,
+        borderRadius: "var(--eng-radius)",
+        background: "var(--eng-surface)",
+        border: "1px solid var(--eng-border)",
+      }}
+    >
+      <svg viewBox="0 0 800 380" style={{ width: "100%", maxWidth: 800, display: "block", margin: "0 auto" }}>
+        {/* Nodes */}
+        {(Object.keys(nodes) as DNSNode[]).map((k) => {
+          const s = nodes[k];
+          const highlighted =
+            frame.activeIdx !== null &&
+            (frame.drawn[frame.activeIdx]?.from === k || frame.drawn[frame.activeIdx]?.to === k);
           return (
-            <g key={i}>
-              <defs>
-                <marker id={`arrow-dns-${i}`} markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-                  <path d="M0,0 L8,3 L0,6 Z" fill={isReply ? "#10b981" : "var(--eng-primary)"} />
-                </marker>
-              </defs>
-              <line
-                x1={fromS.x} y1={fromS.y + offset}
-                x2={toS.x} y2={toS.y + offset}
-                stroke={isReply ? "#10b981" : "var(--eng-primary)"}
-                strokeWidth={2}
-                markerEnd={`url(#arrow-dns-${i})`}
-                opacity={0}
-              >
-                <animate attributeName="opacity" from="0" to="1" dur="0.4s" fill="freeze" />
-              </line>
+            <g key={k}>
+              <rect
+                x={s.x - 50}
+                y={s.y - 30}
+                width={100}
+                height={60}
+                rx={10}
+                fill={highlighted ? s.color : "var(--eng-surface)"}
+                stroke={s.color}
+                strokeWidth={highlighted ? 2.5 : 1.8}
+                opacity={highlighted ? 0.9 : 1}
+                style={{ transition: "all 0.3s" }}
+              />
+              <Server
+                x={s.x - 10}
+                y={s.y - 16}
+                width={20}
+                height={20}
+                style={{ color: highlighted ? "#fff" : s.color }}
+              />
               <text
-                x={(fromS.x + toS.x) / 2}
-                y={(fromS.y + toS.y) / 2 + offset - 8}
-                textAnchor="middle" fontSize={8} fontFamily="var(--eng-font)" fontWeight={500}
-                fill={isReply ? "#10b981" : "var(--eng-primary)"}
+                x={s.x}
+                y={s.y + 16}
+                textAnchor="middle"
+                fontSize={11}
+                fontWeight={700}
+                fontFamily="var(--eng-font)"
+                fill={highlighted ? "#fff" : "var(--eng-text)"}
               >
-                {st.label}
+                {s.label}
               </text>
             </g>
           );
         })}
 
-        {/* DNS message section preview */}
-        {step > 0 && step <= steps.length && (
+        {/* Cache indicator */}
+        <g>
+          <rect
+            x={210}
+            y={250}
+            width={100}
+            height={18}
+            rx={9}
+            fill={frame.cacheHit ? "#10b981" : "var(--eng-warning)"}
+            opacity={0.2}
+            stroke={frame.cacheHit ? "#10b981" : "var(--eng-warning)"}
+            strokeWidth={1}
+          />
+          <text
+            x={260}
+            y={263}
+            textAnchor="middle"
+            fontSize={9}
+            fontWeight={700}
+            fontFamily="var(--eng-font)"
+            fill={frame.cacheHit ? "#10b981" : "var(--eng-warning)"}
+          >
+            {frame.cacheHit ? "Cache HIT" : "Cache MISS"}
+          </text>
+        </g>
+
+        {/* Arrows */}
+        {frame.drawn.map((m, i) => {
+          const fromN = nodes[m.from];
+          const toN = nodes[m.to];
+          const isActive = frame.activeIdx === i;
+          const col = colorFor(m.type);
+          // Curve control: arrows going up (y decreasing)
+          const midX = (fromN.x + toN.x) / 2;
+          const midY = (fromN.y + toN.y) / 2 - 15;
+
+          return (
+            <g key={i}>
+              <defs>
+                <marker
+                  id={`dns-arr-${i}`}
+                  markerWidth="10"
+                  markerHeight="7"
+                  refX="9"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <polygon points="0 0, 10 3.5, 0 7" fill={col} />
+                </marker>
+              </defs>
+              <path
+                d={`M ${fromN.x},${fromN.y} Q ${midX},${midY} ${toN.x},${toN.y}`}
+                stroke={col}
+                strokeWidth={isActive ? 3 : 1.5}
+                fill="none"
+                opacity={isActive ? 1 : 0.5}
+                markerEnd={`url(#dns-arr-${i})`}
+                style={{ transition: "all 0.3s" }}
+              />
+              <text
+                x={midX}
+                y={midY - 2}
+                textAnchor="middle"
+                fontSize={9}
+                fontWeight={600}
+                fontFamily="var(--eng-font)"
+                fill={col}
+                opacity={isActive ? 1 : 0.7}
+              >
+                {m.label}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Result banner */}
+        {frame.finalIP && (
           <g>
-            <rect x={20} y={360} width={760} height={30} rx={6} fill="var(--eng-primary-light)" stroke="var(--eng-primary)" strokeWidth={1} />
-            <text x={30} y={380} fontSize={10} fontFamily="monospace" fill="var(--eng-primary)" fontWeight={600}>
-              {step <= steps.length ? `Step ${step}: ${steps[step - 1].label}` : "Resolution complete!"}
+            <rect
+              x={250}
+              y={340}
+              width={300}
+              height={30}
+              rx={6}
+              fill="#10b981"
+              opacity={0.15}
+              stroke="#10b981"
+              strokeWidth={1.5}
+            />
+            <text
+              x={400}
+              y={360}
+              textAnchor="middle"
+              fontSize={12}
+              fontWeight={700}
+              fontFamily="monospace"
+              fill="#10b981"
+            >
+              Resolved: {frame.finalIP}
             </text>
           </g>
         )}
       </svg>
-
-      {/* Step description */}
-      {step > 0 && step <= steps.length && (
-        <div className="info-eng eng-fadeIn" key={step}>
-          <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", margin: 0 }}>
-            <strong>Step {step}:</strong> {steps[step - 1].desc}
-          </p>
-        </div>
-      )}
-
-      <div className="card-eng p-4" style={{ marginTop: 16 }}>
-        <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 600, fontSize: "0.9rem", color: "var(--eng-text)", margin: "0 0 8px" }}>
-          {mode === "recursive" ? "Recursive" : "Iterative"} Resolution
-        </h4>
-        <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.82rem", color: "var(--eng-text-muted)", margin: 0, lineHeight: 1.6 }}>
-          {mode === "recursive"
-            ? "In recursive resolution, the local resolver does all the heavy lifting. The client sends one query and gets back the final answer. The resolver contacts root, TLD, and authoritative servers on behalf of the client."
-            : "In iterative resolution, each server tells the resolver where to look next (a referral). The resolver does the work of following each referral. This is the default behavior between DNS servers (server-to-server)."
-          }
-        </p>
-      </div>
     </div>
   );
 }
 
+function DNSResolutionTab() {
+  const [rawDomain, setRawDomain] = useState("example.com");
+  const [cacheMode, setCacheMode] = useState<"miss" | "hit">("miss");
+  const frames = useMemo(() => buildDNSFrames(rawDomain, cacheMode === "hit"), [rawDomain, cacheMode]);
+  const player = useStepPlayer(frames);
+  const frame = player.current!;
+
+  return (
+    <div className="eng-fadeIn" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div className="info-eng" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <Info className="w-4 h-4 shrink-0" style={{ marginTop: 2, color: "var(--eng-primary)" }} />
+        <span>
+          Watch a DNS query traverse the hierarchy. Toggle cache HIT to see the fast path. Try different domains - only some are in the simulated database, others still go through the full chain.
+        </span>
+      </div>
+
+      <div className="flex gap-2 flex-wrap" style={{ alignItems: "center" }}>
+        <span style={{ fontFamily: "var(--eng-font)", fontSize: "0.8rem", fontWeight: 600, color: "var(--eng-text-muted)" }}>
+          Cache state:
+        </span>
+        <button
+          className={cacheMode === "miss" ? "btn-eng" : "btn-eng-outline"}
+          onClick={() => setCacheMode("miss")}
+          style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+        >
+          MISS (full resolution)
+        </button>
+        <button
+          className={cacheMode === "hit" ? "btn-eng" : "btn-eng-outline"}
+          onClick={() => setCacheMode("hit")}
+          style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+        >
+          HIT (cached)
+        </button>
+      </div>
+
+      <AlgoCanvas
+        title={`Resolve ${rawDomain}${cacheMode === "hit" ? " (cache hit)" : ""}`}
+        player={player}
+        input={
+          <InputEditor
+            label="Domain"
+            value={rawDomain}
+            onApply={setRawDomain}
+            presets={[
+              { label: "example.com", value: "example.com" },
+              { label: "google.com", value: "google.com" },
+              { label: "wikipedia.org", value: "wikipedia.org" },
+              { label: "mit.edu", value: "mit.edu" },
+              { label: "github.com", value: "github.com" },
+            ]}
+            placeholder="e.g. example.com"
+            helper="Enter any domain. Simulated DB has example.com, google.com, etc."
+          />
+        }
+        pseudocode={<PseudocodePanel lines={DNS_PSEUDO} activeLine={frame.line} />}
+        variables={<VariablesPanel vars={frame.vars} flashKeys={frame.flashKeys} />}
+        status={frame.message}
+        legend={
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <LegendSwatch color="var(--eng-primary)" label="Query" />
+            <LegendSwatch color="#8b5cf6" label="Referral" />
+            <LegendSwatch color="#10b981" label="Answer" />
+          </div>
+        }
+      >
+        <DNSResolutionDiagram frame={frame} />
+      </AlgoCanvas>
+    </div>
+  );
+}
+
+function LegendSwatch({ color, label }: { color: string; label: string }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--eng-font)", fontSize: "0.72rem", color: "var(--eng-text-muted)" }}>
+      <span style={{ width: 12, height: 12, borderRadius: 3, background: color }} />
+      {label}
+    </span>
+  );
+}
+
 /* ================================================================== */
-/*  Tab 3 — DNS Records & Cache                                        */
+/*  Tab 3 - DNS Records & Cache                                        */
 /* ================================================================== */
 
 interface DNSRecord {
@@ -401,7 +707,6 @@ function DNSRecordsTab() {
   const [selectedRecord, setSelectedRecord] = useState<string>("A");
   const [cacheEntries, setCacheEntries] = useState<{ type: string; name: string; value: string; ttl: number; remaining: number }[]>([]);
 
-  // Cache TTL countdown
   useEffect(() => {
     const id = setInterval(() => {
       setCacheEntries((prev) =>
@@ -430,7 +735,6 @@ function DNSRecordsTab() {
         Click a record type to see its details. Add records to the cache and watch their TTL countdown.
       </p>
 
-      {/* Record type cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 10, marginBottom: 20 }}>
         {DNS_RECORDS.map((rec) => (
           <button
@@ -456,12 +760,11 @@ function DNSRecordsTab() {
         ))}
       </div>
 
-      {/* Selected record details */}
       <div className="card-eng p-5 eng-fadeIn" key={selectedRecord} style={{ marginBottom: 20 }}>
         <div className="flex items-start justify-between" style={{ marginBottom: 12 }}>
           <div>
             <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "1rem", color: active.color, margin: "0 0 4px" }}>
-              {active.type} Record — {active.fullName}
+              {active.type} Record - {active.fullName}
             </h4>
             <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", color: "var(--eng-text-muted)", margin: 0, lineHeight: 1.5 }}>
               {active.desc}
@@ -486,7 +789,6 @@ function DNSRecordsTab() {
         </div>
       </div>
 
-      {/* Cache panel */}
       <div className="card-eng p-4">
         <div className="flex items-center gap-2" style={{ marginBottom: 12 }}>
           <Clock className="w-4 h-4" style={{ color: "var(--eng-primary)" }} />
@@ -595,13 +897,12 @@ export default function CN_L5_DNSActivity() {
 
   return (
     <EngineeringLessonShell
-      title="DNS — Domain Name System"
+      title="DNS - Domain Name System"
       level={5}
       lessonNumber={1}
       tabs={tabs}
       quiz={quiz}
-      nextLessonHint="HTTP — HyperText Transfer Protocol"
-      gateRelevance="2-3 marks"
+      nextLessonHint="HTTP - HyperText Transfer Protocol"
       placementRelevance="High"
     />
   );

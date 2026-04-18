@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------
- * rikuResponses — rule-based intent matcher + response generator for Riku.
+ * rikuResponses - rule-based intent matcher + response generator for Riku.
  *
  * Pure TypeScript (no React). Responses are keyword-matched against a small
  * intent set, with a lightweight topic dictionary for "what is X?" style
@@ -44,41 +44,41 @@ export const STARTER_SUGGESTIONS: string[] = [
 ];
 
 /* --------------------------------------------------------------------------
- * Topic dictionary — kid-friendly, 2-3 sentences, under ~200 chars each.
+ * Topic dictionary - kid-friendly, 2-3 sentences, under ~200 chars each.
  * ------------------------------------------------------------------------ */
 
 const TOPIC_EXPLANATIONS: Record<string, string[]> = {
   "neural network": [
     "A neural network is like a team of tiny decision-makers stacked in layers 🧠. Each one passes a number to the next until the last layer shouts out the answer. Inspired by brain neurons!",
-    "Think of it as a big relay race 🏃‍♂️ — info starts at the input, zooms through hidden layers, and crosses the finish line as a prediction. More layers = deeper brain!",
+    "Think of it as a big relay race 🏃‍♂️ - info starts at the input, zooms through hidden layers, and crosses the finish line as a prediction. More layers = deeper brain!",
   ],
   "knn": [
     "KNN (K-Nearest Neighbors) is the 'ask your friends' algorithm 🫂. To classify something, it looks at the K closest examples and picks whatever most of them are. Super lazy, super effective!",
     "K-Nearest Neighbors finds the K closest data points to your new sample and votes. If 3 out of 5 neighbors are cats, it's a cat 🐱. Zero training needed!",
   ],
   "kmeans": [
-    "K-Means is a clustering trick 🎯 — you pick K groups, and it shuffles points around until each one sits with its closest group center. Great for finding hidden teams in data!",
+    "K-Means is a clustering trick 🎯 - you pick K groups, and it shuffles points around until each one sits with its closest group center. Great for finding hidden teams in data!",
     "K-Means clusters data into K groups by finding K 'centers' and assigning each point to the nearest one. Then it recalculates centers and repeats until everyone's happy 💡.",
   ],
   "backpropagation": [
     "Backprop is how a neural net learns from mistakes 🔁. It compares its guess to the right answer, then walks backwards through the layers tweaking weights to be slightly less wrong next time.",
-    "Backpropagation = blame spreading 😄. The network figures out which weights caused the error and nudges them. Do it a million times and boom — it's learned!",
+    "Backpropagation = blame spreading 😄. The network figures out which weights caused the error and nudges them. Do it a million times and boom - it's learned!",
   ],
   "ai": [
-    "AI means making machines do things that usually need human smarts — like recognising faces, translating languages, or playing chess 🤖. ML is just one way to build AI.",
-    "Artificial Intelligence is the big umbrella ☂️. Anything where a computer acts 'smart' counts — from spam filters to self-driving cars. ML is AI that learns from data!",
+    "AI means making machines do things that usually need human smarts - like recognising faces, translating languages, or playing chess 🤖. ML is just one way to build AI.",
+    "Artificial Intelligence is the big umbrella ☂️. Anything where a computer acts 'smart' counts - from spam filters to self-driving cars. ML is AI that learns from data!",
   ],
   "ml": [
     "Machine Learning is teaching computers by showing them loads of examples instead of writing rules 📚. Show it 10,000 cat pics and it figures out what 'cat' means on its own!",
     "ML = learning from data 🔥. Instead of programming every rule, you feed the computer examples and let it spot the patterns. That's the whole trick!",
   ],
   "supervised": [
-    "Supervised learning is studying with an answer key 📝. Every training example comes labelled — 'this is a dog', 'this is a cat' — and the model learns to match inputs to labels.",
+    "Supervised learning is studying with an answer key 📝. Every training example comes labelled - 'this is a dog', 'this is a cat' - and the model learns to match inputs to labels.",
     "In supervised learning you give the model both the question AND the correct answer. It figures out the pattern between them so it can answer new questions later 💡.",
   ],
   "unsupervised": [
-    "Unsupervised learning has no answer key 🕵️. The model just looks at raw data and finds patterns on its own — grouping similar things, spotting weird outliers, that kinda stuff.",
-    "No labels, no teacher — just data. Unsupervised learning hunts for hidden structure, like sorting songs into genres without being told what genres exist 🎵.",
+    "Unsupervised learning has no answer key 🕵️. The model just looks at raw data and finds patterns on its own - grouping similar things, spotting weird outliers, that kinda stuff.",
+    "No labels, no teacher - just data. Unsupervised learning hunts for hidden structure, like sorting songs into genres without being told what genres exist 🎵.",
   ],
   "cnn": [
     "CNN (Convolutional Neural Network) is the image-whisperer 👁️. It slides tiny filters over a picture to spot edges, shapes, and eventually whole objects. Best friend of computer vision!",
@@ -89,7 +89,7 @@ const TOPIC_EXPLANATIONS: Record<string, string[]> = {
     "A perceptron is one single neuron. Inputs × weights → sum → activation → output. Stack lots of them together and you've got a full neural network 🧠.",
   ],
   "gradient descent": [
-    "Gradient descent is how models find the best weights 🎿. Imagine sliding down a hill — you always step in the direction that goes downhill the most, until you hit the bottom (low error).",
+    "Gradient descent is how models find the best weights 🎿. Imagine sliding down a hill - you always step in the direction that goes downhill the most, until you hit the bottom (low error).",
     "It's an error-minimising ski trip 🏔️. Gradient descent looks at which way the loss is decreasing fastest and nudges the weights that direction. Repeat forever!",
   ],
   "overfitting": [
@@ -98,22 +98,22 @@ const TOPIC_EXPLANATIONS: Record<string, string[]> = {
   ],
   "activation": [
     "An activation function decides if a neuron should 'fire' or stay quiet ⚡. Popular picks: ReLU (keep positives, kill negatives), sigmoid (squish to 0-1), and tanh (squish to -1 to 1).",
-    "Activations add the spice 🌶️ — without them, a deep network is just one big linear equation. ReLU is the crowd favourite because it's fast and works great.",
+    "Activations add the spice 🌶️ - without them, a deep network is just one big linear equation. ReLU is the crowd favourite because it's fast and works great.",
   ],
   "bias": [
-    "In ML, a bias is an extra number added to a neuron so it can shift its output up or down 📊. Think of it as the 'y-intercept' for a neuron — lets it fit data that doesn't pass through zero.",
+    "In ML, a bias is an extra number added to a neuron so it can shift its output up or down 📊. Think of it as the 'y-intercept' for a neuron - lets it fit data that doesn't pass through zero.",
     "Bias = a tunable offset. Weights scale the inputs, bias shifts the whole thing. Together they let neurons fit way more patterns 💡.",
   ],
   "data": [
-    "Data is anything a computer can measure or store 📊 — numbers, text, images, sounds, clicks. In ML, data is the fuel. Good data = smart model, junk data = junk model.",
+    "Data is anything a computer can measure or store 📊 - numbers, text, images, sounds, clicks. In ML, data is the fuel. Good data = smart model, junk data = junk model.",
     "Data is just recorded observations. The more examples you have, the better a model can learn patterns from them. 'Garbage in, garbage out' is basically ML law 🔥.",
   ],
   "algorithm": [
-    "An algorithm is a step-by-step recipe the computer follows 📜. Sorting numbers, finding shortest routes, training a model — all algorithms. ML algorithms are recipes that learn from examples!",
+    "An algorithm is a step-by-step recipe the computer follows 📜. Sorting numbers, finding shortest routes, training a model - all algorithms. ML algorithms are recipes that learn from examples!",
     "Think of an algorithm like a cooking recipe for a computer 🍳. Clear steps, clear ingredients, clear result. ML just adds 'taste it and adjust' to every step.",
   ],
   "feature": [
-    "A feature is one property of your data 📏 — like the height of a person, or the colour of a pixel. Models mash features together to make predictions.",
+    "A feature is one property of your data 📏 - like the height of a person, or the colour of a pixel. Models mash features together to make predictions.",
     "Features are the clues 🔍 your model uses. For predicting house price, features might be size, location, number of rooms. Better features = better predictions!",
   ],
   "label": [
@@ -121,7 +121,7 @@ const TOPIC_EXPLANATIONS: Record<string, string[]> = {
     "Labels are the 'right answers' you want your model to predict. They're how supervised learning knows when it's wrong and needs to adjust 📝.",
   ],
   "prediction": [
-    "A prediction is the model's guess 🎯 for a new input it hasn't seen before. 'Will this email be spam?' 'Is this tumour dangerous?' — predictions are where ML earns its keep!",
+    "A prediction is the model's guess 🎯 for a new input it hasn't seen before. 'Will this email be spam?' 'Is this tumour dangerous?' - predictions are where ML earns its keep!",
     "Predictions are what models produce after training. Feed in new data, get out an answer 💡. The whole point of building a model is to make useful predictions later.",
   ],
   "weight": [
@@ -145,7 +145,7 @@ const TOPIC_EXPLANATIONS: Record<string, string[]> = {
 const GREETINGS: string[] = [
   "Hey there! 🐼 I'm Riku. Ready to nerd out about AI together?",
   "Namaste yaar! 🐼 Riku here. What's on your mind today?",
-  "Heyyy! 🔥 Glad you popped in. Ask me anything about ML — I live for this stuff!",
+  "Heyyy! 🔥 Glad you popped in. Ask me anything about ML - I live for this stuff!",
   "Oi! 🐼 Riku reporting for duty. What shall we learn today?",
   "Hello hello! 💡 I'm Riku, your friendly neighbourhood red panda tutor. Shoot your question!",
 ];
@@ -158,9 +158,9 @@ const THANKS: string[] = [
 ];
 
 const MOTIVATION: string[] = [
-  "Hey, feeling stuck is literally how learning works 💡. Take a breath, re-read slowly, and if it still doesn't click — ask me to explain differently!",
+  "Hey, feeling stuck is literally how learning works 💡. Take a breath, re-read slowly, and if it still doesn't click - ask me to explain differently!",
   "Bhai, even Einstein was confused before he was a genius 😄. Break the problem into tiny bits. One small win at a time!",
-  "Hard doesn't mean impossible 🔥. It means you're about to level up. Push through — you've got this, promise!",
+  "Hard doesn't mean impossible 🔥. It means you're about to level up. Push through - you've got this, promise!",
   "Deep breath 🧘. The best learners get stuck the most. It means your brain is stretching. Want me to re-explain something?",
 ];
 
@@ -180,13 +180,13 @@ const HELP_RESPONSES: string[] = [
 ];
 
 const UNKNOWN_FALLBACKS: string[] = [
-  "Hmm, that one zoomed over my panda ears 🐼. Try asking me 'what is a neural network?' or 'how do I start?' — those are my jam!",
-  "Not sure I caught that, yaar 😅. I'm best at ML concepts — try 'what is overfitting?' or 'tell me a joke'!",
+  "Hmm, that one zoomed over my panda ears 🐼. Try asking me 'what is a neural network?' or 'how do I start?' - those are my jam!",
+  "Not sure I caught that, yaar 😅. I'm best at ML concepts - try 'what is overfitting?' or 'tell me a joke'!",
   "My circuits are buffering 🔄. Could you ask it another way? I can explain AI/ML concepts, track your progress, or tell silly jokes!",
 ];
 
 /* --------------------------------------------------------------------------
- * Intent matching — keyword-based, simple and predictable.
+ * Intent matching - keyword-based, simple and predictable.
  * ------------------------------------------------------------------------ */
 
 const GREETING_WORDS = ["hi", "hello", "hey", "yo", "namaste", "hola", "sup", "hiya", "howdy"];
@@ -251,7 +251,7 @@ export function matchIntent(input: string): RikuIntent {
   // Help
   if (hasAny(t, HELP_WORDS)) return "help";
 
-  // Greeting — check last so "hi there what is KNN" goes to whatis
+  // Greeting - check last so "hi there what is KNN" goes to whatis
   if (GREETING_WORDS.some((g) => hasWord(t, g))) return "greeting";
 
   // Bare topic words also count as whatis
@@ -263,7 +263,7 @@ export function matchIntent(input: string): RikuIntent {
 }
 
 /* --------------------------------------------------------------------------
- * Topic lookup — find the best matching key in the explanation dictionary.
+ * Topic lookup - find the best matching key in the explanation dictionary.
  * Returns null if nothing matches.
  * ------------------------------------------------------------------------ */
 
@@ -321,7 +321,7 @@ function pick<T>(arr: T[]): T {
 }
 
 /* --------------------------------------------------------------------------
- * generateResponse — the main public API.
+ * generateResponse - the main public API.
  * ------------------------------------------------------------------------ */
 
 export function generateResponse(input: string, context: RikuContext = {}): RikuResponse {
@@ -330,7 +330,7 @@ export function generateResponse(input: string, context: RikuContext = {}): Riku
   if (!t) {
     return {
       intent: "unknown",
-      text: "Empty message — type something and I'll do my thing 🐼",
+      text: "Empty message - type something and I'll do my thing 🐼",
       suggestions: STARTER_SUGGESTIONS.slice(0, 3),
     };
   }
@@ -342,7 +342,7 @@ export function generateResponse(input: string, context: RikuContext = {}): Riku
       const base = pick(GREETINGS);
       const withLevel =
         context.level !== undefined
-          ? `${base} (You're level ${context.level}, by the way — looking sharp! 🔥)`
+          ? `${base} (You're level ${context.level}, by the way - looking sharp! 🔥)`
           : base;
       return {
         intent,
@@ -381,7 +381,7 @@ export function generateResponse(input: string, context: RikuContext = {}): Riku
       const lvl = context.level ?? 1;
       let text: string;
       if (lessons === 0) {
-        text = `Fresh start! 🌱 You're at level ${lvl} with 0 lessons done. Pick any Level 1 lesson to kick things off — I believe in you!`;
+        text = `Fresh start! 🌱 You're at level ${lvl} with 0 lessons done. Pick any Level 1 lesson to kick things off - I believe in you!`;
       } else if (lessons < 5) {
         text = `Nice! You've finished ${lessons} lesson${lessons === 1 ? "" : "s"} and you're at level ${lvl} 🔥. Streak: ${streak} day${streak === 1 ? "" : "s"}. Keep the momentum going!`;
       } else if (lessons < 20) {
@@ -400,13 +400,13 @@ export function generateResponse(input: string, context: RikuContext = {}): Riku
       const lessons = context.totalLessons ?? 0;
       let text: string;
       if (lessons === 0) {
-        text = "Start with Level 1 — 'Machines & Instructions' 🧩. It's chill, no maths, and sets up everything else. Then just follow the path!";
+        text = "Start with Level 1 - 'Machines & Instructions' 🧩. It's chill, no maths, and sets up everything else. Then just follow the path!";
       } else if (lessons < 10) {
-        text = "Keep rolling through Levels 1-3 📚. They build the base: data, patterns, predictions. Don't skip — the later stuff leans on them!";
+        text = "Keep rolling through Levels 1-3 📚. They build the base: data, patterns, predictions. Don't skip - the later stuff leans on them!";
       } else if (lessons < 25) {
-        text = "You're ready for the fun stuff 🔥 — Level 4 (Supervised Learning) and Level 5 (Clustering) are where ML starts feeling magical.";
+        text = "You're ready for the fun stuff 🔥 - Level 4 (Supervised Learning) and Level 5 (Clustering) are where ML starts feeling magical.";
       } else {
-        text = "Time for the neural net levels 🧠 — Level 6 (Perceptron/Backprop) and Level 8 (CNNs) will bend your brain in the best way.";
+        text = "Time for the neural net levels 🧠 - Level 6 (Perceptron/Backprop) and Level 8 (CNNs) will bend your brain in the best way.";
       }
       return {
         intent,
@@ -427,7 +427,7 @@ export function generateResponse(input: string, context: RikuContext = {}): Riku
       }
       return {
         intent,
-        text: "Break it into steps 👣 — find a lesson on it, read slowly, try the activity, then come back and ask me what didn't click. That's the Riku method!",
+        text: "Break it into steps 👣 - find a lesson on it, read slowly, try the activity, then come back and ask me what didn't click. That's the Riku method!",
         suggestions: ["What should I learn next?", "I'm stuck", "Tell me a joke"],
       };
     }
@@ -468,7 +468,7 @@ export function generateResponse(input: string, context: RikuContext = {}): Riku
 }
 
 /* --------------------------------------------------------------------------
- * Introspection helpers — handy for tests/dev tooling.
+ * Introspection helpers - handy for tests/dev tooling.
  * ------------------------------------------------------------------------ */
 
 export function listTopics(): string[] {

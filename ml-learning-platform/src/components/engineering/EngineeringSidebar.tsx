@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Lock, ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight, Home, Network, Globe, Layers, Shield, Wifi, Radio, Server, MonitorSmartphone, Cloud, Cpu, Database, Code2, ArrowLeft } from "lucide-react";
+import { Lock, ChevronDown, ChevronRight, ChevronsLeft, ChevronsRight, Home, Network, Globe, Layers, Shield, Wifi, Radio, Server, MonitorSmartphone, Cloud, Cpu, ArrowLeft } from "lucide-react";
 import { useEngProgress, isEngLessonUnlocked } from "../../utils/engineeringProgress";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -42,7 +42,7 @@ const CN_LEVELS: LevelDef[] = [
     lessons: [
       { path: "/engineering/cn/level1/what-is-network", label: "What is a Computer Network?", icon: <Network className="w-4 h-4" /> },
       { path: "/engineering/cn/level1/topologies", label: "Network Topologies", icon: <Globe className="w-4 h-4" /> },
-      { path: "/engineering/cn/level1/osi-model", label: "The OSI Model — 7 Layers", icon: <Layers className="w-4 h-4" /> },
+      { path: "/engineering/cn/level1/osi-model", label: "The OSI Model - 7 Layers", icon: <Layers className="w-4 h-4" /> },
       { path: "/engineering/cn/level1/tcp-ip-model", label: "The TCP/IP Model", icon: <Server className="w-4 h-4" /> },
       { path: "/engineering/cn/level1/switching", label: "Switching Techniques", icon: <Radio className="w-4 h-4" /> },
     ],
@@ -51,11 +51,12 @@ const CN_LEVELS: LevelDef[] = [
     level: 2,
     title: "Physical & Data Link Layer",
     lessons: [
-      { path: "/engineering/cn/level2/physical-layer", label: "Physical Layer — Signals", icon: <Radio className="w-4 h-4" /> },
+      { path: "/engineering/cn/level2/physical-layer", label: "Physical Layer - Signals", icon: <Radio className="w-4 h-4" /> },
       { path: "/engineering/cn/level2/framing-error-detection", label: "Framing & Error Detection", icon: <Shield className="w-4 h-4" /> },
       { path: "/engineering/cn/level2/arq-protocols", label: "ARQ Protocols", icon: <ArrowLeft className="w-4 h-4" /> },
       { path: "/engineering/cn/level2/mac-protocols", label: "Medium Access Control", icon: <Wifi className="w-4 h-4" /> },
       { path: "/engineering/cn/level2/ethernet-lan", label: "Ethernet & LAN Standards", icon: <MonitorSmartphone className="w-4 h-4" /> },
+      { path: "/engineering/cn/level2/network-devices", label: "Network Devices Compared", icon: <Server className="w-4 h-4" /> },
     ],
   },
   {
@@ -73,10 +74,10 @@ const CN_LEVELS: LevelDef[] = [
     level: 4,
     title: "Transport Layer",
     lessons: [
-      { path: "/engineering/cn/level4/tcp-connection", label: "TCP — Connection Management", icon: <Network className="w-4 h-4" /> },
-      { path: "/engineering/cn/level4/tcp-reliable-transfer", label: "TCP — Reliable Data Transfer", icon: <Shield className="w-4 h-4" /> },
-      { path: "/engineering/cn/level4/tcp-congestion", label: "TCP — Congestion Control", icon: <Radio className="w-4 h-4" /> },
-      { path: "/engineering/cn/level4/udp", label: "UDP — User Datagram Protocol", icon: <Wifi className="w-4 h-4" /> },
+      { path: "/engineering/cn/level4/tcp-connection", label: "TCP - Connection Management", icon: <Network className="w-4 h-4" /> },
+      { path: "/engineering/cn/level4/tcp-reliable-transfer", label: "TCP - Reliable Data Transfer", icon: <Shield className="w-4 h-4" /> },
+      { path: "/engineering/cn/level4/tcp-congestion", label: "TCP - Congestion Control", icon: <Radio className="w-4 h-4" /> },
+      { path: "/engineering/cn/level4/udp", label: "UDP - User Datagram Protocol", icon: <Wifi className="w-4 h-4" /> },
       { path: "/engineering/cn/level4/ports-multiplexing", label: "Port Numbers & Multiplexing", icon: <Layers className="w-4 h-4" /> },
     ],
   },
@@ -84,8 +85,8 @@ const CN_LEVELS: LevelDef[] = [
     level: 5,
     title: "Application Layer",
     lessons: [
-      { path: "/engineering/cn/level5/dns", label: "DNS — Domain Name System", icon: <Globe className="w-4 h-4" /> },
-      { path: "/engineering/cn/level5/http", label: "HTTP — HyperText Transfer", icon: <MonitorSmartphone className="w-4 h-4" /> },
+      { path: "/engineering/cn/level5/dns", label: "DNS - Domain Name System", icon: <Globe className="w-4 h-4" /> },
+      { path: "/engineering/cn/level5/http", label: "HTTP - HyperText Transfer", icon: <MonitorSmartphone className="w-4 h-4" /> },
       { path: "/engineering/cn/level5/smtp-ftp", label: "SMTP, FTP & Email", icon: <Server className="w-4 h-4" /> },
       { path: "/engineering/cn/level5/dhcp", label: "DHCP & Network Config", icon: <Wifi className="w-4 h-4" /> },
     ],
@@ -95,7 +96,7 @@ const CN_LEVELS: LevelDef[] = [
     title: "Network Security",
     lessons: [
       { path: "/engineering/cn/level6/cryptography", label: "Cryptography Basics", icon: <Shield className="w-4 h-4" /> },
-      { path: "/engineering/cn/level6/tls-ssl", label: "TLS/SSL — Secure Comm", icon: <Lock className="w-4 h-4" /> },
+      { path: "/engineering/cn/level6/tls-ssl", label: "TLS/SSL - Secure Comm", icon: <Lock className="w-4 h-4" /> },
       { path: "/engineering/cn/level6/firewalls-vpn", label: "Firewalls & VPN", icon: <Shield className="w-4 h-4" /> },
       { path: "/engineering/cn/level6/network-attacks", label: "Network Attacks & Defenses", icon: <Shield className="w-4 h-4" /> },
     ],
@@ -108,12 +109,118 @@ const CN_LEVELS: LevelDef[] = [
       { path: "/engineering/cn/level7/cdn", label: "Content Delivery Networks", icon: <Globe className="w-4 h-4" /> },
       { path: "/engineering/cn/level7/cloud-networking", label: "Cloud Networking", icon: <Cloud className="w-4 h-4" /> },
       { path: "/engineering/cn/level7/modern-protocols", label: "WebSockets, gRPC & More", icon: <Network className="w-4 h-4" /> },
+      { path: "/engineering/cn/level7/proxy-gateway", label: "Proxy, Reverse Proxy & API Gateway", icon: <Shield className="w-4 h-4" /> },
+      { path: "/engineering/cn/level7/url-end-to-end", label: "What Happens When You Type a URL", icon: <Globe className="w-4 h-4" /> },
     ],
   },
 ];
 
 /* ------------------------------------------------------------------ */
-/*  All Subjects (only CN for now)                                     */
+/*  Data Structures & Algorithms                                       */
+/* ------------------------------------------------------------------ */
+
+const DSA_LEVELS: LevelDef[] = [
+  {
+    level: 1,
+    title: "Foundations of Computation",
+    lessons: [
+      { path: "/engineering/dsa/level1/algorithm-tracer", label: "What is an Algorithm?", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level1/big-o", label: "Time Complexity & Big-O", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level1/space-complexity", label: "Space Complexity", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level1/arrays", label: "Arrays - Fundamentals", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level1/strings", label: "Strings & Pattern Matching", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level1/two-pointer-window", label: "Two Pointer & Sliding Window", icon: <Cpu className="w-4 h-4" /> },
+    ],
+  },
+  {
+    level: 2,
+    title: "Linear Data Structures",
+    lessons: [
+      { path: "/engineering/dsa/level2/singly-linked-list", label: "Singly Linked List", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level2/doubly-circular-list", label: "Doubly & Circular Lists", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level2/stacks", label: "Stacks - LIFO", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level2/queues", label: "Queues - FIFO", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level2/hashing", label: "Hashing & Collision Resolution", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level2/deque-special", label: "Deque & Special Queues", icon: <Cpu className="w-4 h-4" /> },
+    ],
+  },
+  {
+    level: 3,
+    title: "Trees",
+    lessons: [
+      { path: "/engineering/dsa/level3/binary-tree-traversals", label: "Binary Tree & Traversals", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level3/bst", label: "Binary Search Tree", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level3/avl", label: "AVL - Self-Balancing BST", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level3/heaps", label: "Heaps & Priority Queues", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level3/tries", label: "Tries (Prefix Trees)", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level3/segment-fenwick", label: "Segment & Fenwick Trees", icon: <Cpu className="w-4 h-4" /> },
+    ],
+  },
+  {
+    level: 4,
+    title: "Graphs",
+    lessons: [
+      { path: "/engineering/dsa/level4/graph-representation", label: "Graph Representation", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level4/bfs", label: "Breadth-First Search", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level4/dfs", label: "Depth-First Search", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level4/dijkstra", label: "Dijkstra's Shortest Path", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level4/bellman-ford", label: "Bellman-Ford & Negative Cycles", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level4/mst", label: "MST - Kruskal's & Prim's", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level4/topological-sort", label: "Topological Sort", icon: <Cpu className="w-4 h-4" /> },
+    ],
+  },
+  {
+    level: 5,
+    title: "Sorting & Searching",
+    lessons: [
+      { path: "/engineering/dsa/level5/bubble-selection", label: "Bubble & Selection Sort", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level5/insertion", label: "Insertion Sort", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level5/merge", label: "Merge Sort", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level5/quick", label: "Quick Sort", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level5/non-comparison", label: "Counting / Radix / Bucket", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level5/binary-search", label: "Binary Search & Variants", icon: <Cpu className="w-4 h-4" /> },
+    ],
+  },
+  {
+    level: 6,
+    title: "Algorithm Design Paradigms",
+    lessons: [
+      { path: "/engineering/dsa/level6/recursion", label: "Recursion - Thinking Recursively", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level6/backtracking", label: "Backtracking", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level6/divide-conquer", label: "Divide & Conquer", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level6/greedy", label: "Greedy Algorithms", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level6/dp-1d", label: "Dynamic Programming - 1D", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level6/dp-2d", label: "Dynamic Programming - 2D", icon: <Cpu className="w-4 h-4" /> },
+    ],
+  },
+  {
+    level: 7,
+    title: "Advanced Topics",
+    lessons: [
+      { path: "/engineering/dsa/level7/dsu", label: "Disjoint Set Union", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level7/kmp", label: "KMP Pattern Matching", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level7/rabin-karp", label: "Rabin-Karp", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level7/bit-manipulation", label: "Bit Manipulation", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level7/advanced-graphs", label: "Advanced Graph Algorithms", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level7/advanced-ds", label: "Advanced Data Structures", icon: <Cpu className="w-4 h-4" /> },
+    ],
+  },
+  {
+    level: 8,
+    title: "Problem-Solving Patterns",
+    lessons: [
+      { path: "/engineering/dsa/level8/sliding-window-advanced", label: "Sliding Window (Advanced)", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level8/binary-search-answer", label: "Binary Search on Answer", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level8/monotonic-stack", label: "Monotonic Stack / Queue", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level8/grid-to-graph", label: "Grid-to-Graph Modeling", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level8/dp-state-design", label: "DP State Design", icon: <Cpu className="w-4 h-4" /> },
+      { path: "/engineering/dsa/level8/pattern-recognition", label: "Comprehensive Patterns", icon: <Cpu className="w-4 h-4" /> },
+    ],
+  },
+];
+
+/* ------------------------------------------------------------------ */
+/*  All Subjects                                                       */
 /* ------------------------------------------------------------------ */
 
 export const ENGINEERING_SUBJECTS: SubjectDef[] = [
@@ -125,45 +232,45 @@ export const ENGINEERING_SUBJECTS: SubjectDef[] = [
     color: "var(--eng-accent-cn)",
     levels: CN_LEVELS,
   },
-  /* Future subjects — uncomment when implemented:
   {
     id: "dsa",
     label: "Data Structures & Algorithms",
     shortLabel: "DSA",
     icon: <Cpu className="w-4 h-4" />,
     color: "var(--eng-accent-dsa)",
-    levels: [],
+    levels: DSA_LEVELS,
   },
-  {
-    id: "os",
-    label: "Operating Systems",
-    shortLabel: "OS",
-    icon: <MonitorSmartphone className="w-4 h-4" />,
-    color: "var(--eng-accent-os)",
-    levels: [],
-  },
-  {
-    id: "dbms",
-    label: "Database Management",
-    shortLabel: "DBMS",
-    icon: <Database className="w-4 h-4" />,
-    color: "var(--eng-accent-dbms)",
-    levels: [],
-  },
-  {
-    id: "oop",
-    label: "Object-Oriented Programming",
-    shortLabel: "OOP",
-    icon: <Code2 className="w-4 h-4" />,
-    color: "var(--eng-accent-oop)",
-    levels: [],
-  },
-  */
 ];
 
-/** Flat list of all CN lesson paths for navigation & progress */
+/** Flat list of all CN lesson paths for navigation & progress (back-compat) */
 export const CN_ALL_LESSONS = CN_LEVELS.flatMap((l) => l.lessons.map((ls) => ls.path));
 export const CN_ALL_LESSONS_META = CN_LEVELS.flatMap((l) => l.lessons.map((ls) => ({ path: ls.path, label: ls.label })));
+export const DSA_ALL_LESSONS = DSA_LEVELS.flatMap((l) => l.lessons.map((ls) => ls.path));
+export const DSA_ALL_LESSONS_META = DSA_LEVELS.flatMap((l) => l.lessons.map((ls) => ({ path: ls.path, label: ls.label })));
+
+/** Pick the subject that owns a given path (defaults to CN). */
+export function getSubjectFromPath(pathname: string | null | undefined) {
+  const p = pathname ?? "";
+  return ENGINEERING_SUBJECTS.find((s) => p.startsWith(`/engineering/${s.id}/`)) ?? ENGINEERING_SUBJECTS[0];
+}
+
+/** Flat ordered lesson paths for the subject that owns a given path. */
+export function getSubjectLessonPaths(pathname: string | null | undefined): string[] {
+  const s = getSubjectFromPath(pathname);
+  return s.levels.flatMap((l) => l.lessons.map((ls) => ls.path));
+}
+
+/** Lookup lesson label + level + lesson index for a given path. */
+export function getLessonMeta(pathname: string | null | undefined): { label: string; level: number; lessonNumber: number; subject: string } | null {
+  const s = getSubjectFromPath(pathname);
+  for (const lvl of s.levels) {
+    const idx = lvl.lessons.findIndex((ls) => ls.path === pathname);
+    if (idx >= 0) {
+      return { label: lvl.lessons[idx].label, level: lvl.level, lessonNumber: idx + 1, subject: s.label };
+    }
+  }
+  return null;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Sidebar Component                                                  */

@@ -1,5 +1,5 @@
 // Shared types for the CNN / image visualization library.
-// Every grid is a row-major `number[][]` — `pixels[y][x]`.
+// Every grid is a row-major `number[][]` - `pixels[y][x]`.
 // Values are either 0-255 (classic image) or 0-1 (normalized).
 
 export type Pixels2D = number[][];

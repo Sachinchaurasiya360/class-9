@@ -1,270 +1,537 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Network, XCircle, LayoutGrid, Play, RotateCcw, Pause, Info } from "lucide-react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { Network, XCircle, LayoutGrid, Play, RotateCcw, Info } from "lucide-react";
 import EngineeringLessonShell from "@/components/engineering/EngineeringLessonShell";
 import type { EngTabDef, EngQuizQuestion } from "@/components/engineering/EngineeringLessonShell";
+import {
+  AlgoCanvas,
+  PseudocodePanel,
+  VariablesPanel,
+  InputEditor,
+  useStepPlayer,
+} from "@/components/engineering/algo";
 
 /* ================================================================== */
 /*  Shared constants                                                   */
 /* ================================================================== */
 
 const PRIMARY = "var(--eng-primary)";
-const SUCCESS = "var(--eng-success)";
 const DANGER = "var(--eng-danger)";
 const WARNING = "var(--eng-warning)";
 const TEXT = "var(--eng-text)";
 const MUTED = "var(--eng-text-muted)";
-const SURFACE = "var(--eng-surface)";
 const BORDER = "var(--eng-border)";
 const FONT = "var(--eng-font)";
 
 /* ================================================================== */
-/*  Tab 1 -- TCP 3-Way Handshake                                       */
+/*  Tab 1 - TCP 3-Way Handshake (AlgoCanvas)                          */
 /* ================================================================== */
 
-interface HandshakeStep {
+type HSState = "CLOSED" | "LISTEN" | "SYN_SENT" | "SYN_RCVD" | "ESTABLISHED";
+
+interface HSMessage {
   label: string;
-  fromX: number;
-  toX: number;
+  fromSide: "C" | "S";
+  toSide: "C" | "S";
   y: number;
   color: string;
-  seq: string;
-  ack: string;
+  seq: number;
+  ack: number;
   flags: string;
-  description: string;
+  lost?: boolean;
+  retransmit?: boolean;
 }
 
-const HANDSHAKE_STEPS: HandshakeStep[] = [
-  {
-    label: "SYN",
-    fromX: 120,
-    toX: 480,
-    y: 120,
-    color: "#3b82f6",
-    seq: "Seq=100",
-    ack: "Ack=0",
-    flags: "SYN=1",
-    description: "Client sends SYN with initial sequence number (ISN=100)",
-  },
-  {
-    label: "SYN-ACK",
-    fromX: 480,
-    toX: 120,
-    y: 200,
-    color: "#8b5cf6",
-    seq: "Seq=300",
-    ack: "Ack=101",
-    flags: "SYN=1, ACK=1",
-    description: "Server responds with SYN-ACK, acknowledging client ISN+1",
-  },
-  {
-    label: "ACK",
-    fromX: 120,
-    toX: 480,
-    y: 280,
-    color: "#10b981",
-    seq: "Seq=101",
-    ack: "Ack=301",
-    flags: "ACK=1",
-    description: "Client sends ACK, connection is now ESTABLISHED",
-  },
+interface HandshakeFrame {
+  line: number;
+  vars: Record<string, string | number | boolean | undefined>;
+  message: string;
+  clientState: HSState;
+  serverState: HSState;
+  messages: HSMessage[];     // messages drawn so far
+  activeMsgIdx: number | null; // which msg is currently flying
+  isn_c: number | null;
+  isn_s: number | null;
+  flashKeys?: string[];
+}
+
+const HS_PSEUDO = [
+  "// Client                        Server",
+  "CLOSED                           LISTEN",
+  "send SYN(seq=ISN_c)              (wait)",
+  "SYN_SENT                         recv SYN → SYN_RCVD",
+  "                                 send SYN(seq=ISN_s) + ACK(=ISN_c+1)",
+  "recv SYN-ACK                     SYN_RCVD",
+  "send ACK(=ISN_s+1)               recv ACK",
+  "ESTABLISHED                      ESTABLISHED",
 ];
 
-function HandshakeTab() {
-  const [step, setStep] = useState(-1);
-  const [playing, setPlaying] = useState(false);
-  const [showBanner, setShowBanner] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+function buildHandshakeFrames(isnC: number, isnS: number, scenario: "normal" | "synloss"): HandshakeFrame[] {
+  const frames: HandshakeFrame[] = [];
+  const msgs: HSMessage[] = [];
 
-  const advance = useCallback(() => {
-    setStep((prev) => {
-      const next = prev + 1;
-      if (next >= HANDSHAKE_STEPS.length) {
-        setPlaying(false);
-        setShowBanner(true);
-        return prev;
-      }
-      return next;
-    });
-  }, []);
+  // Frame 0 - initial state
+  frames.push({
+    line: 1,
+    vars: { "client state": "CLOSED", "server state": "LISTEN" },
+    message: "Server is passively listening on a port. Client is closed but about to connect.",
+    clientState: "CLOSED",
+    serverState: "LISTEN",
+    messages: [],
+    activeMsgIdx: null,
+    isn_c: isnC,
+    isn_s: isnS,
+  });
 
-  useEffect(() => {
-    if (playing && step < HANDSHAKE_STEPS.length - 1) {
-      timerRef.current = setTimeout(advance, 1200);
-    }
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+  if (scenario === "synloss") {
+    // First SYN is lost
+    const lostSyn: HSMessage = {
+      label: "SYN",
+      fromSide: "C",
+      toSide: "S",
+      y: 110,
+      color: "#3b82f6",
+      seq: isnC,
+      ack: 0,
+      flags: "SYN",
+      lost: true,
     };
-  }, [playing, step, advance]);
+    msgs.push(lostSyn);
+    frames.push({
+      line: 2,
+      vars: { "ISN_c": isnC, flags: "SYN", seq: isnC },
+      message: `Client sends SYN with ISN_c=${isnC} ... but it is LOST in transit!`,
+      clientState: "SYN_SENT",
+      serverState: "LISTEN",
+      messages: msgs.slice(),
+      activeMsgIdx: 0,
+      isn_c: isnC,
+      isn_s: isnS,
+      flashKeys: ["ISN_c"],
+    });
 
-  const handlePlay = () => {
-    if (step >= HANDSHAKE_STEPS.length - 1) {
-      setStep(-1);
-      setShowBanner(false);
-      setTimeout(() => {
-        setStep(0);
-        setPlaying(true);
-      }, 200);
-    } else {
-      if (step === -1) setStep(0);
-      setPlaying(true);
-    }
+    frames.push({
+      line: 2,
+      vars: { "timeout": "elapsed", action: "retransmit" },
+      message: "No SYN-ACK arrives. Client retransmit timer expires - resend the SYN.",
+      clientState: "SYN_SENT",
+      serverState: "LISTEN",
+      messages: msgs.slice(),
+      activeMsgIdx: null,
+      isn_c: isnC,
+      isn_s: isnS,
+      flashKeys: ["timeout"],
+    });
+
+    // Retransmitted SYN
+    const reSyn: HSMessage = {
+      label: "SYN (retx)",
+      fromSide: "C",
+      toSide: "S",
+      y: 170,
+      color: "#3b82f6",
+      seq: isnC,
+      ack: 0,
+      flags: "SYN",
+      retransmit: true,
+    };
+    msgs.push(reSyn);
+    frames.push({
+      line: 2,
+      vars: { "ISN_c": isnC, flags: "SYN", retx: true },
+      message: `Retransmitted SYN reaches the server this time.`,
+      clientState: "SYN_SENT",
+      serverState: "SYN_RCVD",
+      messages: msgs.slice(),
+      activeMsgIdx: msgs.length - 1,
+      isn_c: isnC,
+      isn_s: isnS,
+    });
+
+    // SYN-ACK
+    const synAck: HSMessage = {
+      label: "SYN-ACK",
+      fromSide: "S",
+      toSide: "C",
+      y: 230,
+      color: "#8b5cf6",
+      seq: isnS,
+      ack: isnC + 1,
+      flags: "SYN, ACK",
+    };
+    msgs.push(synAck);
+    frames.push({
+      line: 4,
+      vars: { "ISN_s": isnS, ack: isnC + 1, flags: "SYN, ACK" },
+      message: `Server replies SYN-ACK: seq=ISN_s=${isnS}, ack=ISN_c+1=${isnC + 1}. It tells the client "I got your SYN, and here's mine".`,
+      clientState: "SYN_SENT",
+      serverState: "SYN_RCVD",
+      messages: msgs.slice(),
+      activeMsgIdx: msgs.length - 1,
+      isn_c: isnC,
+      isn_s: isnS,
+      flashKeys: ["ISN_s", "ack"],
+    });
+
+    // Final ACK
+    const ack: HSMessage = {
+      label: "ACK",
+      fromSide: "C",
+      toSide: "S",
+      y: 290,
+      color: "#10b981",
+      seq: isnC + 1,
+      ack: isnS + 1,
+      flags: "ACK",
+    };
+    msgs.push(ack);
+    frames.push({
+      line: 6,
+      vars: { seq: isnC + 1, ack: isnS + 1, flags: "ACK" },
+      message: `Client sends final ACK: seq=${isnC + 1}, ack=ISN_s+1=${isnS + 1}. Both sides are now ESTABLISHED.`,
+      clientState: "ESTABLISHED",
+      serverState: "ESTABLISHED",
+      messages: msgs.slice(),
+      activeMsgIdx: msgs.length - 1,
+      isn_c: isnC,
+      isn_s: isnS,
+      flashKeys: ["seq", "ack"],
+    });
+
+    frames.push({
+      line: 7,
+      vars: { state: "ESTABLISHED", "data can flow": "yes" },
+      message: "Connection is ESTABLISHED. Data transfer can begin. The handshake cost was 1 extra RTT due to the lost SYN.",
+      clientState: "ESTABLISHED",
+      serverState: "ESTABLISHED",
+      messages: msgs.slice(),
+      activeMsgIdx: null,
+      isn_c: isnC,
+      isn_s: isnS,
+      flashKeys: ["state"],
+    });
+
+    return frames;
+  }
+
+  // Normal scenario
+  const syn: HSMessage = {
+    label: "SYN",
+    fromSide: "C",
+    toSide: "S",
+    y: 120,
+    color: "#3b82f6",
+    seq: isnC,
+    ack: 0,
+    flags: "SYN",
   };
+  msgs.push(syn);
+  frames.push({
+    line: 2,
+    vars: { "ISN_c": isnC, flags: "SYN", seq: isnC },
+    message: `Client sends SYN segment with initial sequence number ISN_c=${isnC}. State transitions CLOSED → SYN_SENT.`,
+    clientState: "SYN_SENT",
+    serverState: "LISTEN",
+    messages: msgs.slice(),
+    activeMsgIdx: 0,
+    isn_c: isnC,
+    isn_s: isnS,
+    flashKeys: ["ISN_c"],
+  });
 
-  const handleReset = () => {
-    setStep(-1);
-    setPlaying(false);
-    setShowBanner(false);
+  frames.push({
+    line: 3,
+    vars: { "server recv": "SYN", "server state": "SYN_RCVD" },
+    message: `Server receives the SYN, allocates state for this connection, and transitions LISTEN → SYN_RCVD.`,
+    clientState: "SYN_SENT",
+    serverState: "SYN_RCVD",
+    messages: msgs.slice(),
+    activeMsgIdx: null,
+    isn_c: isnC,
+    isn_s: isnS,
+    flashKeys: ["server state"],
+  });
+
+  const synAck: HSMessage = {
+    label: "SYN-ACK",
+    fromSide: "S",
+    toSide: "C",
+    y: 200,
+    color: "#8b5cf6",
+    seq: isnS,
+    ack: isnC + 1,
+    flags: "SYN, ACK",
+  };
+  msgs.push(synAck);
+  frames.push({
+    line: 4,
+    vars: {
+      "ISN_s": isnS,
+      ack: isnC + 1,
+      flags: "SYN, ACK",
+    },
+    message: `Server sends SYN-ACK: seq=ISN_s=${isnS}, ack=ISN_c+1=${isnC + 1} - "I got your SYN (expecting byte ${isnC + 1}), here's mine".`,
+    clientState: "SYN_SENT",
+    serverState: "SYN_RCVD",
+    messages: msgs.slice(),
+    activeMsgIdx: msgs.length - 1,
+    isn_c: isnC,
+    isn_s: isnS,
+    flashKeys: ["ISN_s", "ack"],
+  });
+
+  frames.push({
+    line: 5,
+    vars: { "client recv": "SYN-ACK", "validates": `ack == ISN_c+1 == ${isnC + 1}` },
+    message: `Client receives SYN-ACK, validates the ack number matches ISN_c+1. Good - server is the real one we talked to.`,
+    clientState: "SYN_SENT",
+    serverState: "SYN_RCVD",
+    messages: msgs.slice(),
+    activeMsgIdx: null,
+    isn_c: isnC,
+    isn_s: isnS,
+  });
+
+  const ack: HSMessage = {
+    label: "ACK",
+    fromSide: "C",
+    toSide: "S",
+    y: 280,
+    color: "#10b981",
+    seq: isnC + 1,
+    ack: isnS + 1,
+    flags: "ACK",
+  };
+  msgs.push(ack);
+  frames.push({
+    line: 6,
+    vars: { seq: isnC + 1, ack: isnS + 1, flags: "ACK" },
+    message: `Client sends final ACK: seq=ISN_c+1=${isnC + 1}, ack=ISN_s+1=${isnS + 1}. Client transitions SYN_SENT → ESTABLISHED.`,
+    clientState: "ESTABLISHED",
+    serverState: "SYN_RCVD",
+    messages: msgs.slice(),
+    activeMsgIdx: msgs.length - 1,
+    isn_c: isnC,
+    isn_s: isnS,
+    flashKeys: ["seq", "ack"],
+  });
+
+  frames.push({
+    line: 7,
+    vars: { "both states": "ESTABLISHED", "data ready": "yes" },
+    message: `Server receives ACK, transitions SYN_RCVD → ESTABLISHED. Both sides are now ready for data transfer.`,
+    clientState: "ESTABLISHED",
+    serverState: "ESTABLISHED",
+    messages: msgs.slice(),
+    activeMsgIdx: null,
+    isn_c: isnC,
+    isn_s: isnS,
+    flashKeys: ["both states"],
+  });
+
+  return frames;
+}
+
+/* ================================================================== */
+/*  Handshake Diagram                                                 */
+/* ================================================================== */
+
+function HandshakeDiagram({ frame }: { frame: HandshakeFrame }) {
+  const clientX = 120;
+  const serverX = 480;
+  const stateColor: Record<HSState, string> = {
+    CLOSED: "#64748b",
+    LISTEN: "#64748b",
+    SYN_SENT: "#3b82f6",
+    SYN_RCVD: "#8b5cf6",
+    ESTABLISHED: "#10b981",
   };
 
   return (
-    <div className="eng-fadeIn">
-      <h2 style={{ fontFamily: FONT, fontWeight: 700, fontSize: "1.25rem", color: TEXT, margin: "0 0 8px" }}>
-        TCP 3-Way Handshake
-      </h2>
-      <p style={{ fontFamily: FONT, fontSize: "0.9rem", color: MUTED, margin: "0 0 16px", lineHeight: 1.6 }}>
-        Before any data flows, TCP establishes a reliable connection using three messages. Watch the sequence below.
-      </p>
+    <div
+      style={{
+        padding: 14,
+        borderRadius: "var(--eng-radius)",
+        background: "var(--eng-surface)",
+        border: "1px solid var(--eng-border)",
+      }}
+    >
+      <svg viewBox="0 0 600 400" style={{ width: "100%", maxWidth: 600, display: "block", margin: "0 auto" }}>
+        {/* Headers */}
+        <text x={clientX} y={28} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, fill: TEXT }}>
+          Client
+        </text>
+        <text x={serverX} y={28} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, fill: TEXT }}>
+          Server
+        </text>
 
-      <div className="card-eng" style={{ padding: 16, marginBottom: 16 }}>
-        <svg viewBox="0 0 600 400" style={{ width: "100%", maxWidth: 600, display: "block", margin: "0 auto" }}>
-          {/* Timeline labels */}
-          <text x={120} y={40} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, fill: TEXT }}>
-            Client
+        {/* State pills */}
+        <g>
+          <rect x={clientX - 55} y={40} width={110} height={22} rx={11} fill={stateColor[frame.clientState]} opacity={0.18} stroke={stateColor[frame.clientState]} strokeWidth={1.5} />
+          <text x={clientX} y={55} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, fill: stateColor[frame.clientState] }}>
+            {frame.clientState}
           </text>
-          <text x={480} y={40} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, fill: TEXT }}>
-            Server
+        </g>
+        <g>
+          <rect x={serverX - 55} y={40} width={110} height={22} rx={11} fill={stateColor[frame.serverState]} opacity={0.18} stroke={stateColor[frame.serverState]} strokeWidth={1.5} />
+          <text x={serverX} y={55} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, fill: stateColor[frame.serverState] }}>
+            {frame.serverState}
           </text>
+        </g>
 
-          {/* Vertical timelines */}
-          <line x1={120} y1={55} x2={120} y2={360} stroke={BORDER} strokeWidth={2} strokeDasharray="6,4" />
-          <line x1={480} y1={55} x2={480} y2={360} stroke={BORDER} strokeWidth={2} strokeDasharray="6,4" />
+        {/* Timelines */}
+        <line x1={clientX} y1={72} x2={clientX} y2={370} stroke={BORDER} strokeWidth={2} strokeDasharray="6,4" />
+        <line x1={serverX} y1={72} x2={serverX} y2={370} stroke={BORDER} strokeWidth={2} strokeDasharray="6,4" />
+        <circle cx={clientX} cy={72} r={5} fill={PRIMARY} />
+        <circle cx={serverX} cy={72} r={5} fill={PRIMARY} />
 
-          {/* Timeline dots */}
-          <circle cx={120} cy={55} r={6} fill={PRIMARY} />
-          <circle cx={480} cy={55} r={6} fill={PRIMARY} />
+        {/* Messages */}
+        {frame.messages.map((m, i) => {
+          const fromX = m.fromSide === "C" ? clientX : serverX;
+          const toX = m.toSide === "C" ? clientX : serverX;
+          const midX = (fromX + toX) / 2;
+          const endX = m.lost ? (fromX + toX) / 2 + 10 : toX;
+          const isActive = frame.activeMsgIdx === i;
 
-          {/* State labels */}
-          {step >= 0 && (
-            <text x={40} y={100} style={{ fontFamily: FONT, fontSize: 10, fill: "#3b82f6" }}>
-              SYN_SENT
-            </text>
-          )}
-          {step >= 1 && (
-            <text x={510} y={180} style={{ fontFamily: FONT, fontSize: 10, fill: "#8b5cf6" }}>
-              SYN_RCVD
-            </text>
-          )}
-          {step >= 2 && (
-            <>
-              <text x={30} y={310} style={{ fontFamily: FONT, fontSize: 10, fill: "#10b981" }}>
-                ESTABLISHED
+          return (
+            <g key={i}>
+              <defs>
+                <marker id={`hs-arrow-${i}`} markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill={m.color} />
+                </marker>
+              </defs>
+              <line
+                x1={fromX}
+                y1={m.y}
+                x2={endX}
+                y2={m.y}
+                stroke={m.color}
+                strokeWidth={isActive ? 3 : 2}
+                strokeDasharray={m.lost ? "8,4" : undefined}
+                opacity={m.lost ? 0.6 : 1}
+                markerEnd={m.lost ? undefined : `url(#hs-arrow-${i})`}
+                style={{ transition: "all 0.3s" }}
+              />
+              {m.lost && (
+                <g>
+                  <text x={endX + 4} y={m.y + 2} style={{ fontFamily: FONT, fontSize: 16, fontWeight: 700, fill: DANGER }}>
+                    X
+                  </text>
+                  <text x={endX + 4} y={m.y + 16} style={{ fontFamily: FONT, fontSize: 9, fill: DANGER }}>
+                    lost
+                  </text>
+                </g>
+              )}
+              {/* Label above */}
+              <rect
+                x={midX - 52}
+                y={m.y - 28}
+                width={104}
+                height={20}
+                rx={4}
+                fill={m.color}
+                opacity={isActive ? 0.3 : 0.14}
+              />
+              <text x={midX} y={m.y - 14} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, fill: m.color }}>
+                {m.label}
               </text>
-              <text x={510} y={310} style={{ fontFamily: FONT, fontSize: 10, fill: "#10b981" }}>
-                ESTABLISHED
-              </text>
-            </>
-          )}
-
-          {/* Arrows */}
-          {HANDSHAKE_STEPS.map((s, i) => {
-            if (i > step) return null;
-            const isAnimating = i === step;
-            const midX = (s.fromX + s.toX) / 2;
-            const goingRight = s.toX > s.fromX;
-            return (
-              <g key={i}>
-                <defs>
-                  <marker id={`arrow-${i}`} markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                    <polygon points="0 0, 10 3.5, 0 7" fill={s.color} />
-                  </marker>
-                </defs>
-                <line
-                  x1={s.fromX}
-                  y1={s.y}
-                  x2={s.toX}
-                  y2={s.y}
-                  stroke={s.color}
-                  strokeWidth={2.5}
-                  markerEnd={`url(#arrow-${i})`}
-                  style={{
-                    opacity: isAnimating ? 0 : 1,
-                    animation: isAnimating ? "engArrowDraw 0.6s ease-out forwards" : undefined,
-                  }}
-                />
-                {/* Label above arrow */}
-                <rect
-                  x={midX - 40}
-                  y={s.y - 30}
-                  width={80}
-                  height={20}
-                  rx={4}
-                  fill={s.color}
-                  opacity={0.15}
-                />
-                <text
-                  x={midX}
-                  y={s.y - 16}
-                  textAnchor="middle"
-                  style={{ fontFamily: FONT, fontSize: 12, fontWeight: 700, fill: s.color }}
-                >
-                  {s.label}
+              {/* seq/ack below */}
+              {!m.lost && (
+                <text x={midX} y={m.y + 14} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 9, fill: MUTED }}>
+                  seq={m.seq}{m.ack ? `, ack=${m.ack}` : ""}
                 </text>
-                {/* Seq/Ack below */}
-                <text
-                  x={midX}
-                  y={s.y + 15}
-                  textAnchor="middle"
-                  style={{ fontFamily: FONT, fontSize: 9, fill: MUTED }}
-                >
-                  {s.seq}, {s.ack}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Established banner */}
-          {showBanner && (
-            <g>
-              <rect x={150} y={330} width={300} height={36} rx={8} fill="#10b981" opacity={0.15} />
-              <rect x={150} y={330} width={300} height={36} rx={8} stroke="#10b981" strokeWidth={2} fill="none" />
-              <text x={300} y={354} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, fill: "#10b981" }}>
-                CONNECTION ESTABLISHED
-              </text>
+              )}
             </g>
-          )}
-        </svg>
+          );
+        })}
 
-        <style>{`
-          @keyframes engArrowDraw {
-            from { opacity: 0; stroke-dashoffset: 400; stroke-dasharray: 400; }
-            to { opacity: 1; stroke-dashoffset: 0; stroke-dasharray: 400; }
-          }
-        `}</style>
-      </div>
-
-      {/* Controls */}
-      <div className="flex gap-3 justify-center" style={{ marginBottom: 16 }}>
-        <button className="btn-eng" onClick={handlePlay} disabled={playing}>
-          <Play className="w-4 h-4" /> {step >= HANDSHAKE_STEPS.length - 1 ? "Replay" : "Play"}
-        </button>
-        <button className="btn-eng-outline" onClick={handleReset}>
-          <RotateCcw className="w-4 h-4" /> Reset
-        </button>
-      </div>
-
-      {/* Step description */}
-      {step >= 0 && step < HANDSHAKE_STEPS.length && (
-        <div className="info-eng eng-fadeIn" style={{ maxWidth: 560, margin: "0 auto" }}>
-          <strong>Step {step + 1}:</strong> {HANDSHAKE_STEPS[step].description}
-          <br />
-          <span style={{ fontSize: "0.8rem", color: MUTED }}>
-            Flags: {HANDSHAKE_STEPS[step].flags}
-          </span>
-        </div>
-      )}
+        {/* Established banner */}
+        {frame.clientState === "ESTABLISHED" && frame.serverState === "ESTABLISHED" && (
+          <g>
+            <rect x={150} y={340} width={300} height={34} rx={8} fill="#10b981" opacity={0.18} stroke="#10b981" strokeWidth={2} />
+            <text x={300} y={362} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 13, fontWeight: 700, fill: "#10b981" }}>
+              CONNECTION ESTABLISHED
+            </text>
+          </g>
+        )}
+      </svg>
     </div>
+  );
+}
+
+/* ================================================================== */
+/*  Handshake Tab                                                     */
+/* ================================================================== */
+
+function parseIsn(raw: string): { isnC: number; isnS: number; scenario: "normal" | "synloss" } {
+  const m = raw.trim().match(/ISN_c\s*=\s*(\d+)\s*,\s*ISN_s\s*=\s*(\d+)(?:\s*,\s*(synloss|normal))?/i);
+  if (m) {
+    return {
+      isnC: Number(m[1]),
+      isnS: Number(m[2]),
+      scenario: (m[3]?.toLowerCase() as "normal" | "synloss" | undefined) ?? "normal",
+    };
+  }
+  return { isnC: 100, isnS: 300, scenario: "normal" };
+}
+
+function HandshakeTab() {
+  const [raw, setRaw] = useState("ISN_c=100, ISN_s=300, normal");
+  const parsed = useMemo(() => parseIsn(raw), [raw]);
+  const frames = useMemo(() => buildHandshakeFrames(parsed.isnC, parsed.isnS, parsed.scenario), [parsed]);
+  const player = useStepPlayer(frames);
+  const frame = player.current!;
+
+  return (
+    <div className="eng-fadeIn" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div className="info-eng" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <Info className="w-4 h-4 shrink-0" style={{ marginTop: 2, color: "var(--eng-primary)" }} />
+        <span>
+          Step through the TCP 3-way handshake with visible state transitions and sequence numbers. Try the <code>synloss</code> scenario to see retransmission.
+        </span>
+      </div>
+
+      <AlgoCanvas
+        title={`TCP 3-Way Handshake (${parsed.scenario === "synloss" ? "SYN loss + retransmit" : "normal"})`}
+        player={player}
+        input={
+          <InputEditor
+            label="ISNs + scenario"
+            value={raw}
+            onApply={setRaw}
+            presets={[
+              { label: "normal", value: "ISN_c=100, ISN_s=300, normal" },
+              { label: "SYN loss", value: "ISN_c=100, ISN_s=300, synloss" },
+              { label: "high ISN", value: "ISN_c=5000, ISN_s=9999, normal" },
+            ]}
+            placeholder="ISN_c=100, ISN_s=300, normal"
+            helper="Format: ISN_c=<n>, ISN_s=<m>, <normal|synloss>"
+          />
+        }
+        pseudocode={<PseudocodePanel lines={HS_PSEUDO} activeLine={frame.line} />}
+        variables={<VariablesPanel vars={frame.vars} flashKeys={frame.flashKeys} />}
+        status={frame.message}
+        legend={
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <Swatch color="#3b82f6" label="SYN" />
+            <Swatch color="#8b5cf6" label="SYN-ACK" />
+            <Swatch color="#10b981" label="ACK / ESTABLISHED" />
+          </div>
+        }
+      >
+        <HandshakeDiagram frame={frame} />
+      </AlgoCanvas>
+    </div>
+  );
+}
+
+function Swatch({ color, label }: { color: string; label: string }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: FONT, fontSize: "0.72rem", color: MUTED }}>
+      <span style={{ width: 12, height: 12, borderRadius: 3, background: color }} />
+      {label}
+    </span>
   );
 }
 
@@ -325,7 +592,6 @@ function TerminationTab() {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [playing, step, advance]);
 
-  // TIME_WAIT countdown
   useEffect(() => {
     if (showTimer && timerVal > 0) {
       countRef.current = setInterval(() => {
@@ -355,7 +621,6 @@ function TerminationTab() {
         Closing a TCP connection requires four messages. The TIME_WAIT state ensures late packets are handled.
       </p>
 
-      {/* Scenario selector */}
       <div className="flex gap-2 flex-wrap" style={{ marginBottom: 12 }}>
         {([["normal", "Normal Close"], ["synloss", "SYN Loss Scenario"], ["simopen", "Simultaneous Open"]] as const).map(([key, label]) => (
           <button
@@ -382,7 +647,6 @@ function TerminationTab() {
           <circle cx={120} cy={55} r={6} fill={PRIMARY} />
           <circle cx={480} cy={55} r={6} fill={PRIMARY} />
 
-          {/* Both ESTABLISHED initially */}
           <text x={30} y={80} style={{ fontFamily: FONT, fontSize: 10, fill: "#10b981" }}>ESTABLISHED</text>
           <text x={510} y={80} style={{ fontFamily: FONT, fontSize: 10, fill: "#10b981" }}>ESTABLISHED</text>
 
@@ -489,7 +753,6 @@ function TerminationTab() {
             </g>
           )}
 
-          {/* TIME_WAIT */}
           {showTimer && scenario === "normal" && (
             <g>
               <rect x={30} y={330} width={160} height={36} rx={6} fill="#f59e0b" opacity={0.12} stroke="#f59e0b" strokeWidth={1.5} />
@@ -550,7 +813,7 @@ const TCP_FIELDS: HeaderField[] = [
 
 function HeaderTab() {
   const [selected, setSelected] = useState<number | null>(null);
-  const cellW = 16.25; // width per bit in SVG units
+  const cellW = 16.25;
   const rowH = 44;
   const padTop = 40;
   const svgW = 560;
@@ -566,7 +829,6 @@ function HeaderTab() {
 
       <div className="card-eng" style={{ padding: 16, marginBottom: 16, overflowX: "auto" }}>
         <svg viewBox={`0 0 ${svgW} 310`} style={{ width: "100%", maxWidth: svgW, display: "block", margin: "0 auto" }}>
-          {/* Bit ruler */}
           {[0, 4, 8, 12, 16, 20, 24, 28, 31].map((b) => (
             <text key={b} x={20 + b * cellW} y={padTop - 8} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 8, fill: MUTED }}>
               {b}
@@ -576,7 +838,6 @@ function HeaderTab() {
             Bit Position (0-31)
           </text>
 
-          {/* Fields */}
           {TCP_FIELDS.map((f, i) => {
             const x = 4 + f.col * cellW;
             const y = padTop + f.row * rowH;
@@ -626,14 +887,12 @@ function HeaderTab() {
             );
           })}
 
-          {/* Total size label */}
           <text x={svgW / 2} y={padTop + 5 * rowH + 12} textAnchor="middle" style={{ fontFamily: FONT, fontSize: 11, fontWeight: 600, fill: TEXT }}>
             Total Header: 20 bytes (160 bits) minimum
           </text>
         </svg>
       </div>
 
-      {/* Detail panel */}
       {selected !== null && (
         <div className="info-eng eng-fadeIn" style={{ maxWidth: 560, margin: "0 auto" }}>
           <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
@@ -726,7 +985,6 @@ export default function CN_L4_TCPConnectionActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="TCP -- Reliable Data Transfer"
-      gateRelevance="3-4 marks"
       placementRelevance="High"
     />
   );

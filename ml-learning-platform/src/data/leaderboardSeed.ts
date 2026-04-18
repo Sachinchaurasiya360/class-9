@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------
- * Fictional leaderboard seed — 50 deterministic Indian students.
+ * Fictional leaderboard seed - 50 deterministic Indian students.
  *
  * Uses a mulberry32 PRNG so the list never changes between reloads (no real
  * users yet). Exposes `getWeeklyLeaderboard(userXp)` which splices a "You"
@@ -17,7 +17,7 @@ export type LeaderboardEntry = {
   school?: string;
 };
 
-/* Seeded PRNG — deterministic across reloads */
+/* Seeded PRNG - deterministic across reloads */
 function mulberry32(seed: number) {
   return () => {
     seed |= 0;
@@ -66,7 +66,7 @@ const SCHOOLS = [
   "Modern School",
 ];
 
-/** Compute level from XP — mirrors the thresholds in gamification.ts loosely. */
+/** Compute level from XP - mirrors the thresholds in gamification.ts loosely. */
 function levelFromXp(xp: number): number {
   if (xp >= 10000) return 10;
   if (xp >= 7500) return 9;
@@ -134,7 +134,7 @@ export function getWeeklyLeaderboard(
   return combined;
 }
 
-/** League thresholds — used by the leaderboard page hero badge. */
+/** League thresholds - used by the leaderboard page hero badge. */
 export type League =
   | "Bronze"
   | "Silver"

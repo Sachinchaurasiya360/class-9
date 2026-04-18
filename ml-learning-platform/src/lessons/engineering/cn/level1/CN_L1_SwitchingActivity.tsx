@@ -86,7 +86,7 @@ const SWITCHING_TYPES: SwitchInfo[] = [
 ];
 
 /* ================================================================== */
-/*  TAB 1 — Switching Visualizer                                       */
+/*  TAB 1 - Switching Visualizer                                       */
 /* ================================================================== */
 
 function SwitchingVisualizer() {
@@ -422,38 +422,180 @@ function SwitchingVisualizer() {
       </div>
 
       {/* Info card */}
-      <div className="card-eng eng-fadeIn" key={selected} style={{ padding: 20, borderLeft: `4px solid ${info.color}` }}>
-        <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.88rem", color: "var(--eng-text)", lineHeight: 1.6, margin: "0 0 16px" }}>
+      <SwitchingInfoCard info={info} index={SWITCHING_TYPES.findIndex((s) => s.id === selected)} />
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Switching Info Card                                                */
+/* ================================================================== */
+
+function SwitchingInfoCard({ info, index }: { info: SwitchInfo; index: number }) {
+  const mono = '"SF Mono", Menlo, Consolas, monospace';
+  const num = String(index + 1).padStart(2, "0");
+  const typeLabel = info.id === "circuit" ? "DEDICATED" : info.id === "message" ? "STORE & FORWARD" : "PACKETIZED";
+
+  return (
+    <div
+      className="eng-fadeIn"
+      key={info.id}
+      style={{
+        background: "var(--eng-surface)",
+        border: "1px solid var(--eng-border)",
+        borderRadius: "var(--eng-radius)",
+        overflow: "hidden",
+        boxShadow: "var(--eng-shadow)",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "stretch",
+          borderBottom: "1px solid var(--eng-border)",
+          background: "var(--eng-bg)",
+        }}
+      >
+        {/* Big index */}
+        <div
+          style={{
+            flexShrink: 0,
+            width: 86,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "14px 0",
+            borderRight: "1px solid var(--eng-border)",
+          }}
+        >
+          <span style={{ fontFamily: mono, fontSize: "0.58rem", fontWeight: 700, letterSpacing: "0.14em", color: info.color }}>
+            TYPE
+          </span>
+          <span style={{ fontFamily: mono, fontSize: "1.95rem", fontWeight: 800, color: info.color, lineHeight: 1, letterSpacing: "-0.03em" }}>
+            {num}
+          </span>
+        </div>
+
+        {/* Name + tag */}
+        <div style={{ flex: 1, minWidth: 0, padding: "14px 18px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: mono, fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.14em", color: "var(--eng-text-muted)" }}>
+              SWITCHING
+            </span>
+            <span
+              style={{
+                padding: "2px 8px",
+                fontFamily: mono,
+                fontSize: "0.62rem",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                color: info.color,
+                background: `${info.color}14`,
+                border: `1px solid ${info.color}44`,
+                borderRadius: 3,
+              }}
+            >
+              {typeLabel}
+            </span>
+          </div>
+          <h4 style={{ margin: 0, fontFamily: "var(--eng-font)", fontSize: "1.35rem", fontWeight: 700, color: "var(--eng-text)", letterSpacing: "-0.015em", lineHeight: 1.15 }}>
+            {info.label}
+          </h4>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ padding: "18px 20px 20px" }}>
+        {/* Description */}
+        <p
+          style={{
+            margin: 0,
+            fontFamily: "var(--eng-font)",
+            fontSize: "0.93rem",
+            color: "var(--eng-text)",
+            lineHeight: 1.7,
+          }}
+        >
           {info.description}
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ marginBottom: 12 }}>
-          <div>
-            <h5 style={{ fontFamily: "var(--eng-font)", fontWeight: 600, fontSize: "0.82rem", color: "var(--eng-success)", margin: "0 0 6px" }}>Advantages</h5>
-            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-              {info.pros.map((p, i) => (
-                <li key={i} style={{ fontFamily: "var(--eng-font)", fontSize: "0.8rem", color: "var(--eng-text)", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--eng-success)" }} />
-                  {p}
-                </li>
-              ))}
-            </ul>
+
+        {/* Pros + Cons, inline pill cloud */}
+        <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "auto 1fr", gap: "10px 14px", alignItems: "start" }}>
+          <span style={{ fontFamily: mono, fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--eng-success)", paddingTop: 5 }}>
+            PROS
+          </span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+            {info.pros.map((p) => (
+              <span
+                key={p}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "3px 9px",
+                  fontFamily: mono,
+                  fontSize: "0.72rem",
+                  fontWeight: 500,
+                  color: "var(--eng-text)",
+                  background: "rgba(16,185,129,0.08)",
+                  border: "1px solid rgba(16,185,129,0.28)",
+                  borderRadius: 4,
+                }}
+              >
+                <span style={{ color: "var(--eng-success)", fontWeight: 700 }}>+</span>
+                {p}
+              </span>
+            ))}
           </div>
-          <div>
-            <h5 style={{ fontFamily: "var(--eng-font)", fontWeight: 600, fontSize: "0.82rem", color: "var(--eng-danger)", margin: "0 0 6px" }}>Disadvantages</h5>
-            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-              {info.cons.map((c, i) => (
-                <li key={i} style={{ fontFamily: "var(--eng-font)", fontSize: "0.8rem", color: "var(--eng-text)", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
-                  <XCircle className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--eng-danger)" }} />
-                  {c}
-                </li>
-              ))}
-            </ul>
+
+          <span style={{ fontFamily: mono, fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--eng-danger)", paddingTop: 5 }}>
+            CONS
+          </span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+            {info.cons.map((c) => (
+              <span
+                key={c}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "3px 9px",
+                  fontFamily: mono,
+                  fontSize: "0.72rem",
+                  fontWeight: 500,
+                  color: "var(--eng-text)",
+                  background: "rgba(239,68,68,0.07)",
+                  border: "1px solid rgba(239,68,68,0.25)",
+                  borderRadius: 4,
+                }}
+              >
+                <span style={{ color: "var(--eng-danger)", fontWeight: 700 }}>-</span>
+                {c}
+              </span>
+            ))}
           </div>
         </div>
-        <div className="info-eng" style={{ background: `${info.color}08`, borderLeftColor: info.color }}>
-          <p style={{ margin: 0, fontFamily: "var(--eng-font)", fontSize: "0.82rem", color: "var(--eng-text)" }}>
-            <strong>Real-world example:</strong> {info.example}
-          </p>
+
+        {/* Example footer */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginTop: 18,
+            paddingTop: 14,
+            borderTop: "1px dashed var(--eng-border)",
+          }}
+        >
+          <span style={{ fontFamily: mono, fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", color: "var(--eng-text-muted)" }}>
+            SEEN IN THE WILD
+          </span>
+          <span style={{ color: "var(--eng-text-muted)", fontSize: "0.8rem" }}>&rarr;</span>
+          <span style={{ fontFamily: "var(--eng-font)", fontSize: "0.88rem", fontWeight: 500, color: "var(--eng-text)" }}>
+            {info.example}
+          </span>
         </div>
       </div>
     </div>
@@ -461,7 +603,7 @@ function SwitchingVisualizer() {
 }
 
 /* ================================================================== */
-/*  TAB 2 — Timeline Comparison                                        */
+/*  TAB 2 - Timeline Comparison                                        */
 /* ================================================================== */
 
 function TimelineComparison() {
@@ -755,7 +897,7 @@ function TimelineComparison() {
 }
 
 /* ================================================================== */
-/*  TAB 3 — Practice: Choose the Right Switching                       */
+/*  TAB 3 - Practice: Choose the Right Switching                       */
 /* ================================================================== */
 
 interface PracticeScenario {
@@ -772,7 +914,7 @@ const PRACTICE_SCENARIOS: PracticeScenario[] = [
     description: "A real-time voice call between two people needs consistent quality with no interruptions.",
     options: ["Circuit Switching", "Message Switching", "Packet Switching"],
     correctIndex: 0,
-    explanation: "Circuit switching is ideal for real-time voice calls because it provides a dedicated path with guaranteed bandwidth and consistent latency — just like traditional telephone networks.",
+    explanation: "Circuit switching is ideal for real-time voice calls because it provides a dedicated path with guaranteed bandwidth and consistent latency - just like traditional telephone networks.",
   },
   {
     id: 2,
@@ -786,14 +928,14 @@ const PRACTICE_SCENARIOS: PracticeScenario[] = [
     description: "A telegram office needs to forward complete telegrams to the next city, one at a time.",
     options: ["Circuit Switching", "Message Switching", "Packet Switching"],
     correctIndex: 1,
-    explanation: "This is a classic message switching scenario — the store-and-forward approach where each office stores the complete telegram before forwarding it to the next.",
+    explanation: "This is a classic message switching scenario - the store-and-forward approach where each office stores the complete telegram before forwarding it to the next.",
   },
   {
     id: 4,
     description: "Millions of users browse websites simultaneously, with bursty traffic patterns.",
     options: ["Circuit Switching", "Message Switching", "Packet Switching"],
     correctIndex: 2,
-    explanation: "Packet switching handles bursty web traffic efficiently. Bandwidth is shared dynamically — no resources are wasted during idle periods between requests.",
+    explanation: "Packet switching handles bursty web traffic efficiently. Bandwidth is shared dynamically - no resources are wasted during idle periods between requests.",
   },
   {
     id: 5,
@@ -1034,8 +1176,7 @@ export default function CN_L1_SwitchingActivity() {
       lessonNumber={5}
       tabs={tabs}
       quiz={quiz}
-      nextLessonHint="Physical Layer — Signals"
-      gateRelevance="2-3 marks"
+      nextLessonHint="Physical Layer - Signals"
       placementRelevance="Low"
     />
   );

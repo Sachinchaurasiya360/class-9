@@ -1,9 +1,9 @@
 /* --------------------------------------------------------------------------
- * Exam Prep Question Bank — CBSE AI Code 417 (Class 9-10)
+ * Exam Prep Question Bank - CBSE AI Code 417 (Class 9-10)
  *
  * Structured around the seven core units from the official CBSE AI 417
  * syllabus. Each question carries a short teaching explanation so that
- * practice mode doubles as revision. Pure data module — no React, no
+ * practice mode doubles as revision. Pure data module - no React, no
  * browser APIs, safe to import from server components or tests.
  * ------------------------------------------------------------------------ */
 
@@ -97,7 +97,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "AI refers to machines or systems that can perform tasks requiring human-like intelligence — learning, reasoning, problem-solving, perception and language understanding.",
+      "AI refers to machines or systems that can perform tasks requiring human-like intelligence - learning, reasoning, problem-solving, perception and language understanding.",
     topic: "definition",
   },
   {
@@ -184,7 +184,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "Narrow AI is designed for a single task. A chess engine is expert at chess but cannot generalise to other tasks like face recognition — that would require general AI.",
+      "Narrow AI is designed for a single task. A chess engine is expert at chess but cannot generalise to other tasks like face recognition - that would require general AI.",
     topic: "types-of-ai",
   },
   {
@@ -247,7 +247,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "General AI, or AGI, refers to a hypothetical system with the flexibility to learn and reason across any domain — something not yet achieved in practice.",
+      "General AI, or AGI, refers to a hypothetical system with the flexibility to learn and reason across any domain - something not yet achieved in practice.",
     topic: "types-of-ai",
   },
   {
@@ -264,7 +264,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "Recommendation systems use your watch history and patterns of other users to predict what you might like next — a classic ML application.",
+      "Recommendation systems use your watch history and patterns of other users to predict what you might like next - a classic ML application.",
     topic: "applications",
   },
   {
@@ -326,7 +326,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 2,
     explanation:
-      "AI systems are expected to adapt and generalise — rigid fixed-output systems are traditional rule-based programs, not AI.",
+      "AI systems are expected to adapt and generalise - rigid fixed-output systems are traditional rule-based programs, not AI.",
     topic: "characteristics",
   },
 
@@ -465,7 +465,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     options: ["True", "False"],
     correctIndex: 1,
     explanation:
-      "Even with data in hand, you still need to clearly define the problem and who it affects — otherwise you risk building the wrong solution.",
+      "Even with data in hand, you still need to clearly define the problem and who it affects - otherwise you risk building the wrong solution.",
     topic: "problem-scoping",
   },
   {
@@ -482,7 +482,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "'Who' identifies the stakeholders — the people experiencing or affected by the problem.",
+      "'Who' identifies the stakeholders - the people experiencing or affected by the problem.",
     topic: "problem-scoping",
   },
   {
@@ -545,7 +545,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 2,
     explanation:
-      "Problem scoping focuses on stakeholders and the 'why' — not on technical choices, which come later in the cycle.",
+      "Problem scoping focuses on stakeholders and the 'why' - not on technical choices, which come later in the cycle.",
     topic: "problem-scoping",
   },
   {
@@ -557,7 +557,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     options: ["True", "False"],
     correctIndex: 0,
     explanation:
-      "Cleaning happens as part of exploring the data — you can't properly model data you haven't inspected and fixed.",
+      "Cleaning happens as part of exploring the data - you can't properly model data you haven't inspected and fixed.",
     topic: "data-exploration",
   },
 
@@ -578,7 +578,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "Artificial neurons loosely mimic biological neurons — they receive inputs, process them, and produce an output.",
+      "Artificial neurons loosely mimic biological neurons - they receive inputs, process them, and produce an output.",
     topic: "neurons",
   },
   {
@@ -727,7 +727,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     question: "A perceptron is best described as:",
     options: [
       "A deep convolutional network",
-      "The simplest possible neural unit — a single linear model with an activation",
+      "The simplest possible neural unit - a single linear model with an activation",
       "A recurrent network",
       "A chatbot",
     ],
@@ -750,7 +750,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 0,
     explanation:
-      "To reduce the loss, weights are moved opposite to the direction of increasing loss — that is the 'descent' in gradient descent.",
+      "To reduce the loss, weights are moved opposite to the direction of increasing loss - that is the 'descent' in gradient descent.",
     topic: "training",
   },
   {
@@ -829,7 +829,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "Structured data is organised in a fixed schema — like tables with rows and columns. Spreadsheets and SQL tables are classic examples.",
+      "Structured data is organised in a fixed schema - like tables with rows and columns. Spreadsheets and SQL tables are classic examples.",
     topic: "data-types",
   },
   {
@@ -846,7 +846,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 2,
     explanation:
-      "Unstructured data has no fixed schema — videos, images, audio and free text are all unstructured.",
+      "Unstructured data has no fixed schema - videos, images, audio and free text are all unstructured.",
     topic: "data-types",
   },
   {
@@ -1002,7 +1002,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     question: "'Features' and 'attributes' in a dataset are:",
     options: [
       "Completely unrelated",
-      "Roughly synonymous — both refer to the input columns",
+      "Roughly synonymous - both refer to the input columns",
       "Types of algorithms",
       "Metrics like accuracy",
     ],
@@ -1032,7 +1032,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     options: ["True", "False"],
     correctIndex: 1,
     explanation:
-      "Outliers might represent errors — but they can also be the most interesting points (e.g., fraud detection). They should be investigated, not blindly removed.",
+      "Outliers might represent errors - but they can also be the most interesting points (e.g., fraud detection). They should be investigated, not blindly removed.",
     topic: "data-quality",
   },
   {
@@ -1094,7 +1094,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     options: ["1", "2", "3", "4"],
     correctIndex: 2,
     explanation:
-      "Red, Green and Blue channels — three in total. Each pixel has one value per channel.",
+      "Red, Green and Blue channels - three in total. Each pixel has one value per channel.",
     topic: "images",
   },
   {
@@ -1174,7 +1174,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     options: ["NLP", "Computer Vision", "Reinforcement Learning", "Robotic Arms"],
     correctIndex: 1,
     explanation:
-      "Face recognition analyses facial pixel patterns to identify individuals — a core CV task.",
+      "Face recognition analyses facial pixel patterns to identify individuals - a core CV task.",
     topic: "applications",
   },
   {
@@ -1232,7 +1232,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "Edges are detected where neighbouring pixels have very different intensities — boundaries between objects or textures.",
+      "Edges are detected where neighbouring pixels have very different intensities - boundaries between objects or textures.",
     topic: "images",
   },
   {
@@ -1322,7 +1322,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "Sentiment analysis classifies the emotion of text — a textbook NLP task.",
+      "Sentiment analysis classifies the emotion of text - a textbook NLP task.",
     topic: "applications",
   },
   {
@@ -1373,7 +1373,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "Bag of Words turns a document into a word-count vector, ignoring grammar and word order — simple but surprisingly effective for many tasks.",
+      "Bag of Words turns a document into a word-count vector, ignoring grammar and word order - simple but surprisingly effective for many tasks.",
     topic: "representation",
   },
   {
@@ -1431,7 +1431,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     options: ["1", "2", "3", "4"],
     correctIndex: 2,
     explanation:
-      "Three tokens: ['Pandas', 'love', 'bamboo'] — each word becomes one token.",
+      "Three tokens: ['Pandas', 'love', 'bamboo'] - each word becomes one token.",
     topic: "tokenisation",
   },
   {
@@ -1523,7 +1523,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 0,
     explanation:
-      "A spam filter assigns each email a label — spam or not spam — which is text classification.",
+      "A spam filter assigns each email a label - spam or not spam - which is text classification.",
     topic: "applications",
   },
   {
@@ -1641,7 +1641,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "The model learns historical hiring patterns, which can encode past discrimination — a well-documented real-world case.",
+      "The model learns historical hiring patterns, which can encode past discrimination - a well-documented real-world case.",
     topic: "bias",
   },
   {
@@ -1721,7 +1721,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     options: ["True", "False"],
     correctIndex: 1,
     explanation:
-      "Legally, the developers, deployers and owners of the system are held accountable — not the AI itself.",
+      "Legally, the developers, deployers and owners of the system are held accountable - not the AI itself.",
     topic: "responsible-ai",
   },
   {
@@ -1749,7 +1749,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     question: "If a self-driving car causes an accident, accountability typically lies with:",
     options: [
       "The car itself",
-      "The manufacturer, software developers and operators — not the car",
+      "The manufacturer, software developers and operators - not the car",
       "The road",
       "No one",
     ],
@@ -1784,7 +1784,7 @@ export const EXAM_QUESTIONS: ExamQuestion[] = [
     ],
     correctIndex: 1,
     explanation:
-      "Transparency means stakeholders can understand how decisions are made — crucial for trust, auditing and legal compliance.",
+      "Transparency means stakeholders can understand how decisions are made - crucial for trust, auditing and legal compliance.",
     topic: "responsible-ai",
   },
   {
@@ -1835,7 +1835,7 @@ function shuffle<T>(arr: T[], rng: () => number): T[] {
 }
 
 /**
- * Produce a balanced sample paper — draws roughly equal numbers of questions
+ * Produce a balanced sample paper - draws roughly equal numbers of questions
  * from each chapter so the paper covers the syllabus. Deterministic given a seed.
  */
 export function getSamplePaper(seed: number, count: number = 30): ExamQuestion[] {

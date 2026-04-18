@@ -21,7 +21,7 @@ import type {
 } from "@/components/engineering/EngineeringLessonShell";
 
 /* ================================================================== */
-/*  Tab 1 — Email Lifecycle Animation                                   */
+/*  Tab 1 - Email Lifecycle Animation                                   */
 /* ================================================================== */
 
 function EmailLifecycleTab() {
@@ -32,7 +32,7 @@ function EmailLifecycleTab() {
   const steps = [
     {
       label: "Compose",
-      desc: "Alice composes an email in her Mail User Agent (MUA) — like Gmail, Outlook, or Thunderbird.",
+      desc: "Alice composes an email in her Mail User Agent (MUA) - like Gmail, Outlook, or Thunderbird.",
       activeNode: "mua-sender",
     },
     {
@@ -53,7 +53,7 @@ function EmailLifecycleTab() {
     {
       label: retrieval === "imap" ? "IMAP Retrieve" : "POP3 Retrieve",
       desc: retrieval === "imap"
-        ? "Bob's MUA retrieves the email via IMAP (port 993 with TLS). Emails stay on the server — synced across all devices."
+        ? "Bob's MUA retrieves the email via IMAP (port 993 with TLS). Emails stay on the server - synced across all devices."
         : "Bob's MUA downloads the email via POP3 (port 995 with TLS). Emails are typically removed from the server after download.",
       activeEdge: "mta-receiver-mua-receiver",
     },
@@ -97,7 +97,7 @@ function EmailLifecycleTab() {
         Email Lifecycle
       </h2>
       <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.9rem", color: "var(--eng-text-muted)", margin: "0 0 16px", lineHeight: 1.6 }}>
-        Follow an email from Alice to Bob — through compose, SMTP relay, and retrieval.
+        Follow an email from Alice to Bob - through compose, SMTP relay, and retrieval.
       </p>
 
       <div className="flex gap-2" style={{ marginBottom: 16 }}>
@@ -228,7 +228,7 @@ function EmailLifecycleTab() {
       {currentStep ? (
         <div className="info-eng eng-fadeIn" key={step}>
           <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.85rem", margin: 0 }}>
-            <strong>Step {step}: {currentStep.label}</strong> — {currentStep.desc}
+            <strong>Step {step}: {currentStep.label}</strong> - {currentStep.desc}
           </p>
         </div>
       ) : (
@@ -243,7 +243,7 @@ function EmailLifecycleTab() {
 }
 
 /* ================================================================== */
-/*  Tab 2 — FTP Dual Connection Visualization                          */
+/*  Tab 2 - FTP Dual Connection Visualization                          */
 /* ================================================================== */
 
 function FTPTab() {
@@ -284,7 +284,7 @@ function FTPTab() {
   return (
     <div>
       <h2 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "1.25rem", color: "var(--eng-text)", margin: "0 0 8px" }}>
-        FTP — Dual Connection Model
+        FTP - Dual Connection Model
       </h2>
       <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.9rem", color: "var(--eng-text-muted)", margin: "0 0 16px", lineHeight: 1.6 }}>
         FTP uses two separate TCP connections: a control connection (commands) and a data connection (file transfers).
@@ -418,7 +418,7 @@ function FTPTab() {
       {/* Active vs Passive comparison */}
       <div className="card-eng p-4" style={{ marginTop: 16 }}>
         <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "0.95rem", color: "var(--eng-text)", margin: "0 0 8px" }}>
-          Active vs Passive — Why it matters
+          Active vs Passive - Why it matters
         </h4>
         <p style={{ fontFamily: "var(--eng-font)", fontSize: "0.82rem", color: "var(--eng-text-muted)", margin: 0, lineHeight: 1.6 }}>
           {ftpMode === "active"
@@ -432,7 +432,7 @@ function FTPTab() {
 }
 
 /* ================================================================== */
-/*  Tab 3 — Protocol Comparison Table                                   */
+/*  Tab 3 - Protocol Comparison Table                                   */
 /* ================================================================== */
 
 function CompareTab() {
@@ -457,7 +457,7 @@ function CompareTab() {
       port: "110 (plain), 995 (TLS)",
       transport: "TCP",
       direction: "Pull (client downloads)",
-      persistent: "No — download and delete",
+      persistent: "No - download and delete",
       secure: "TLS on 995",
       color: "#ef4444",
     },
@@ -468,7 +468,7 @@ function CompareTab() {
       port: "143 (plain), 993 (TLS)",
       transport: "TCP",
       direction: "Pull (client syncs)",
-      persistent: "Yes — emails stay on server",
+      persistent: "Yes - emails stay on server",
       secure: "TLS on 993",
       color: "#10b981",
     },
@@ -589,7 +589,7 @@ function CompareTab() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 20 }}>
         <div className="card-eng p-4" style={{ borderTop: "3px solid #ef4444" }}>
           <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "0.95rem", color: "#ef4444", margin: "0 0 8px" }}>
-            POP3 — Download & Delete
+            POP3 - Download & Delete
           </h4>
           <ul style={{ fontFamily: "var(--eng-font)", fontSize: "0.82rem", color: "var(--eng-text-muted)", paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
             <li>Downloads emails to local device</li>
@@ -601,7 +601,7 @@ function CompareTab() {
         </div>
         <div className="card-eng p-4" style={{ borderTop: "3px solid #10b981" }}>
           <h4 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "0.95rem", color: "#10b981", margin: "0 0 8px" }}>
-            IMAP — Sync & Stay
+            IMAP - Sync & Stay
           </h4>
           <ul style={{ fontFamily: "var(--eng-font)", fontSize: "0.82rem", color: "var(--eng-text-muted)", paddingLeft: 18, margin: 0, lineHeight: 1.8 }}>
             <li>Emails remain on the server</li>
@@ -697,7 +697,6 @@ export default function CN_L5_SMTPFTPActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="DHCP & Network Configuration"
-      gateRelevance="1-2 marks"
       placementRelevance="Low"
     />
   );

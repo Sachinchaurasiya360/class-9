@@ -16,25 +16,25 @@ import {
   ArrowRight,
   Menu,
   X,
-  Eye,
-  Gauge,
-  SlidersHorizontal,
-  Columns2,
   ChevronRight,
   BookOpenCheck,
   Users,
   Award,
   Sparkles,
-  Globe,
   Code2,
   Shield,
   Cloud,
-  Smartphone,
   Lock,
+  Rocket,
+  Mail,
+  Heart,
+  Zap,
+  ShieldCheck,
+  CreditCard,
 } from "lucide-react";
 
 /* ================================================================== */
-/*  THEME — Light, clean, Skilly-inspired                              */
+/*  THEME - Light, clean, Skilly-inspired                              */
 /* ================================================================== */
 
 const T = {
@@ -71,7 +71,6 @@ const TRACKS = [
     lessons: "9 Levels · 45 Lessons",
     color: T.primary,
     colorLight: T.primaryLight,
-    gradient: `linear-gradient(90deg, ${T.primary}, rgba(29,192,113,0.3))`,
     href: "/level1/machines",
     icon: BookOpen,
     comingSoon: false,
@@ -81,41 +80,25 @@ const TRACKS = [
     level: "B.Tech CSE",
     title: "Core Computer Science",
     desc: "DSA, Networks, OS, DBMS, and OOP. Interactive visualizations and step-by-step algorithm tracing for deep understanding.",
-    coverage: "Covers GATE, Placements & Semester Exams",
+    coverage: "Covers Placements & Semester Exams",
     lessons: "5 Subjects · 150+ Lessons",
     color: "#E76F51",
     colorLight: "rgba(231,111,81,0.1)",
-    gradient: "linear-gradient(90deg, #E76F51, #8B5CF6)",
     href: "/engineering",
     icon: GraduationCap,
     comingSoon: false,
   },
   {
-    badge: "Full Stack",
-    level: "Beginner → Advanced",
-    title: "Web Development",
-    desc: "HTML, CSS, JavaScript, React, Node.js, and databases. Build real projects from landing pages to full-stack apps.",
-    coverage: "Frontend + Backend + Deployment",
-    lessons: "6 Modules · 120+ Lessons",
-    color: "#3B82F6",
-    colorLight: "rgba(59,130,246,0.1)",
-    gradient: "linear-gradient(90deg, #3B82F6, #06B6D4)",
-    href: "/web-dev",
-    icon: Globe,
-    comingSoon: true,
-  },
-  {
-    badge: "Analytics",
-    level: "Intermediate",
-    title: "Data Science & ML",
-    desc: "Python, Pandas, statistics, and machine learning pipelines. From data wrangling to model deployment with real datasets.",
-    coverage: "Industry-ready Data Skills",
-    lessons: "5 Modules · 100+ Lessons",
-    color: "#8B5CF6",
-    colorLight: "rgba(139,92,246,0.1)",
-    gradient: "linear-gradient(90deg, #8B5CF6, #EC4899)",
-    href: "/data-science",
-    icon: BarChart3,
+    badge: "Architecture",
+    level: "Intermediate → Advanced",
+    title: "System Design",
+    desc: "Scalability, load balancing, caching, databases, and distributed systems. Design real-world architectures like Twitter, Netflix, and URL shorteners.",
+    coverage: "HLD + LLD for Interviews",
+    lessons: "6 Modules · 80+ Lessons",
+    color: "#06B6D4",
+    colorLight: "rgba(6,182,212,0.1)",
+    href: "/system-design",
+    icon: Cloud,
     comingSoon: true,
   },
   {
@@ -127,7 +110,6 @@ const TRACKS = [
     lessons: "8 Tracks · 200+ Problems",
     color: "#F59E0B",
     colorLight: "rgba(245,158,11,0.1)",
-    gradient: "linear-gradient(90deg, #F59E0B, #EF4444)",
     href: "/competitive",
     icon: Code2,
     comingSoon: true,
@@ -141,37 +123,8 @@ const TRACKS = [
     lessons: "6 Modules · 80+ Lessons",
     color: "#EF4444",
     colorLight: "rgba(239,68,68,0.1)",
-    gradient: "linear-gradient(90deg, #EF4444, #F97316)",
     href: "/cybersecurity",
     icon: Shield,
-    comingSoon: true,
-  },
-  {
-    badge: "DevOps",
-    level: "Intermediate",
-    title: "Cloud & DevOps",
-    desc: "Docker, Kubernetes, CI/CD, AWS, and infrastructure as code. Learn to deploy, scale, and monitor production systems.",
-    coverage: "AWS, GCP & Azure Pathways",
-    lessons: "5 Modules · 90+ Lessons",
-    color: "#06B6D4",
-    colorLight: "rgba(6,182,212,0.1)",
-    gradient: "linear-gradient(90deg, #06B6D4, #3B82F6)",
-    href: "/cloud-devops",
-    icon: Cloud,
-    comingSoon: true,
-  },
-  {
-    badge: "Mobile",
-    level: "Beginner → Advanced",
-    title: "Mobile Development",
-    desc: "React Native and Flutter for cross-platform apps. Build, test, and publish apps to the App Store and Play Store.",
-    coverage: "iOS + Android Cross-Platform",
-    lessons: "4 Modules · 70+ Lessons",
-    color: "#6366F1",
-    colorLight: "rgba(99,102,241,0.1)",
-    gradient: "linear-gradient(90deg, #6366F1, #A855F7)",
-    href: "/mobile-dev",
-    icon: Smartphone,
     comingSoon: true,
   },
 ];
@@ -202,6 +155,34 @@ function PandaLogo({ size = 18 }: { size?: number }) {
       <circle cx="11.3" cy="15" r="0.6" fill="#1a1a2e" />
       <circle cx="21.3" cy="15" r="0.6" fill="#1a1a2e" />
       <ellipse cx="16" cy="19.2" rx="1.4" ry="1" fill="#2D1B0E" />
+    </svg>
+  );
+}
+
+/* ================================================================== */
+/*  BRAND SVG ICONS (lucide dropped these)                             */
+/* ================================================================== */
+
+function TwitterIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function GithubIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M12 .5C5.73.5.75 5.48.75 11.75c0 4.97 3.22 9.18 7.69 10.68.56.1.77-.25.77-.54 0-.27-.01-1.16-.02-2.1-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.64-1.25-1.64-1.02-.7.08-.68.08-.68 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.64 1.22 3.28.93.1-.73.39-1.22.71-1.5-2.5-.28-5.13-1.25-5.13-5.57 0-1.23.44-2.23 1.16-3.02-.12-.29-.5-1.44.11-3 0 0 .95-.3 3.11 1.16.9-.25 1.87-.38 2.83-.38.96 0 1.93.13 2.83.38 2.16-1.46 3.11-1.16 3.11-1.16.61 1.56.23 2.71.11 3 .72.79 1.16 1.79 1.16 3.02 0 4.33-2.64 5.28-5.15 5.56.4.34.76 1.02.76 2.06 0 1.49-.01 2.69-.01 3.05 0 .29.2.64.78.54 4.47-1.5 7.69-5.71 7.69-10.68C23.25 5.48 18.27.5 12 .5z" />
+    </svg>
+  );
+}
+
+function LinkedinIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.26 2.37 4.26 5.45zM5.34 7.44a2.06 2.06 0 110-4.12 2.06 2.06 0 010 4.12zM7.12 20.45H3.56V9h3.56zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z" />
     </svg>
   );
 }
@@ -258,29 +239,6 @@ const ENGINEERING_SUBJECTS = [
   },
 ];
 
-const VIZ_FEATURES = [
-  {
-    icon: Eye,
-    title: "Step-through Execution",
-    desc: "Line-by-line pseudocode tracing with the current line highlighted. See exactly what the algorithm does at each step.",
-  },
-  {
-    icon: Gauge,
-    title: "Speed Controls",
-    desc: "Slow-mo to instant execution. Pause, resume, and step through at your own pace.",
-  },
-  {
-    icon: SlidersHorizontal,
-    title: "Custom Input",
-    desc: "Try your own data and see the algorithm adapt in real-time. Experiment freely.",
-  },
-  {
-    icon: Columns2,
-    title: "Side-by-side Compare",
-    desc: "Compare Bubble Sort vs Merge Sort in real-time. See why one algorithm outperforms another.",
-  },
-];
-
 const AUDIENCE = [
   {
     icon: GraduationCap,
@@ -295,22 +253,24 @@ const AUDIENCE = [
     accent: "#3B82F6",
   },
   {
-    icon: Target,
-    title: "GATE Aspirants",
-    desc: "Previous year papers, topic-wise tests",
-    accent: "#8B5CF6",
-  },
-  {
     icon: Briefcase,
     title: "Placement Seekers",
     desc: "Company-specific prep, interview patterns",
     accent: "#E76F51",
+  },
+  {
+    icon: Target,
+    title: "Interview Prep",
+    desc: "Pattern-based problem sets and mock rounds",
+    accent: "#8B5CF6",
   },
 ];
 
 const PRICING_PLANS = [
   {
     name: "Free",
+    tagline: "Try it out - no strings attached.",
+    icon: Sparkles,
     monthlyPrice: "₹0",
     yearlyPrice: "₹0",
     period: { monthly: "forever", yearly: "forever" },
@@ -327,6 +287,8 @@ const PRICING_PLANS = [
   },
   {
     name: "Engineering",
+    tagline: "Everything a B.Tech student needs.",
+    icon: Rocket,
     monthlyPrice: "₹249",
     yearlyPrice: "₹149",
     period: { monthly: "/month", yearly: "/month" },
@@ -334,8 +296,8 @@ const PRICING_PLANS = [
     accent: "#3B82F6",
     features: [
       "Full Engineering track (DSA, CN, OS, DBMS, OOP)",
-      "GATE mock tests + previous year papers",
       "Placement prep (company-specific)",
+      "Interview pattern drills + mock rounds",
       "Interactive visualizations",
       "Certificates",
       "Browser extension (Leetcode hints)",
@@ -345,6 +307,8 @@ const PRICING_PLANS = [
   },
   {
     name: "School",
+    tagline: "For Class 8-12 AI/ML learners.",
+    icon: GraduationCap,
     monthlyPrice: "₹449",
     yearlyPrice: "₹299",
     period: { monthly: "/month", yearly: "/month" },
@@ -380,19 +344,12 @@ function PricingSection({ headingFont }: { headingFont: React.CSSProperties }) {
   return (
     <section
       id="pricing"
-      className="py-20 sm:py-28"
+      className="relative py-20 sm:py-28 overflow-hidden"
       style={{ background: T.bgSection }}
     >
-      <div className="max-w-6xl mx-auto px-5 sm:px-8">
+      <div className="relative max-w-6xl mx-auto px-5 sm:px-8">
         <Reveal>
           <div className="text-center mb-12">
-            <div
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-5"
-              style={{ background: T.primaryLight, color: T.primary }}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              PRICING
-            </div>
             <h2
               className="text-3xl sm:text-[40px] font-bold tracking-tight"
               style={{ ...headingFont, color: T.text }}
@@ -408,7 +365,10 @@ function PricingSection({ headingFont }: { headingFont: React.CSSProperties }) {
             </p>
 
             {/* ---- Toggle ---- */}
-            <div className="mt-8 inline-flex items-center gap-1 p-1 rounded-full" style={{ background: T.border }}>
+            <div
+              className="mt-8 inline-flex items-center gap-1 p-1 rounded-full"
+              style={{ background: T.border }}
+            >
               <button
                 onClick={() => setYearly(false)}
                 className="px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200"
@@ -442,89 +402,146 @@ function PricingSection({ headingFont }: { headingFont: React.CSSProperties }) {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-5 max-w-5xl mx-auto md:items-center">
             {PRICING_PLANS.map((plan) => {
+              const Icon = plan.icon;
               const price = yearly ? plan.yearlyPrice : plan.monthlyPrice;
               const period = yearly ? plan.period.yearly : plan.period.monthly;
-              const subtitle = yearly ? plan.subtitle.yearly : plan.subtitle.monthly;
+              const subtitle = yearly
+                ? plan.subtitle.yearly
+                : plan.subtitle.monthly;
 
               return (
                 <div
                   key={plan.name}
-                  className="rounded-3xl p-[1.5px] transition-transform duration-200 hover:translate-y-[-2px]"
-                  style={{
-                    background: plan.popular
-                      ? `linear-gradient(135deg, ${plan.accent}, #8B5CF6, ${T.primary})`
-                      : T.border,
-                  }}
+                  className={`relative h-full transition-all duration-300 ${
+                    plan.popular ? "md:scale-[1.04]" : "hover:translate-y-[-3px]"
+                  }`}
                 >
+                  {plan.popular && (
+                    <div
+                      className="absolute top-0 right-5 -translate-y-1/2 z-10 text-[10px] font-bold uppercase tracking-[0.14em] py-1 px-3 rounded-full flex items-center gap-1.5 whitespace-nowrap"
+                      style={{
+                        background: plan.accent,
+                        color: "#fff",
+                        boxShadow: `0 6px 16px ${plan.accent}66`,
+                      }}
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      Most Popular
+                    </div>
+                  )}
+
                   <div
-                    className="rounded-3xl p-6 sm:p-8 h-full flex flex-col"
-                    style={{ background: T.card }}
+                    className="relative rounded-3xl p-6 sm:p-7 h-full flex flex-col overflow-hidden"
+                    style={{
+                      background: T.card,
+                      border: plan.popular
+                        ? `2px solid ${plan.accent}`
+                        : `1px solid ${T.border}`,
+                    }}
                   >
-                    {plan.popular && (
+                    {/* Plan header: icon + name */}
+                    <div className="relative flex items-center gap-3 mb-4">
                       <div
-                        className="text-[10px] font-bold uppercase tracking-wider text-center py-1 px-3 rounded-full mb-4 self-center"
+                        className="w-11 h-11 rounded-xl flex items-center justify-center rotate-[-4deg]"
                         style={{
-                          background: `${plan.accent}15`,
-                          color: plan.accent,
+                          background: plan.accent,
+                          boxShadow: `0 6px 14px ${plan.accent}40`,
                         }}
                       >
-                        Most Popular
+                        <Icon
+                          className="w-5 h-5 text-white"
+                          strokeWidth={1.75}
+                        />
                       </div>
-                    )}
-
-                    <h3
-                      className="text-lg font-bold mb-1"
-                      style={{ ...headingFont, color: T.text }}
-                    >
-                      {plan.name}
-                    </h3>
-
-                    <div className="flex items-baseline gap-1 mb-1">
-                      <span
-                        className="text-3xl font-extrabold transition-all duration-300"
-                        style={{ ...headingFont, color: T.text }}
-                        key={price}
-                      >
-                        {price}
-                      </span>
-                      <span
-                        className="text-sm font-semibold"
-                        style={{ color: T.textMuted }}
-                      >
-                        {period}
-                      </span>
-                    </div>
-
-                    {yearly && plan.monthlyPrice !== "₹0" && (
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className="text-sm line-through"
+                      <div>
+                        <h3
+                          className="text-lg font-bold leading-tight"
+                          style={{ ...headingFont, color: T.text }}
+                        >
+                          {plan.name}
+                        </h3>
+                        <p
+                          className="text-[11px] font-medium"
                           style={{ color: T.textMuted }}
                         >
-                          {plan.monthlyPrice}/mo
+                          {plan.tagline}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Price block */}
+                    <div className="relative mb-5">
+                      <div className="flex items-baseline gap-1.5">
+                        <span
+                          className="text-[40px] font-extrabold leading-none transition-all duration-300"
+                          style={{ ...headingFont, color: T.text }}
+                          key={price}
+                        >
+                          {price}
+                        </span>
+                        <span
+                          className="text-sm font-semibold"
+                          style={{ color: T.textMuted }}
+                        >
+                          {period}
                         </span>
                       </div>
-                    )}
 
-                    <p
-                      className="text-xs mb-6"
-                      style={{ color: T.textMuted }}
-                    >
-                      {subtitle}
-                    </p>
+                      <div className="flex items-center gap-2 mt-2 min-h-[20px]">
+                        {yearly && plan.monthlyPrice !== "₹0" && (
+                          <>
+                            <span
+                              className="text-xs line-through"
+                              style={{ color: T.textMuted }}
+                            >
+                              {plan.monthlyPrice}/mo
+                            </span>
+                            <span
+                              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                              style={{
+                                background: T.primaryLight,
+                                color: T.primary,
+                              }}
+                            >
+                              SAVE 40%
+                            </span>
+                          </>
+                        )}
+                      </div>
 
-                    <ul className="space-y-3 mb-8 flex-1" role="list">
+                      <p
+                        className="text-xs mt-2"
+                        style={{ color: T.textMuted }}
+                      >
+                        {subtitle}
+                      </p>
+                    </div>
+
+                    {/* Divider */}
+                    <div
+                      className="h-px w-full mb-5"
+                      style={{ background: `${plan.accent}26` }}
+                    />
+
+                    {/* Features */}
+                    <ul className="space-y-3 mb-7 flex-1" role="list">
                       {plan.features.map((feature) => (
                         <li
                           key={feature}
                           className="flex items-start gap-2.5"
                         >
-                          <Check
-                            className="w-3.5 h-3.5 shrink-0 mt-0.5"
-                            style={{ color: plan.accent }}
-                          />
+                          <span
+                            className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                            style={{ background: `${plan.accent}1f` }}
+                          >
+                            <Check
+                              className="w-2.5 h-2.5"
+                              strokeWidth={3}
+                              style={{ color: plan.accent }}
+                            />
+                          </span>
                           <span
                             className="text-sm font-medium"
                             style={{ color: T.textSecondary }}
@@ -537,7 +554,7 @@ function PricingSection({ headingFont }: { headingFont: React.CSSProperties }) {
 
                     <Link
                       href="/level1/machines"
-                      className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+                      className="relative w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                       style={{
                         background: plan.popular ? plan.accent : "transparent",
                         color: plan.popular ? "#fff" : plan.accent,
@@ -545,7 +562,7 @@ function PricingSection({ headingFont }: { headingFont: React.CSSProperties }) {
                           ? "none"
                           : `1.5px solid ${plan.accent}40`,
                         boxShadow: plan.popular
-                          ? `0 4px 16px ${plan.accent}30`
+                          ? `0 6px 20px ${plan.accent}4d`
                           : "none",
                       }}
                     >
@@ -558,17 +575,59 @@ function PricingSection({ headingFont }: { headingFont: React.CSSProperties }) {
             })}
           </div>
 
-          <div className="mt-8 text-center space-y-2">
-            <p
-              className="text-sm font-medium"
-              style={{ color: T.textSecondary }}
+          {/* Trust row */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
+            {[
+              { icon: ShieldCheck, label: "Cancel anytime" },
+              { icon: CreditCard, label: "Secure payment" },
+              { icon: Zap, label: "Instant access" },
+              { icon: Check, label: "2-day free trial" },
+            ].map(({ icon: Icon, label }) => (
+              <div
+                key={label}
+                className="inline-flex items-center gap-2 font-medium"
+                style={{ color: T.textSecondary }}
+              >
+                <Icon className="w-4 h-4" style={{ color: T.primary }} />
+                {label}
+              </div>
+            ))}
+          </div>
+
+          {/* Lifetime callout */}
+          <div className="mt-10 max-w-2xl mx-auto">
+            <div
+              className="rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
+              style={{
+                background: T.card,
+                border: `1px dashed ${T.primary}66`,
+                boxShadow: `0 6px 24px rgba(29,192,113,0.06)`,
+              }}
             >
-              Engineering Lifetime Access:{" "}
-              <span className="font-bold" style={{ color: T.text }}>
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: T.primaryLight }}
+              >
+                <Rocket className="w-5 h-5" style={{ color: T.primary }} />
+              </div>
+              <div className="flex-1">
+                <div
+                  className="text-sm font-bold"
+                  style={{ ...headingFont, color: T.text }}
+                >
+                  Lifetime access for your engineering journey
+                </div>
+                <div className="text-xs" style={{ color: T.textMuted }}>
+                  Pay once, own it forever. All future updates included.
+                </div>
+              </div>
+              <div
+                className="text-[22px] font-extrabold"
+                style={{ ...headingFont, color: T.primary }}
+              >
                 &#8377;2,999
-              </span>{" "}
-              one-time payment
-            </p>
+              </div>
+            </div>
           </div>
         </Reveal>
       </div>
@@ -624,7 +683,7 @@ function Reveal({
 }
 
 /* ================================================================== */
-/*  HERO ANIMATION SHOWCASE — Cycling CS visualizations                */
+/*  HERO ANIMATION SHOWCASE - Cycling CS visualizations                */
 /* ================================================================== */
 
 const SCENE_INTERVAL = 4000;
@@ -851,7 +910,7 @@ function NetworkScene() {
   );
 }
 
-/* ---------- Scene 5: System Design — Load Balancer ---------- */
+/* ---------- Scene 5: System Design - Load Balancer ---------- */
 function SystemDesignScene() {
   const servers = [
     { x: 40, label: "Srv 1", color: "#3B82F6" },
@@ -1174,10 +1233,7 @@ function HeroShowcase() {
       {/* Background circle */}
       <div
         className="absolute inset-[8%] rounded-full"
-        style={{
-          background:
-            "linear-gradient(135deg, rgba(29,192,113,0.08), rgba(29,192,113,0.02))",
-        }}
+        style={{ background: "rgba(29,192,113,0.06)" }}
       />
 
       {/* Scene container */}
@@ -1237,7 +1293,7 @@ function HeroShowcase() {
         ))}
       </div>
 
-      {/* Floating book icon — top left */}
+      {/* Floating book icon - top left */}
       <div
         className="absolute top-[5%] left-[0%] hero-float"
         style={{ animationDelay: "0.5s" }}
@@ -1263,7 +1319,7 @@ function HeroShowcase() {
         style={{ background: "#FFB800", animationDelay: "1.5s" }}
       />
 
-      {/* Dot grid — bottom right */}
+      {/* Dot grid - bottom right */}
       <div className="absolute bottom-[8%] right-[0%]">
         <div className="grid grid-cols-4 gap-1.5">
           {Array.from({ length: 16 }).map((_, i) => (
@@ -1339,7 +1395,6 @@ export default function LandingPage() {
             {[
               { label: "Home", href: "#" },
               { label: "Course Catalog", href: "#tracks" },
-              { label: "Features", href: "#features" },
               { label: "Pricing", href: "#pricing" },
             ].map((item) => (
               <a
@@ -1396,7 +1451,6 @@ export default function LandingPage() {
             {[
               { label: "Home", href: "#" },
               { label: "Course Catalog", href: "#tracks" },
-              { label: "Features", href: "#features" },
               { label: "Pricing", href: "#pricing" },
             ].map((item) => (
               <a
@@ -1428,27 +1482,9 @@ export default function LandingPage() {
 
       {/* ==================== HERO ==================== */}
       <header className="relative overflow-hidden pt-[100px] sm:pt-[120px] pb-10 sm:pb-16">
-        {/* Soft gradient backgrounds */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div
-            className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full"
-            style={{
-              background: "radial-gradient(circle, rgba(29, 192, 113, 0.08), transparent 70%)",
-              filter: "blur(60px)",
-            }}
-          />
-          <div
-            className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full"
-            style={{
-              background: "radial-gradient(circle, rgba(255, 184, 0, 0.06), transparent 70%)",
-              filter: "blur(60px)",
-            }}
-          />
-        </div>
-
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
-            {/* Left — Text content */}
+            {/* Left - Text content */}
             <div className="flex-1 text-center lg:text-left max-w-xl lg:max-w-none">
               <Reveal>
                 <h1
@@ -1515,7 +1551,7 @@ export default function LandingPage() {
               </Reveal>
             </div>
 
-            {/* Right — Illustration */}
+            {/* Right - Illustration */}
             <div className="flex-1 w-full max-w-[480px] lg:max-w-[520px]">
               <Reveal delay={0.12}>
                 <HeroShowcase />
@@ -1583,13 +1619,6 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <Reveal>
             <div className="text-center mb-16">
-              <div
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-5"
-                style={{ background: T.primaryLight, color: T.primary }}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                LEARNING PATHS
-              </div>
               <h2
                 className="text-3xl sm:text-[40px] font-bold tracking-tight"
                 style={{ ...headingFont, color: T.text }}
@@ -1607,44 +1636,129 @@ export default function LandingPage() {
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7">
-            {TRACKS.map((track, i) => (
-              <Reveal key={track.title} delay={0.1 + i * 0.07}>
-                <div
-                  className="relative rounded-3xl p-7 sm:p-8 transition-all duration-300 group overflow-hidden h-full hover:translate-y-[-2px]"
-                  style={{
-                    background: T.card,
-                    border: `1px solid ${T.border}`,
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = `0 12px 32px ${track.color}14`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)";
-                  }}
-                >
+            {TRACKS.map((track, i) => {
+              const Icon = track.icon;
+              return (
+                <Reveal key={track.title} delay={0.1 + i * 0.07}>
                   <div
-                    className="absolute top-0 left-0 right-0 h-[3px] rounded-t-3xl"
-                    style={{ background: track.gradient }}
-                  />
+                    className="relative rounded-3xl p-6 sm:p-7 transition-all duration-300 group overflow-hidden h-full flex flex-col hover:translate-y-[-3px]"
+                    style={{
+                      background: T.card,
+                      border: `1px solid ${T.border}`,
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 16px 40px ${track.color}1f`;
+                      e.currentTarget.style.borderColor = `${track.color}33`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)";
+                      e.currentTarget.style.borderColor = T.border;
+                    }}
+                  >
+                    {/* ---- Hero-style circular showcase ---- */}
+                    <div className="relative w-full aspect-[1.6/1] mb-5">
+                      {/* Soft backdrop */}
+                      <div
+                        className="absolute inset-0 rounded-2xl overflow-hidden"
+                        style={{ background: track.colorLight }}
+                      >
+                        {/* Dot grid - bottom left */}
+                        <div className="absolute bottom-3 left-3">
+                          <div className="grid grid-cols-4 gap-1">
+                            {Array.from({ length: 12 }).map((_, k) => (
+                              <div
+                                key={k}
+                                className="w-1 h-1 rounded-full"
+                                style={{ background: `${track.color}33` }}
+                              />
+                            ))}
+                          </div>
+                        </div>
 
-                  <div className="relative">
-                    <div className="flex items-center gap-2 mb-4 text-sm">
-                      <span
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                        {/* Pulsing dot - top right */}
+                        <div
+                          className="absolute top-4 right-5 w-2 h-2 rounded-full hero-pulse"
+                          style={{
+                            background: track.color,
+                            animationDelay: `${i * 0.3}s`,
+                          }}
+                        />
+                        <div
+                          className="absolute bottom-8 right-8 w-1.5 h-1.5 rounded-full hero-pulse"
+                          style={{
+                            background: track.color,
+                            opacity: 0.5,
+                            animationDelay: `${i * 0.3 + 0.8}s`,
+                          }}
+                        />
+                      </div>
+
+                      {/* Dashed rotating ring */}
+                      <div
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[68%] aspect-square rounded-full hero-spin-slow"
                         style={{
-                          background: track.colorLight,
-                          color: track.color,
+                          border: `2px dashed ${track.color}33`,
+                        }}
+                      />
+
+                      {/* Inner solid circle */}
+                      <div
+                        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[54%] aspect-square rounded-full flex items-center justify-center"
+                        style={{
+                          background: `${track.color}18`,
+                          boxShadow: `inset 0 0 0 1px ${track.color}1a`,
                         }}
                       >
-                        <track.icon className="w-3 h-3" />
-                        {track.badge}
-                      </span>
-                      <span style={{ color: T.textMuted }}>
-                        {track.level}
-                      </span>
+                        <Icon
+                          className="w-10 h-10 sm:w-11 sm:h-11"
+                          style={{ color: track.color }}
+                          strokeWidth={1.75}
+                        />
+                      </div>
+
+                      {/* Floating badge pill - top left */}
+                      <div
+                        className="absolute top-3 left-3 hero-float"
+                        style={{ animationDelay: `${i * 0.2}s` }}
+                      >
+                        <div
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold rotate-[-4deg]"
+                          style={{
+                            background: T.card,
+                            color: track.color,
+                            boxShadow: `0 4px 12px ${track.color}1f`,
+                            border: `1px solid ${track.color}1a`,
+                          }}
+                        >
+                          <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ background: track.color }}
+                          />
+                          {track.badge}
+                        </div>
+                      </div>
+
+                      {/* Floating level chip - bottom right */}
+                      <div
+                        className="absolute bottom-3 right-3 hero-float"
+                        style={{ animationDelay: `${i * 0.2 + 1}s` }}
+                      >
+                        <div
+                          className="px-2.5 py-1 rounded-lg text-[10px] font-semibold rotate-[3deg]"
+                          style={{
+                            background: T.card,
+                            color: T.textSecondary,
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                            border: `1px solid ${T.borderLight}`,
+                          }}
+                        >
+                          {track.level}
+                        </div>
+                      </div>
                     </div>
 
+                    {/* ---- Content ---- */}
                     <h3
                       className="text-xl font-bold mb-2"
                       style={{ ...headingFont, color: T.text }}
@@ -1653,58 +1767,55 @@ export default function LandingPage() {
                     </h3>
 
                     <p
-                      className="text-sm leading-relaxed mb-5"
+                      className="text-sm leading-relaxed mb-4"
                       style={{ color: T.textSecondary }}
                     >
                       {track.desc}
                     </p>
 
-                    <p
-                      className="text-xs font-medium mb-3"
-                      style={{ color: T.textMuted }}
-                    >
-                      {track.coverage}
-                    </p>
-
                     <div
-                      className="text-xs font-medium mb-5"
+                      className="flex items-center gap-2 text-xs font-medium mb-5 flex-wrap"
                       style={{ color: T.textMuted }}
                     >
-                      {track.lessons}
+                      <span>{track.coverage}</span>
+                      <span
+                        className="w-1 h-1 rounded-full"
+                        style={{ background: T.textMuted }}
+                      />
+                      <span>{track.lessons}</span>
                     </div>
 
-                    {track.comingSoon ? (
-                      <span
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold cursor-default"
-                        style={{
-                          background: T.bgSection,
-                          color: T.textMuted,
-                          border: `1px solid ${T.border}`,
-                        }}
-                      >
-                        <Lock className="w-3.5 h-3.5" />
-                        Coming Soon
-                      </span>
-                    ) : (
-                      <Link
-                        href={track.href}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200"
-                        style={{ background: track.color }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.boxShadow = `0 6px 16px ${track.color}33`;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.boxShadow = "none";
-                        }}
-                      >
-                        Start Learning
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    )}
+                    <div className="mt-auto">
+                      {track.comingSoon ? (
+                        <span
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold cursor-default"
+                          style={{
+                            background: T.bgSection,
+                            color: T.textMuted,
+                            border: `1px solid ${T.border}`,
+                          }}
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                          Coming Soon
+                        </span>
+                      ) : (
+                        <Link
+                          href={track.href}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                          style={{
+                            background: track.color,
+                            boxShadow: `0 4px 14px ${track.color}33`,
+                          }}
+                        >
+                          Start Learning
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Reveal>
-            ))}
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -1714,13 +1825,6 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <Reveal>
             <div className="text-center mb-16">
-              <div
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-5"
-                style={{ background: T.primaryLight, color: T.primary }}
-              >
-                <Check className="w-3.5 h-3.5" />
-                ALL 5 SUBJECTS LIVE
-              </div>
               <h2
                 className="text-3xl sm:text-[40px] font-bold tracking-tight"
                 style={{ ...headingFont, color: T.text }}
@@ -1731,114 +1835,120 @@ export default function LandingPage() {
                 className="mt-4 text-lg max-w-xl mx-auto"
                 style={{ color: T.textSecondary }}
               >
-                All five core engineering subjects are here — ready to explore
+                All five core engineering subjects are here - ready to explore
                 with interactive visualizations.
               </p>
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {ENGINEERING_SUBJECTS.map((subject, i) => {
               const Icon = subject.icon;
+              const num = String(i + 1).padStart(2, "0");
               return (
                 <Reveal key={subject.title} delay={0.06 * i}>
                   <div
-                    className="rounded-2xl p-7 transition-all duration-300 group h-full hover:shadow-lg hover:translate-y-[-2px]"
+                    className="relative rounded-3xl p-7 transition-all duration-300 group h-full flex flex-col overflow-hidden hover:translate-y-[-3px]"
                     style={{
                       background: T.card,
                       border: `1px solid ${T.border}`,
-                      borderLeft: `3px solid ${subject.accent}`,
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 16px 40px ${subject.accent}1f`;
+                      e.currentTarget.style.borderColor = `${subject.accent}33`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)";
+                      e.currentTarget.style.borderColor = T.border;
                     }}
                   >
+                    {/* Huge watermark number */}
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                      style={{ background: subject.accentBg }}
+                      className="absolute -top-4 -right-2 text-[110px] font-extrabold leading-none select-none pointer-events-none"
+                      style={{
+                        ...headingFont,
+                        color: subject.accent,
+                        opacity: 0.07,
+                        letterSpacing: "-0.05em",
+                      }}
+                      aria-hidden="true"
                     >
-                      <Icon
-                        className="w-6 h-6"
-                        style={{ color: subject.accent }}
-                      />
+                      {num}
                     </div>
+
+                    {/* Icon stamp + number chip */}
+                    <div className="relative flex items-start justify-between mb-5">
+                      <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center rotate-[-4deg] transition-transform duration-300 group-hover:rotate-[4deg]"
+                        style={{
+                          background: subject.accent,
+                          boxShadow: `0 6px 16px ${subject.accent}40`,
+                        }}
+                      >
+                        <Icon
+                          className="w-7 h-7 text-white"
+                          strokeWidth={1.75}
+                        />
+                      </div>
+
+                      <div
+                        className="text-[11px] font-bold tracking-wider px-2.5 py-1 rounded-full"
+                        style={{
+                          ...headingFont,
+                          background: subject.accentBg,
+                          color: subject.accent,
+                        }}
+                      >
+                        {num} / 05
+                      </div>
+                    </div>
+
+                    {/* Title */}
                     <h3
-                      className="text-lg font-bold mb-2"
+                      className="relative text-lg font-bold mb-2"
                       style={{ ...headingFont, color: T.text }}
                     >
                       {subject.title}
                     </h3>
+
+                    {/* Accent divider */}
+                    <div
+                      className="w-10 h-[2px] mb-3 rounded-full"
+                      style={{ background: subject.accent }}
+                    />
+
+                    {/* Description */}
                     <p
-                      className="text-sm leading-relaxed mb-4"
+                      className="relative text-sm leading-relaxed mb-5 flex-1"
                       style={{ color: T.textSecondary }}
                     >
                       {subject.desc}
                     </p>
-                    <div
-                      className="text-xs font-medium"
-                      style={{ color: T.textMuted }}
-                    >
-                      {subject.levels} &middot; {subject.lessons}
-                    </div>
-                  </div>
-                </Reveal>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
-      {/* ==================== VISUALIZATION SHOWCASE ==================== */}
-      <section
-        id="features"
-        className="py-20 sm:py-28"
-        style={{ background: T.bgSection }}
-      >
-        <div className="max-w-6xl mx-auto px-5 sm:px-8">
-          <Reveal>
-            <div className="text-center mb-16">
-              <h2
-                className="text-3xl sm:text-[40px] font-bold tracking-tight"
-                style={{ ...headingFont, color: T.text }}
-              >
-                See It. Understand It.
-              </h2>
-              <p
-                className="mt-4 text-lg max-w-xl mx-auto"
-                style={{ color: T.textSecondary }}
-              >
-                Every concept comes alive with interactive visualizations.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {VIZ_FEATURES.map((feature, i) => {
-              const Icon = feature.icon;
-              return (
-                <Reveal key={feature.title} delay={0.08 * i}>
-                  <div
-                    className="rounded-2xl p-7 transition-all duration-300 h-full hover:shadow-lg hover:translate-y-[-2px]"
-                    style={{
-                      background: T.card,
-                      border: `1px solid ${T.border}`,
-                    }}
-                  >
-                    <div
-                      className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                      style={{ background: T.primaryLight }}
-                    >
-                      <Icon className="w-5 h-5" style={{ color: T.primary }} />
+                    {/* Stat pills */}
+                    <div className="relative flex items-center gap-2 flex-wrap">
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold"
+                        style={{
+                          background: subject.accentBg,
+                          color: subject.accent,
+                        }}
+                      >
+                        <Boxes className="w-3 h-3" />
+                        {subject.levels}
+                      </span>
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold"
+                        style={{
+                          background: T.bgSection,
+                          color: T.textSecondary,
+                        }}
+                      >
+                        <BookOpenCheck className="w-3 h-3" />
+                        {subject.lessons}
+                      </span>
                     </div>
-                    <h3
-                      className="text-lg font-bold mb-2"
-                      style={{ ...headingFont, color: T.text }}
-                    >
-                      {feature.title}
-                    </h3>
-                    <p
-                      className="text-sm leading-relaxed"
-                      style={{ color: T.textSecondary }}
-                    >
-                      {feature.desc}
-                    </p>
                   </div>
                 </Reveal>
               );
@@ -1868,39 +1978,113 @@ export default function LandingPage() {
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+            {/* Connector line - lg+ only */}
+            <div
+              className="hidden lg:block absolute top-[88px] left-[10%] right-[10%] border-t-2 border-dashed pointer-events-none"
+              style={{ borderColor: "rgba(0,0,0,0.12)" }}
+              aria-hidden="true"
+            />
+
             {AUDIENCE.map((item, i) => {
               const Icon = item.icon;
+              const stage = String(i + 1).padStart(2, "0");
               return (
                 <Reveal key={item.title} delay={0.08 * i}>
                   <div
-                    className="rounded-2xl p-6 text-center transition-all duration-300 h-full hover:shadow-lg hover:translate-y-[-2px]"
+                    className="relative rounded-3xl p-6 transition-all duration-300 group h-full flex flex-col hover:translate-y-[-3px]"
                     style={{
                       background: T.card,
                       border: `1px solid ${T.border}`,
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 16px 40px ${item.accent}1f`;
+                      e.currentTarget.style.borderColor = `${item.accent}40`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)";
+                      e.currentTarget.style.borderColor = T.border;
                     }}
                   >
-                    <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                      style={{ background: `${item.accent}12` }}
-                    >
-                      <Icon
-                        className="w-7 h-7"
-                        style={{ color: item.accent }}
+                    {/* Stage label + progress dots */}
+                    <div className="flex items-center justify-between mb-4">
+                      <span
+                        className="text-[10px] font-bold tracking-[0.14em]"
+                        style={{ ...headingFont, color: item.accent }}
+                      >
+                        STAGE {stage}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {AUDIENCE.map((_, k) => (
+                          <span
+                            key={k}
+                            className="rounded-full transition-all"
+                            style={{
+                              width: k === i ? 14 : 4,
+                              height: 4,
+                              background: k <= i ? item.accent : `${T.border}`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Icon disc with dashed ring */}
+                    <div className="relative mx-auto mb-5 w-[88px] h-[88px]">
+                      {/* Rotating dashed ring */}
+                      <div
+                        className="absolute inset-0 rounded-full hero-spin-slow"
+                        style={{ border: `2px dashed ${item.accent}40` }}
+                      />
+                      {/* Solid backdrop */}
+                      <div
+                        className="absolute inset-[10px] rounded-full"
+                        style={{
+                          background: item.accent,
+                          boxShadow: `0 8px 20px ${item.accent}40`,
+                        }}
+                      />
+                      {/* Icon */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Icon
+                          className="w-9 h-9 text-white transition-transform duration-300 group-hover:scale-110"
+                          strokeWidth={1.75}
+                        />
+                      </div>
+                      {/* Floating corner dot */}
+                      <div
+                        className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full hero-pulse"
+                        style={{
+                          background: item.accent,
+                          animationDelay: `${i * 0.3}s`,
+                        }}
                       />
                     </div>
+
+                    {/* Title */}
                     <h3
-                      className="text-base font-bold mb-1.5"
+                      className="text-[15px] font-bold mb-2 text-center"
                       style={{ ...headingFont, color: T.text }}
                     >
                       {item.title}
                     </h3>
+
+                    {/* Description */}
                     <p
-                      className="text-sm leading-relaxed"
+                      className="text-sm leading-relaxed text-center flex-1"
                       style={{ color: T.textSecondary }}
                     >
                       {item.desc}
                     </p>
+
+                    {/* Bottom arrow indicator */}
+                    <div
+                      className="mt-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{ color: item.accent }}
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </Reveal>
               );
@@ -1914,59 +2098,218 @@ export default function LandingPage() {
 
       {/* ==================== FOOTER ==================== */}
       <footer
-        className="py-12"
-        style={{ background: "#1A1D26" }}
+        className="relative pt-20 pb-10 overflow-hidden"
+        style={{ background: "#141720" }}
         role="contentinfo"
       >
-        <div className="max-w-6xl mx-auto px-5 sm:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
-            <div className="flex flex-col items-center sm:items-start gap-2">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center"
-                  style={{ background: "#E76F51" }}
-                >
-                  <PandaLogo size={15} />
-                </div>
-                <span
-                  className="text-base font-bold text-white tracking-tight"
+        {/* Accent stripe */}
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[2px]"
+          style={{ background: T.primary, opacity: 0.5 }}
+          aria-hidden="true"
+        />
+
+        <div className="relative max-w-6xl mx-auto px-5 sm:px-8">
+          {/* CTA strip */}
+          <div
+            className="rounded-3xl p-6 sm:p-10 mb-14 relative overflow-hidden"
+            style={{
+              background: "rgba(29,192,113,0.1)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <div
+              className="absolute -top-12 -right-12 w-40 h-40 rounded-full hero-spin-slow"
+              style={{ border: "2px dashed rgba(29,192,113,0.2)" }}
+              aria-hidden="true"
+            />
+            <div
+              className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full hero-pulse"
+              style={{ background: "rgba(255,184,0,0.08)" }}
+              aria-hidden="true"
+            />
+
+            <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div>
+                <h3
+                  className="text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight"
                   style={headingFont}
                 >
-                  Red Panda Learn
-                </span>
-              </div>
-              <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-                Visual CS education for everyone.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-8">
-              {[
-                { label: "Tracks", href: "#tracks" },
-                { label: "Pricing", href: "#pricing" },
-                {
-                  label: "Contact",
-                  href: "mailto:contact@redpandalearn.com",
-                },
-              ].map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-sm font-medium transition-colors duration-200 hover:text-white"
-                  style={{ color: "rgba(255,255,255,0.4)" }}
+                  Ready to start learning?
+                </h3>
+                <p
+                  className="mt-2 text-sm sm:text-base"
+                  style={{ color: "rgba(255,255,255,0.6)" }}
                 >
-                  {link.label}
-                </a>
-              ))}
+                  Join thousands of students mastering CS with visual,
+                  interactive lessons.
+                </p>
+              </div>
+              <Link
+                href="/level1/machines"
+                className="shrink-0 inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-white transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+                style={{
+                  background: T.primary,
+                  boxShadow: `0 8px 24px ${T.primary}4d`,
+                }}
+              >
+                Start Learning Free
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
 
+          {/* Main grid */}
+          <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-6 mb-12">
+            {/* Brand column */}
+            <div className="col-span-2 md:col-span-5">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2.5 group"
+              >
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:rotate-[-8deg]"
+                  style={{ background: "#E76F51" }}
+                >
+                  <PandaLogo size={22} />
+                </div>
+                <span
+                  className="text-[18px] font-bold text-white tracking-tight"
+                  style={headingFont}
+                >
+                  Red Panda{" "}
+                  <span style={{ color: T.primary }}>Learn</span>
+                </span>
+              </Link>
+
+              <p
+                className="mt-4 text-sm leading-relaxed max-w-sm"
+                style={{ color: "rgba(255,255,255,0.55)" }}
+              >
+                Visual CS education for curious learners. From Class 8 to
+                placement prep - every concept, animated.
+              </p>
+
+              {/* Social icons */}
+              <div className="mt-6 flex items-center gap-2">
+                {[
+                  { Icon: TwitterIcon, label: "Twitter", href: "#" },
+                  { Icon: GithubIcon, label: "GitHub", href: "#" },
+                  { Icon: LinkedinIcon, label: "LinkedIn", href: "#" },
+                  { Icon: Mail, label: "Email", href: "mailto:contact@redpandalearn.com" },
+                ].map(({ Icon, label, href }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    aria-label={label}
+                    className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      color: "rgba(255,255,255,0.7)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = `${T.primary}22`;
+                      e.currentTarget.style.borderColor = `${T.primary}66`;
+                      e.currentTarget.style.color = T.primary;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                      e.currentTarget.style.color = "rgba(255,255,255,0.7)";
+                    }}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Link columns */}
+            {[
+              {
+                title: "Learn",
+                links: [
+                  { label: "Tracks", href: "#tracks" },
+                  { label: "AI & ML", href: "/level1/machines" },
+                  { label: "Engineering", href: "/engineering" },
+                  { label: "System Design", href: "/system-design" },
+                ],
+              },
+              {
+                title: "Company",
+                links: [
+                  { label: "Pricing", href: "#pricing" },
+                  { label: "About", href: "#" },
+                  { label: "Blog", href: "#" },
+                  { label: "Careers", href: "#" },
+                ],
+              },
+              {
+                title: "Support",
+                links: [
+                  { label: "Help Center", href: "#" },
+                  { label: "Contact", href: "mailto:contact@redpandalearn.com" },
+                  { label: "Privacy", href: "#" },
+                  { label: "Terms", href: "#" },
+                ],
+              },
+            ].map((col) => (
+              <div key={col.title} className="md:col-span-[2.33]" style={{ gridColumn: "span 1 / span 1" }}>
+                <div
+                  className="text-xs font-bold uppercase tracking-[0.14em] mb-4"
+                  style={{ ...headingFont, color: T.primary }}
+                >
+                  {col.title}
+                </div>
+                <ul className="space-y-2.5">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <a
+                        href={link.href}
+                        className="text-sm transition-colors duration-200 inline-flex items-center gap-1.5 group"
+                        style={{ color: "rgba(255,255,255,0.55)" }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = "#fff";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = "rgba(255,255,255,0.55)";
+                        }}
+                      >
+                        <span
+                          className="w-0 group-hover:w-2 h-[2px] rounded-full transition-all duration-200"
+                          style={{ background: T.primary }}
+                        />
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom bar */}
           <div
-            className="mt-8 pt-8 text-center"
+            className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4"
             style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
           >
-            <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
+            <p
+              className="text-xs"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
               &copy; 2026 Red Panda Learn. All rights reserved.
+            </p>
+            <p
+              className="text-xs inline-flex items-center gap-1.5"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Made with{" "}
+              <Heart
+                className="w-3 h-3 fill-current"
+                style={{ color: "#E76F51" }}
+              />{" "}
+              for curious learners.
             </p>
           </div>
         </div>

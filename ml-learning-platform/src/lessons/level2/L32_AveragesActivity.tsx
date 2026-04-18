@@ -59,13 +59,13 @@ function BalanceTab() {
   return (
     <div className="space-y-4">
       <RikuSays>
-        The mean is the &quot;fair share&quot; — if everyone got exactly the
+        The mean is the &quot;fair share&quot; - if everyone got exactly the
         same amount, how much would that be? Add &apos;em up, divide by count.
         Done.
       </RikuSays>
 
       <p className="font-hand text-base text-foreground text-center">
-        The <b>mean</b> is the spot where data balances perfectly — like a
+        The <b>mean</b> is the spot where data balances perfectly - like a
         seesaw.
       </p>
 
@@ -175,13 +175,13 @@ function MeanMedianTab() {
   return (
     <div className="space-y-4">
       <RikuSays>
-        The mean is the &quot;fair share&quot; — if everyone got the same
+        The mean is the &quot;fair share&quot; - if everyone got the same
         amount. The median is &quot;the middle person&quot;. They&apos;re
         usually close, but outliers break the mean.
       </RikuSays>
 
       <p className="font-hand text-base text-foreground text-center">
-        Mean and median both find the &quot;middle&quot; — but in different
+        Mean and median both find the &quot;middle&quot; - but in different
         ways.
       </p>
 
@@ -254,7 +254,7 @@ function MeanMedianTab() {
           </button>
         </div>
         <p className="font-hand text-xs text-muted-foreground">
-          Try adding <b>100</b> a few times — watch the coral mean line DASH
+          Try adding <b>100</b> a few times - watch the coral mean line DASH
           right while the lavender median barely moves!
         </p>
       </div>
@@ -292,7 +292,7 @@ function MeanMedianTab() {
       <InfoBox variant="amber">
         The mean tells you &quot;what&apos;s the perfect balance point?&quot;
         The median tells you &quot;what&apos;s the typical value, ignoring
-        weirdos?&quot;. Both are useful — for different questions!
+        weirdos?&quot;. Both are useful - for different questions!
       </InfoBox>
     </div>
   );
@@ -329,7 +329,7 @@ const SCENARIOS = [
     icon: "🏀",
     color: MINT,
     use: "mean",
-    why: "Heights are pretty similar with no crazy outliers — the mean gives a fair summary.",
+    why: "Heights are pretty similar with no crazy outliers - the mean gives a fair summary.",
   },
 ];
 
@@ -363,7 +363,7 @@ function ScenariosTab() {
     <div className="space-y-4">
       <RikuSays>
         Real talk: most &quot;average&quot; news headlines mean the arithmetic
-        mean. That&apos;s fine — UNTIL a single weirdo shows up. Then the mean
+        mean. That&apos;s fine - UNTIL a single weirdo shows up. Then the mean
         lies and the median saves you.
       </RikuSays>
 
@@ -604,7 +604,7 @@ export default function L32_AveragesActivity() {
             "Byte: \"Oh yes. Get ready to meet the mean's cooler, sneakier cousin: the median.\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="There are two main ways to find the 'middle' of a dataset. The MEAN adds everything up and divides — it's the balance point but it's easily fooled by outliers. The MEDIAN sorts the values and picks the middle one — it ignores extreme values and tells you what's truly typical."
+          conceptSummary="There are two main ways to find the 'middle' of a dataset. The MEAN adds everything up and divides - it's the balance point but it's easily fooled by outliers. The MEDIAN sorts the values and picks the middle one - it ignores extreme values and tells you what's truly typical."
         />
       }
     />

@@ -254,7 +254,7 @@ function CoordinatePlane() {
 
       <RikuSays>
         Every dot you place has an address: (X, Y). X first, Y second. Same
-        order every time — like writing your name then your surname.
+        order every time - like writing your name then your surname.
       </RikuSays>
 
       <InfoBox variant="blue">
@@ -528,7 +528,7 @@ function PlotThePoints() {
       </div>
 
       <RikuSays>
-        Missed one? That&apos;s fine — even pros double-check. Count over on X
+        Missed one? That&apos;s fine - even pros double-check. Count over on X
         first, then up on Y. That muscle memory is worth gold later on.
       </RikuSays>
 
@@ -627,7 +627,7 @@ function ScatterPlotExplorer() {
     <div className="space-y-5">
       <RikuSays>
         A scatter plot is just lots of (X, Y) points stuck onto a grid. Your
-        eyes are looking for a <b>pattern</b> — do the dots climb up, slide
+        eyes are looking for a <b>pattern</b> - do the dots climb up, slide
         down, or scatter everywhere?
       </RikuSays>
 
@@ -704,7 +704,7 @@ function ScatterPlotExplorer() {
       </div>
 
       <RikuSays>
-        Watch the &quot;Shoe Size vs IQ&quot; one — totally random. Big feet
+        Watch the &quot;Shoe Size vs IQ&quot; one - totally random. Big feet
         don&apos;t make you smarter, no matter how much you squint. No pattern =
         no correlation!
       </RikuSays>

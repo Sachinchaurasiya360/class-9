@@ -694,7 +694,6 @@ export default function CN_L4_TCPCongestionActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="UDP -- User Datagram Protocol"
-      gateRelevance="3-4 marks"
       placementRelevance="Medium"
     />
   );

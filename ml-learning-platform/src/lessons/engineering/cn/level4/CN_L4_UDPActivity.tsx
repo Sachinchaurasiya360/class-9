@@ -577,7 +577,6 @@ export default function CN_L4_UDPActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="Port Numbers & Multiplexing"
-      gateRelevance="1-2 marks"
       placementRelevance="Medium"
     />
   );

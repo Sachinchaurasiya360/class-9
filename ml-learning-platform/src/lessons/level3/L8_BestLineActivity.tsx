@@ -30,7 +30,7 @@ function RikuSays({ children }: { children: React.ReactNode }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 1 — Drag the Line                                              */
+/*  Tab 1 - Drag the Line                                              */
 /* ------------------------------------------------------------------ */
 
 function DragTheLine() {
@@ -57,13 +57,13 @@ function DragTheLine() {
 
       <RikuSays>
         Hit the "Fit" button to watch the computer snap the line into the
-        math-perfect spot. That's literally least-squares linear regression —
+        math-perfect spot. That's literally least-squares linear regression -
         your very first ML algorithm.
       </RikuSays>
 
       <InfoBox variant="blue">
-        The best line is the one where the total error — the sum of squared
-        distances from points to the line — is as small as possible. Can you
+        The best line is the one where the total error - the sum of squared
+        distances from points to the line - is as small as possible. Can you
         beat the computer? Drag the sliders, then press Fit to compare.
       </InfoBox>
     </div>
@@ -71,7 +71,7 @@ function DragTheLine() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 2 — Slope & Intercept Explorer                                 */
+/*  Tab 2 - Slope & Intercept Explorer                                 */
 /* ------------------------------------------------------------------ */
 
 function SlopeInterceptExplorer() {
@@ -98,13 +98,13 @@ function SlopeInterceptExplorer() {
       </div>
 
       <RikuSays>
-        Try setting slope to zero — the line goes flat. Try a negative slope —
+        Try setting slope to zero - the line goes flat. Try a negative slope -
         it tilts downhill. Every possible line you could ever draw is just a
         slope plus an intercept. Mind = blown.
       </RikuSays>
 
       <InfoBox variant="amber">
-        The slope tells you how steep the line is — positive means uphill,
+        The slope tells you how steep the line is - positive means uphill,
         negative means downhill, zero means flat. The intercept is where the
         line crosses the Y axis (the starting point when X is 0).
       </InfoBox>
@@ -113,7 +113,7 @@ function SlopeInterceptExplorer() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab 3 — Error Showdown                                             */
+/*  Tab 3 - Error Showdown                                             */
 /* ------------------------------------------------------------------ */
 
 // Three hand-picked "bad lines" we'll compare against the best-fit line.
@@ -136,7 +136,7 @@ function ErrorShowdown() {
     <div className="space-y-4">
       <RikuSays>
         Challenge time. Drag the sliders and try to beat the Fit button. Then
-        peek at the residual bar chart below — each bar is one "type" of wrong
+        peek at the residual bar chart below - each bar is one "type" of wrong
         line. Short bar = happy line.
       </RikuSays>
 
@@ -152,7 +152,7 @@ function ErrorShowdown() {
           Residual size: bad lines vs. best fit
         </h3>
         <p className="font-hand text-xs text-foreground/70">
-          Lower is better — the best line has the smallest average mistake.
+          Lower is better - the best line has the smallest average mistake.
         </p>
         <BarChart
           data={BAD_LINES.map((b) => ({
@@ -167,13 +167,13 @@ function ErrorShowdown() {
 
       <RikuSays>
         See how "Best Fit" is a tiny little stump while the others tower over
-        it? That&apos;s exactly what an ML training loop does — it keeps wiggling
+        it? That&apos;s exactly what an ML training loop does - it keeps wiggling
         the line until its bar is the shortest. Congratulations: you just did
         machine learning with your hands.
       </RikuSays>
 
       <InfoBox variant="green">
-        Machine learning does exactly this — it adjusts the line (or curve)
+        Machine learning does exactly this - it adjusts the line (or curve)
         over and over until the error is as small as possible. You just did ML
         with your hands!
       </InfoBox>
@@ -273,7 +273,7 @@ export default function L8_BestLineActivity() {
       lessonNumber={2}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="You manually adjusted a line to fit data. But how would a computer do this automatically? It needs a set of steps — an algorithm!"
+      nextLessonHint="You manually adjusted a line to fit data. But how would a computer do this automatically? It needs a set of steps - an algorithm!"
       story={
         <StorySection
           paragraphs={[

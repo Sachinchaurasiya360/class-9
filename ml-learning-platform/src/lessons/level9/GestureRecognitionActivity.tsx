@@ -175,7 +175,7 @@ function LiveGestureTab() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        A gesture is just a shape your hand makes. Thumbs up, peace sign, fist. The model doesn&apos;t actually &quot;see&quot; the meaning — it sees the pattern of 21 landmark positions and matches it to a label it learned during training. Try all seven below.
+        A gesture is just a shape your hand makes. Thumbs up, peace sign, fist. The model doesn&apos;t actually &quot;see&quot; the meaning - it sees the pattern of 21 landmark positions and matches it to a label it learned during training. Try all seven below.
       </RikuSays>
 
       <div className="card-sketchy p-4 space-y-4">
@@ -283,7 +283,7 @@ function LiveGestureTab() {
       </InfoBox>
 
       <RikuSays>
-        Watch the confidence bar wobble when you move fast or half-make a gesture. That wobble is the model saying &quot;I&apos;m not 100% sure.&quot; In real apps you set a threshold — for example, only act when confidence is above 70%. Otherwise you get false thumbs-ups everywhere.
+        Watch the confidence bar wobble when you move fast or half-make a gesture. That wobble is the model saying &quot;I&apos;m not 100% sure.&quot; In real apps you set a threshold - for example, only act when confidence is above 70%. Otherwise you get false thumbs-ups everywhere.
       </RikuSays>
     </div>
   );
@@ -516,7 +516,7 @@ function SimonSaysTab() {
       </InfoBox>
 
       <RikuSays>
-        You just built a mini game on top of a neural network. The game logic is like 10 lines of code. The AI part is already done for you. This is what people mean when they say &quot;ML is becoming a utility&quot; — you don&apos;t train it, you just use it.
+        You just built a mini game on top of a neural network. The game logic is like 10 lines of code. The AI part is already done for you. This is what people mean when they say &quot;ML is becoming a utility&quot; - you don&apos;t train it, you just use it.
       </RikuSays>
     </div>
   );
@@ -547,13 +547,13 @@ const quizQuestions = [
       "92 landmarks detected",
     ],
     correctIndex: 1,
-    explanation: "Confidence is the model's probability — 0.92 means it's 92% certain about its prediction.",
+    explanation: "Confidence is the model's probability - 0.92 means it's 92% certain about its prediction.",
   },
   {
     question: "Which is NOT a built-in MediaPipe gesture?",
     options: ["Thumbs Up", "Open Palm", "Victory", "Pinch"],
     correctIndex: 3,
-    explanation: "MediaPipe's default gesture model recognizes 7 gestures: Thumbs Up/Down, Open Palm, Closed Fist, Pointing Up, Victory, and ILoveYou. 'Pinch' is not one of them — you'd have to train your own.",
+    explanation: "MediaPipe's default gesture model recognizes 7 gestures: Thumbs Up/Down, Open Palm, Closed Fist, Pointing Up, Victory, and ILoveYou. 'Pinch' is not one of them - you'd have to train your own.",
   },
   {
     question: "Why do gesture-controlled interfaces matter?",
@@ -564,7 +564,7 @@ const quizQuestions = [
       "They require expensive hardware",
     ],
     correctIndex: 1,
-    explanation: "Gestures enable hands-free control in contexts where touching a screen is hard or impossible — surgery, cooking, driving, AR glasses, and assistive tech.",
+    explanation: "Gestures enable hands-free control in contexts where touching a screen is hard or impossible - surgery, cooking, driving, AR glasses, and assistive tech.",
   },
 ];
 
@@ -584,15 +584,15 @@ export default function GestureRecognitionActivity() {
       lessonNumber={2}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="Hands are great — but what about everything else? Next, the computer learns to spot phones, books, cups, dogs, and more!"
+      nextLessonHint="Hands are great - but what about everything else? Next, the computer learns to spot phones, books, cups, dogs, and more!"
       story={
         <StorySection
           paragraphs={[
             "Aru gave the screen a thumbs up. The computer beeped: 'Thumbs Up detected!'",
-            "Aru: \"Wait — how did it know it was a thumbs up and not just any hand?\"",
-            "Byte: \"Two steps! Step 1: find the 21 landmarks (you already know this). Step 2: a tiny classifier looks at where those points are relative to each other — is the thumb sticking up while the other fingers are curled? — and outputs a label.\"",
+            "Aru: \"Wait - how did it know it was a thumbs up and not just any hand?\"",
+            "Byte: \"Two steps! Step 1: find the 21 landmarks (you already know this). Step 2: a tiny classifier looks at where those points are relative to each other - is the thumb sticking up while the other fingers are curled? - and outputs a label.\"",
             "Aru: \"So it's really just geometry!\"",
-            "Byte: \"Exactly. And the cool part? You can train it to recognize YOUR own gestures too — like a secret handshake or sign language alphabet!\"",
+            "Byte: \"Exactly. And the cool part? You can train it to recognize YOUR own gestures too - like a secret handshake or sign language alphabet!\"",
           ]}
           conceptTitle="Key Concept"
           conceptSummary="Gesture Recognition = Hand Landmark Detection + a small classifier that maps the 21 landmark coordinates to a gesture label. MediaPipe's default model knows 7 gestures, but you can train custom ones with as few as ~50 samples per class."

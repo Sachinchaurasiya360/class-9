@@ -1,0 +1,352 @@
+[
+  {
+    "day_number": 1,
+    "title": "Internet actually kaam kaise karta hai? 99% log galat samajhte hain",
+    "topic_category": "Basic Internet",
+    "hook_style": "shock-statistic",
+    "cta": "Follow for Day 2"
+  },
+  {
+    "day_number": 2,
+    "title": "Google.com type karte hi 0.3 second me kya hota hai? Full breakdown",
+    "topic_category": "Basic Internet",
+    "hook_style": "curiosity-breakdown",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 3,
+    "title": "WiFi aur Internet same nahi hai bhai — ye difference nobody told you",
+    "topic_category": "Basic Internet",
+    "hook_style": "myth-buster",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 4,
+    "title": "Tera IP address kya hai? Aur kya isse sach me track kar sakte hain?",
+    "topic_category": "Basic Internet",
+    "hook_style": "question-hook",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 5,
+    "title": "Browser ek spy hai — 3 secrets jo Chrome tujhe nahi batata",
+    "topic_category": "Basic Internet",
+    "hook_style": "conspiracy-style",
+    "cta": "Follow for Day 6"
+  },
+  {
+    "day_number": 6,
+    "title": "Router vs Modem — 90% engineers bhi confuse ho jaate hain",
+    "topic_category": "Basic Internet",
+    "hook_style": "shock-statistic",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 7,
+    "title": "Samudra ke andar se aata hai tera Instagram! Submarine cable ka sach",
+    "topic_category": "Basic Internet",
+    "hook_style": "story-reveal",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 8,
+    "title": "Jio, Airtel actually karte kya hain? ISP ka kaam 60 sec me",
+    "topic_category": "Basic Internet",
+    "hook_style": "quick-explainer",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 9,
+    "title": "Tera message 0s aur 1s me tooot-ta hai — data packet ka magic",
+    "topic_category": "Basic Internet",
+    "hook_style": "visual-metaphor",
+    "cta": "Follow for Day 10"
+  },
+  {
+    "day_number": 10,
+    "title": "Client-Server kya hota hai? Samosa wale bhaiya se samjho",
+    "topic_category": "Basic Internet",
+    "hook_style": "desi-analogy",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 11,
+    "title": "OSI ke 7 layers — ye ek trick yaad kar le, GATE me paani-paani",
+    "topic_category": "Core Networking",
+    "hook_style": "mnemonic-hook",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 12,
+    "title": "OSI vs TCP/IP — interviewer ne ye pucha to 90% fail hote hain",
+    "topic_category": "Core Networking",
+    "hook_style": "interview-trap",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 13,
+    "title": "Circuit vs Packet switching — WhatsApp call kaise kaam karti hai",
+    "topic_category": "Core Networking",
+    "hook_style": "real-world-example",
+    "cta": "Follow for Day 14"
+  },
+  {
+    "day_number": 14,
+    "title": "MAC address aur IP address ek saath kyun? Ye 45 sec me clear",
+    "topic_category": "Core Networking",
+    "hook_style": "question-hook",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 15,
+    "title": "ARP ka sach — tera PC har 30 sec me chillata hai network pe",
+    "topic_category": "Core Networking",
+    "hook_style": "shock-reveal",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 16,
+    "title": "Ethernet vs WiFi — kaunsa fast hai actually? Proof ke saath",
+    "topic_category": "Core Networking",
+    "hook_style": "comparison-battle",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 17,
+    "title": "IP address me /24 ka matlab? Subnetting 60 sec me crack",
+    "topic_category": "Core Networking",
+    "hook_style": "quick-trick",
+    "cta": "Follow for Day 18"
+  },
+  {
+    "day_number": 18,
+    "title": "CIDR samajh nahi aata? Ye ek table zindagi bhar kaam aayegi",
+    "topic_category": "Core Networking",
+    "hook_style": "cheat-sheet",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 19,
+    "title": "Public IP vs Private IP — tera ghar ka raaz",
+    "topic_category": "Core Networking",
+    "hook_style": "desi-analogy",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 20,
+    "title": "Routing kaise hoti hai? Google Maps se bhi smart hai ye algo",
+    "topic_category": "Core Networking",
+    "hook_style": "comparison-battle",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 21,
+    "title": "IPv4 khatam ho raha hai! IPv6 aa raha hai — par itna slow kyun?",
+    "topic_category": "Core Networking",
+    "hook_style": "news-alert",
+    "cta": "Follow for Day 22"
+  },
+  {
+    "day_number": 22,
+    "title": "NAT na hota to internet band ho jata — sabse badi jugaad",
+    "topic_category": "Core Networking",
+    "hook_style": "shock-statistic",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 23,
+    "title": "Ping karte ho kabhi? ICMP ka game samajh le",
+    "topic_category": "Core Networking",
+    "hook_style": "casual-hook",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 24,
+    "title": "TCP 3-way handshake — WhatsApp pe flirt karne jaisa hai",
+    "topic_category": "Core Networking",
+    "hook_style": "funny-analogy",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 25,
+    "title": "TCP vs UDP — Netflix aur BGMI me kaunsa use hota hai?",
+    "topic_category": "Core Networking",
+    "hook_style": "real-world-example",
+    "cta": "Follow for Day 26"
+  },
+  {
+    "day_number": 26,
+    "title": "Congestion control — traffic jam me Google kaise survive karta hai",
+    "topic_category": "Core Networking",
+    "hook_style": "visual-metaphor",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 27,
+    "title": "Port number kya hota hai? 80, 443, 22 — ye numbers kyun?",
+    "topic_category": "Core Networking",
+    "hook_style": "question-hook",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 28,
+    "title": "DNS — internet ka phonebook jo 1 second me 300 crore log use karte hain",
+    "topic_category": "Core Networking",
+    "hook_style": "shock-statistic",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 29,
+    "title": "8.8.8.8 daal de — tera internet 2x fast ho jayega. Sach ya jhooth?",
+    "topic_category": "Core Networking",
+    "hook_style": "myth-buster",
+    "cta": "Follow for Day 30"
+  },
+  {
+    "day_number": 30,
+    "title": "HTTP vs HTTPS — ek 's' kaise 1 crore rupay bacha sakta hai",
+    "topic_category": "Core Networking",
+    "hook_style": "shock-statistic",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 31,
+    "title": "TLS handshake — bank ki website kaise hacker se bachti hai",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "story-reveal",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 32,
+    "title": "Cookies tracking kaise karti hain? Ye dekh ke block kar dega",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "conspiracy-style",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 33,
+    "title": "SMTP aur email ka pura journey — 'Send' dabane ke baad kya hota hai",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "curiosity-breakdown",
+    "cta": "Follow for Day 34"
+  },
+  {
+    "day_number": 34,
+    "title": "DHCP — naya laptop WiFi se kaise connect hota hai automatically?",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "behind-the-scenes",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 35,
+    "title": "VPN sach me safe hai? Ya company tujhe bewakoof bana rahi hai?",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "myth-buster",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 36,
+    "title": "Firewall ke andar kya chalta hai? Ghar ke darwaaze jaisa bouncer",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "desi-analogy",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 37,
+    "title": "DDoS attack — 1 website ko 1 crore bots mil ke kaise giraate hain",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "shock-reveal",
+    "cta": "Follow for Day 38"
+  },
+  {
+    "day_number": 38,
+    "title": "Public WiFi pe bank app kholi? MITM attack ka khauf",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "warning-hook",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 39,
+    "title": "Incognito mode — ye 3 cheezein fir bhi track hoti hain!",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "myth-buster",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 40,
+    "title": "CDN kaise Netflix ko laggy hone se bachata hai",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "behind-the-scenes",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 41,
+    "title": "WebSockets vs HTTP — chat apps ka real secret",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "comparison-battle",
+    "cta": "Follow for Day 42"
+  },
+  {
+    "day_number": 42,
+    "title": "HTTP/3 aur QUIC — 2026 me internet 3x fast kaise hoga",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "future-prediction",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 43,
+    "title": "Load balancer — ek website pe 10 crore log ek saath kaise chalte hain",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "shock-statistic",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 44,
+    "title": "Auto-scaling ka jadu — IPL match me Hotstar kaise nahi crash hota",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "real-world-example",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 45,
+    "title": "Proxy server vs VPN — difference nobody explains properly",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "comparison-battle",
+    "cta": "Follow for Day 46"
+  },
+  {
+    "day_number": 46,
+    "title": "SDN — network ab software se chalega, hardware purana ho gaya",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "future-prediction",
+    "cta": "Save this reel"
+  },
+  {
+    "day_number": 47,
+    "title": "Zero Trust security — 'Trust nobody' wali company policy",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "trend-alert",
+    "cta": "Share with a friend"
+  },
+  {
+    "day_number": 48,
+    "title": "gRPC vs REST API — Google kyun switch kar raha hai?",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "trend-alert",
+    "cta": "Comment 'next'"
+  },
+  {
+    "day_number": 49,
+    "title": "Traceroute chala ke dekh — tera packet kitne desh ghoomta hai!",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "try-this-yourself",
+    "cta": "Follow for Day 50"
+  },
+  {
+    "day_number": 50,
+    "title": "Future of networking — 6G, satellite internet aur quantum networks",
+    "topic_category": "Advanced & Modern",
+    "hook_style": "future-prediction",
+    "cta": "Save + follow for Season 2"
+  }
+]

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { BookOpen, ChevronLeft, ChevronRight, Lock, CheckCircle2 } from "lucide-react";
-import { CN_ALL_LESSONS, CN_ALL_LESSONS_META } from "./EngineeringSidebar";
+import { getSubjectLessonPaths, getSubjectFromPath } from "./EngineeringSidebar";
 import {
   useEngProgress,
   isEngLessonUnlocked,
@@ -33,7 +33,6 @@ interface EngineeringLessonShellProps {
   tabs: EngTabDef[];
   quiz: EngQuizQuestion[];
   nextLessonHint?: string;
-  gateRelevance?: string;
   placementRelevance?: string;
 }
 
@@ -163,11 +162,144 @@ function EngQuizCard({ questions, onComplete }: { questions: EngQuizQuestion[]; 
 }
 
 /* ------------------------------------------------------------------ */
+/*  Lesson Header                                                      */
+/* ------------------------------------------------------------------ */
+
+function LessonHeader({
+  title,
+  level,
+  lessonNumber,
+  subjectLabel,
+  totalLessons,
+  currentIdx,
+  placementRelevance,
+}: {
+  title: string;
+  level: number;
+  lessonNumber: number;
+  subjectLabel: string;
+  totalLessons: number;
+  currentIdx: number;
+  placementRelevance?: string;
+}) {
+  const mono = '"SF Mono", Menlo, Consolas, monospace';
+  const num = String(lessonNumber).padStart(2, "0");
+  const progressPct = totalLessons > 0 ? Math.round(((currentIdx + 1) / totalLessons) * 100) : 0;
+
+  return (
+    <div style={{ background: "var(--eng-surface)", borderBottom: "1px solid var(--eng-border)" }}>
+      <div style={{ padding: "22px 28px 20px 28px", display: "flex", alignItems: "stretch", gap: 22, maxWidth: 1160, margin: "0 auto" }}>
+        {/* Display-stat lesson number */}
+        <div
+          style={{
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            paddingRight: 22,
+            borderRight: "1px solid var(--eng-border)",
+          }}
+        >
+          <span style={{ fontFamily: mono, fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.16em", color: "var(--eng-text-muted)", marginBottom: 2 }}>
+            LESSON
+          </span>
+          <span
+            style={{
+              fontFamily: mono,
+              fontSize: "2.75rem",
+              fontWeight: 800,
+              color: "var(--eng-text)",
+              lineHeight: 1,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            {num}
+          </span>
+          <span style={{ fontFamily: mono, fontSize: "0.64rem", fontWeight: 600, letterSpacing: "0.1em", color: "var(--eng-primary)", marginTop: 4 }}>
+            LEVEL {level}
+          </span>
+        </div>
+
+        {/* Title + metadata */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 10 }}>
+          {/* Breadcrumb */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: mono, fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.08em", color: "var(--eng-text-muted)" }}>
+            <span style={{ textTransform: "uppercase" }}>{subjectLabel}</span>
+            <span style={{ opacity: 0.5 }}>/</span>
+            <span style={{ textTransform: "uppercase" }}>Level {level}</span>
+            <span style={{ opacity: 0.5 }}>/</span>
+            <span style={{ color: "var(--eng-text)", textTransform: "uppercase" }}>{lessonNumber} of {totalLessons}</span>
+          </div>
+
+          {/* Title */}
+          <h1
+            style={{
+              fontFamily: "var(--eng-font)",
+              fontWeight: 700,
+              fontSize: "1.75rem",
+              color: "var(--eng-text)",
+              margin: 0,
+              letterSpacing: "-0.015em",
+              lineHeight: 1.15,
+            }}
+          >
+            {title}
+          </h1>
+
+          {/* Metadata chips */}
+          {placementRelevance && (
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6, marginTop: 2 }}>
+              {placementRelevance && (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "3px 9px",
+                    fontFamily: mono,
+                    fontSize: "0.68rem",
+                    fontWeight: 600,
+                    color: "var(--eng-primary)",
+                    background: "var(--eng-primary-light)",
+                    border: "1px solid rgba(59,130,246,0.3)",
+                    borderRadius: 4,
+                  }}
+                >
+                  <span style={{ fontWeight: 700, letterSpacing: "0.08em" }}>PLACEMENT</span>
+                  <span style={{ opacity: 0.5 }}>·</span>
+                  <span>{placementRelevance}</span>
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Progress rail */}
+      <div style={{ height: 2, background: "var(--eng-bg)", position: "relative" }}>
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            height: "100%",
+            width: `${progressPct}%`,
+            background: "var(--eng-primary)",
+            transition: "width 0.4s ease",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Shell                                                         */
 /* ------------------------------------------------------------------ */
 
 export default function EngineeringLessonShell({
-  title, level, lessonNumber, tabs, quiz, nextLessonHint, gateRelevance, placementRelevance
+  title, level, lessonNumber, tabs, quiz, nextLessonHint, placementRelevance
 }: EngineeringLessonShellProps) {
   const allTabs: EngTabDef[] = [
     ...tabs,
@@ -182,7 +314,7 @@ export default function EngineeringLessonShell({
 
   const pathname = usePathname() ?? "";
   const router = useRouter();
-  const allLessons = CN_ALL_LESSONS;
+  const allLessons = getSubjectLessonPaths(pathname);
   const currentIdx = allLessons.indexOf(pathname);
   const prevPath = currentIdx > 0 ? allLessons[currentIdx - 1] : null;
   const nextPath = currentIdx < allLessons.length - 1 ? allLessons[currentIdx + 1] : null;
@@ -203,24 +335,15 @@ export default function EngineeringLessonShell({
   return (
     <div style={{ fontFamily: "var(--eng-font)", minHeight: "100vh", background: "var(--eng-bg)" }}>
       {/* Lesson header */}
-      <div style={{ background: "var(--eng-surface)", borderBottom: "1px solid var(--eng-border)", padding: "20px 24px" }}>
-        <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
-          <span className="tag-eng" style={{ background: "var(--eng-primary-light)", color: "var(--eng-primary)" }}>
-            Level {level}
-          </span>
-          <span className="tag-eng" style={{ background: "rgba(16,185,129,0.1)", color: "var(--eng-success)" }}>
-            Lesson {lessonNumber}
-          </span>
-          {gateRelevance && (
-            <span className="tag-eng" style={{ background: "rgba(245,158,11,0.1)", color: "#b45309" }}>
-              GATE: {gateRelevance}
-            </span>
-          )}
-        </div>
-        <h1 style={{ fontFamily: "var(--eng-font)", fontWeight: 700, fontSize: "1.5rem", color: "var(--eng-text)", margin: 0 }}>
-          {title}
-        </h1>
-      </div>
+      <LessonHeader
+        title={title}
+        level={level}
+        lessonNumber={lessonNumber}
+        subjectLabel={getSubjectFromPath(pathname).label}
+        totalLessons={allLessons.length}
+        currentIdx={currentIdx}
+        placementRelevance={placementRelevance}
+      />
 
       {/* Tab navigation */}
       <div style={{ background: "var(--eng-surface)", borderBottom: "1px solid var(--eng-border)", padding: "0 24px" }}>

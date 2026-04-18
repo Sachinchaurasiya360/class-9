@@ -695,7 +695,6 @@ export default function CN_L4_TCPReliableTransferActivity() {
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="TCP -- Congestion Control"
-      gateRelevance="2-3 marks"
       placementRelevance="Medium"
     />
   );

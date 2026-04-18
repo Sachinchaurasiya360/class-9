@@ -1,8 +1,8 @@
-# data-viz — Sketchy Notebook Chart Toolkit
+# data-viz - Sketchy Notebook Chart Toolkit
 
 A small, dependency-free set of SVG visualization primitives for Red Panda
 Learn. Pure React + SVG (no d3, no chart libraries). Everything here is a
-client component — each file starts with `"use client"`. Colors come from
+client component - each file starts with `"use client"`. Colors come from
 Tailwind/CSS custom properties (`var(--accent-coral)` and friends) so charts
 match the wider sketchy-notebook theme.
 
@@ -58,11 +58,11 @@ Returned from `useAxisSystem` as `{ node, xScale, yScale, plot }`.
 | `xMin`, `xMax` | number | required | Domain for the X axis |
 | `yMin`, `yMax` | number | required | Domain for the Y axis |
 | `width`, `height` | number | required | Canvas size in px (viewBox units) |
-| `xLabel`, `yLabel` | string | — | Axis titles |
+| `xLabel`, `yLabel` | string | - | Axis titles |
 | `padding` | number | 44 | Space reserved for ticks/labels |
 | `showGrid` | boolean | true | Dashed grid lines |
 | `xTickCount`, `yTickCount` | number | 5 | Approximate desired tick count. Pass `0` to hide |
-| `title` | string | — | Chart title drawn centered at the top |
+| `title` | string | - | Chart title drawn centered at the top |
 
 ```tsx
 <AxisSystem xMin={0} xMax={10} yMin={0} yMax={5} width={500} height={300} xLabel="x" yLabel="y" />
@@ -74,7 +74,7 @@ Returned from `useAxisSystem` as `{ node, xScale, yScale, plot }`.
 |---|---|---|---|
 | `items` | `{ label; color; shape? }[]` | required | Entries to render |
 | `orientation` | `'horizontal' \| 'vertical'` | `'horizontal'` | Layout direction |
-| `className` | string | — | Extra classes for the wrapper |
+| `className` | string | - | Extra classes for the wrapper |
 
 ```tsx
 <Legend
@@ -104,7 +104,7 @@ Hoverable points with optional category colors and a linear trend line.
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `data` | `DataPoint[]` | required | Points to plot |
-| `categoryColors` | `Record<string, string>` | — | Explicit color map by category |
+| `categoryColors` | `Record<string, string>` | - | Explicit color map by category |
 | `showTrendLine` | boolean | false | Render simple linear regression |
 | `pointRadius` | number | 6 | Point size in px |
 | …ChartProps |  |  | width / height / title / xLabel / yLabel |
@@ -196,7 +196,7 @@ Five-number summary with 1.5×IQR outlier detection. Accepts `number[]` or
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `data` | `number[] \| number[][]` | required | Single or multi-group |
-| `labels` | `string[]` | — | Group labels |
+| `labels` | `string[]` | - | Group labels |
 | …ChartProps |  |  |  |
 
 ## HeatMap
@@ -207,7 +207,7 @@ correlation matrices, or small attention heatmaps.
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `data` | `number[][]` | required | Row-major matrix |
-| `rowLabels`, `colLabels` | `string[]` | — | Axis labels |
+| `rowLabels`, `colLabels` | `string[]` | - | Axis labels |
 | `colorScale` | `'coral' \| 'mint' \| 'lav' \| 'sky'` | `'coral'` | Ramp hue |
 | `showValues` | boolean | false | Cell value overlay |
 | …ChartProps |  |  |  |
@@ -230,7 +230,7 @@ the bandwidth by default.
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `data` | `number[] \| number[][]` | required | One or multiple groups |
-| `labels` | `string[]` | — | Group labels |
+| `labels` | `string[]` | - | Group labels |
 | `resolution` | number | 48 | Density sample count |
 | `bandwidth` | number | 1 | Multiplier on the default KDE bandwidth |
 | …ChartProps |  |  |  |
@@ -243,7 +243,7 @@ accuracy displays, or level completion.
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `value` | number (0..1) | required | Fill fraction |
-| `label` | string | — | Text above the bar |
+| `label` | string | - | Text above the bar |
 | `color` | string | `var(--accent-mint)` | Fill color |
 | `height` | number | 18 | Bar height px |
 | `animated` | boolean | true | Tween fill changes |
@@ -264,5 +264,5 @@ accuracy displays, or level completion.
   `summarize()` so axes don't collapse.
 - Colors cascade: explicit `color` on a datum > `categoryColors` map >
   default palette cycling through the six sketchy notebook accents.
-- Animations respect mount order but don't use external animation libs —
+- Animations respect mount order but don't use external animation libs -
   everything is CSS transitions or manual `requestAnimationFrame` tweens.

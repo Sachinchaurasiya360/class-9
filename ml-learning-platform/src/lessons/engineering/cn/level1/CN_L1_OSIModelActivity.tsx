@@ -142,7 +142,136 @@ const OSI_LAYERS: OSILayer[] = [
 ];
 
 /* ================================================================== */
-/*  TAB 1 — Interactive 7-Layer Cake                                   */
+/*  Mnemonic Strip                                                     */
+/* ================================================================== */
+
+function MnemonicStrip({ layers }: { layers: OSILayer[] }) {
+  const mono = '"SF Mono", Menlo, Consolas, monospace';
+  const phrase = layers.map((l) => l.mnemonic).join(" ");
+
+  return (
+    <div
+      style={{
+        marginBottom: 20,
+        background: "var(--eng-surface)",
+        border: "1px solid var(--eng-border)",
+        borderRadius: "var(--eng-radius)",
+        overflow: "hidden",
+        boxShadow: "var(--eng-shadow)",
+      }}
+    >
+      {/* Header band */}
+      <div
+        style={{
+          padding: "10px 16px",
+          background: "var(--eng-bg)",
+          borderBottom: "1px solid var(--eng-border)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 8,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+          <span style={{ fontFamily: mono, fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.14em", color: "var(--eng-text-muted)" }}>
+            MNEMONIC
+          </span>
+          <span style={{ fontFamily: mono, fontSize: "0.7rem", color: "var(--eng-text-muted)", opacity: 0.7 }}>
+            L7 &rarr; L1 &middot; top to bottom
+          </span>
+        </div>
+        <span style={{ fontSize: "0.78rem", color: "var(--eng-text)", fontStyle: "italic", fontWeight: 500 }}>
+          &ldquo;{phrase}&rdquo;
+        </span>
+      </div>
+
+      {/* Chip row */}
+      <div
+        style={{
+          padding: "18px 16px",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "stretch",
+          justifyContent: "center",
+          gap: 6,
+        }}
+      >
+        {layers.map((layer, i) => (
+          <div key={layer.number} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div
+              className="eng-fadeIn"
+              style={{
+                width: 82,
+                padding: "10px 6px 8px",
+                background: `${layer.color}10`,
+                border: `1px solid ${layer.color}50`,
+                borderRadius: 8,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 2,
+                animationDelay: `${i * 40}ms`,
+              }}
+            >
+              {/* Big first letter */}
+              <div
+                style={{
+                  fontFamily: mono,
+                  fontSize: "1.9rem",
+                  fontWeight: 800,
+                  color: layer.color,
+                  lineHeight: 1,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {layer.mnemonic[0]}
+              </div>
+              {/* Word with first letter emphasized */}
+              <div
+                style={{
+                  fontFamily: "var(--eng-font)",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  color: "var(--eng-text)",
+                  lineHeight: 1.1,
+                  marginTop: 2,
+                }}
+              >
+                {layer.mnemonic}
+              </div>
+              {/* Divider */}
+              <div style={{ width: 20, height: 1, background: `${layer.color}60`, margin: "6px 0 4px" }} />
+              {/* Layer label */}
+              <div style={{ fontFamily: mono, fontSize: "0.6rem", fontWeight: 700, color: layer.color, letterSpacing: "0.04em" }}>
+                L{layer.number}
+              </div>
+              <div style={{ fontFamily: "var(--eng-font)", fontSize: "0.64rem", color: "var(--eng-text-muted)", lineHeight: 1.15, textAlign: "center" }}>
+                {layer.name}
+              </div>
+            </div>
+            {i < layers.length - 1 && (
+              <span
+                aria-hidden
+                style={{
+                  color: "var(--eng-text-muted)",
+                  fontSize: "0.9rem",
+                  opacity: 0.45,
+                  userSelect: "none",
+                }}
+              >
+                &rarr;
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  TAB 1 - Interactive 7-Layer Cake                                   */
 /* ================================================================== */
 
 function OSILayerCake() {
@@ -154,17 +283,13 @@ function OSILayerCake() {
 
   return (
     <div>
-      <h3 style={sectionTitle}>The OSI Model — 7 Layers</h3>
+      <h3 style={sectionTitle}>The OSI Model - 7 Layers</h3>
       <p style={sectionDesc}>
         Click on each layer to explore its purpose, PDU, protocols, and devices. The layers are ordered top to bottom (Application to Physical).
       </p>
 
-      {/* Mnemonic hint */}
-      <div className="info-eng" style={{ marginBottom: 20 }}>
-        <p style={{ margin: 0, fontFamily: "var(--eng-font)", fontSize: "0.82rem", color: "var(--eng-text)", lineHeight: 1.5 }}>
-          <strong>Mnemonic (top to bottom):</strong> <em>&quot;All People Seem To Need Data Processing&quot;</em> — helps remember the layer order!
-        </p>
-      </div>
+      {/* Mnemonic card */}
+      <MnemonicStrip layers={OSI_LAYERS} />
 
       {/* Layer stack */}
       <div style={{ maxWidth: 700, margin: "0 auto" }}>
@@ -312,7 +437,7 @@ function OSILayerCake() {
 }
 
 /* ================================================================== */
-/*  TAB 2 — Encapsulation / Decapsulation Animation                    */
+/*  TAB 2 - Encapsulation / Decapsulation Animation                    */
 /* ================================================================== */
 
 function EncapsulationDemo() {
@@ -418,7 +543,7 @@ function EncapsulationDemo() {
 
           {/* Direction label */}
           <text x="280" y="22" textAnchor="middle" fill="var(--eng-primary)" style={{ fontFamily: "var(--eng-font)", fontSize: "0.78rem", fontWeight: 700 }}>
-            {direction === "down" ? "Sender — Encapsulation" : "Receiver — Decapsulation"}
+            {direction === "down" ? "Sender - Encapsulation" : "Receiver - Decapsulation"}
           </text>
 
           {/* Layer rows */}
@@ -568,7 +693,7 @@ function EncapsulationDemo() {
 }
 
 /* ================================================================== */
-/*  TAB 3 — Protocol Browser                                           */
+/*  TAB 3 - Protocol Browser                                           */
 /* ================================================================== */
 
 function ProtocolBrowser() {
@@ -770,13 +895,12 @@ export default function CN_L1_OSIModelActivity() {
 
   return (
     <EngineeringLessonShell
-      title="The OSI Model — 7 Layers"
+      title="The OSI Model - 7 Layers"
       level={1}
       lessonNumber={3}
       tabs={tabs}
       quiz={quiz}
       nextLessonHint="The TCP/IP Model"
-      gateRelevance="2-3 marks"
       placementRelevance="Medium"
     />
   );

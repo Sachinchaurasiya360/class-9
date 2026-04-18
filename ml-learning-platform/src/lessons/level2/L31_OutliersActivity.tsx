@@ -194,11 +194,11 @@ function SpotTab() {
           <p className="font-hand text-base font-bold text-foreground">
             {isCorrect
               ? "Nice eye! That value is the one the box plot flagged."
-              : `Not quite — the real outlier is ${r.realOutliers.join(", ")}. See the dot floating outside the whiskers?`}
+              : `Not quite - the real outlier is ${r.realOutliers.join(", ")}. See the dot floating outside the whiskers?`}
           </p>
           <p className="font-hand text-sm text-foreground">
             That point is FAR from the middle of the data. We call it an{" "}
-            <b>outlier</b> — a value that doesn&apos;t fit the usual pattern.
+            <b>outlier</b> - a value that doesn&apos;t fit the usual pattern.
           </p>
           <button
             onClick={handleNext}
@@ -212,7 +212,7 @@ function SpotTab() {
 
       <InfoBox variant="blue">
         An <b>outlier</b> is a data point that&apos;s very different from
-        the rest. Sometimes it&apos;s a mistake — sometimes it&apos;s the
+        the rest. Sometimes it&apos;s a mistake - sometimes it&apos;s the
         most interesting thing in your data!
       </InfoBox>
     </div>
@@ -251,12 +251,12 @@ function PullTab() {
       <RikuSays>
         Watch what happens to the <b>average</b> when one weird value
         sneaks in. The mean line (coral) gets dragged toward the outlier.
-        The median line (lavender) barely budges — that&apos;s its
+        The median line (lavender) barely budges - that&apos;s its
         superpower.
       </RikuSays>
 
       <p className="font-hand text-base text-foreground text-center">
-        Slide the outlier — see the histogram&apos;s mean line shift.
+        Slide the outlier - see the histogram&apos;s mean line shift.
       </p>
 
       <div
@@ -307,7 +307,7 @@ function PullTab() {
           </span>
         </div>
         <p className="font-hand text-xs text-muted-foreground">
-          Drag the slider — the coral mean line drifts way more than the
+          Drag the slider - the coral mean line drifts way more than the
           lavender median line.
         </p>
       </div>
@@ -319,7 +319,7 @@ function PullTab() {
 
       <InfoBox variant="amber">
         See how one weird value can drag the average way off? That&apos;s
-        why scientists check for outliers BEFORE calculating averages —
+        why scientists check for outliers BEFORE calculating averages -
         they can completely lie about your data.
       </InfoBox>
     </div>
@@ -343,7 +343,7 @@ const STORIES: {
     title: "The Lucky Lottery",
     color: YELLOW,
     icon: "🎟️",
-    text: "If 1,000 people make $50,000 a year and one person wins $10 million in the lottery, the AVERAGE income jumps to $60,000 — even though nothing changed for 999 of them.",
+    text: "If 1,000 people make $50,000 a year and one person wins $10 million in the lottery, the AVERAGE income jumps to $60,000 - even though nothing changed for 999 of them.",
     lesson: "Outliers can make averages misleading.",
     scatter: [
       ...Array.from({ length: 12 }, (_, i) => ({
@@ -389,7 +389,7 @@ const STORIES: {
     title: "The Olympic Athlete",
     color: SKY,
     icon: "🏃",
-    text: "Most people run 100m in 14-18 seconds. Usain Bolt ran it in 9.58 seconds. He's a real outlier — and he holds the world record.",
+    text: "Most people run 100m in 14-18 seconds. Usain Bolt ran it in 9.58 seconds. He's a real outlier - and he holds the world record.",
     lesson: "Outliers show us the limits of what's possible.",
     scatter: [
       ...Array.from({ length: 12 }, (_, i) => ({
@@ -409,7 +409,7 @@ function StoriesTab() {
     <div className="space-y-4">
       <RikuSays>
         Outliers aren&apos;t always bad. Sometimes they&apos;re the most
-        interesting thing in the whole dataset. Pick a story — see the
+        interesting thing in the whole dataset. Pick a story - see the
         coral dot in each one?
       </RikuSays>
 
@@ -454,7 +454,7 @@ function StoriesTab() {
         style={{ background: PAPER }}
       >
         <p className="font-hand text-sm font-bold text-center text-foreground mb-2">
-          {story.title} — the coral dot is the outlier
+          {story.title} - the coral dot is the outlier
         </p>
         <ScatterPlot
           data={story.scatter}
@@ -496,12 +496,12 @@ const quizQuestions = [
     ],
     correctIndex: 1,
     explanation:
-      "An outlier is any value that sits far away from the rest of the data — much higher or much lower than normal.",
+      "An outlier is any value that sits far away from the rest of the data - much higher or much lower than normal.",
   },
   {
     question: "What does an outlier do to the average?",
     options: [
-      "Nothing — averages ignore outliers",
+      "Nothing - averages ignore outliers",
       "It pulls the average toward itself",
       "It makes the average zero",
       "It deletes the average",
@@ -514,7 +514,7 @@ const quizQuestions = [
     question: "Should you ALWAYS delete outliers?",
     options: [
       "Yes, always",
-      "No — sometimes they're the most interesting data!",
+      "No - sometimes they're the most interesting data!",
       "Only on weekends",
       "Only if they're red",
     ],
@@ -572,12 +572,12 @@ export default function L31_OutliersActivity() {
           paragraphs={[
             "Aru was looking at her class's math test scores. Most kids got around 75-85, but one score caught her eye: 12.",
             "Aru: \"Whoa! Did someone REALLY get a 12? Maybe they were sick.\"",
-            "Byte: \"That's an outlier — a value that doesn't fit the pattern. Could be a sick student. Could be a wrong entry. Could even be the most important clue in the whole dataset.\"",
+            "Byte: \"That's an outlier - a value that doesn't fit the pattern. Could be a sick student. Could be a wrong entry. Could even be the most important clue in the whole dataset.\"",
             "Aru: \"How do I tell which one?\"",
-            "Byte: \"You investigate. Outliers are like loud kids in a quiet classroom — you can't ignore them, but you also shouldn't kick them out without asking why they're making noise.\"",
+            "Byte: \"You investigate. Outliers are like loud kids in a quiet classroom - you can't ignore them, but you also shouldn't kick them out without asking why they're making noise.\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="An outlier is a data point that lies far away from the rest. It can distort averages and trick analysts — but it can also reveal mistakes, breakthroughs, or rare events. Always investigate outliers before deciding what to do with them."
+          conceptSummary="An outlier is a data point that lies far away from the rest. It can distort averages and trick analysts - but it can also reveal mistakes, breakthroughs, or rare events. Always investigate outliers before deciding what to do with them."
         />
       }
     />

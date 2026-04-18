@@ -12,7 +12,7 @@ import {
 export interface FeatureMapProps {
   /** The 2D activation values. */
   values?: Pixels2D;
-  /** Optional (y, x) to highlight — used to indicate "what fired". */
+  /** Optional (y, x) to highlight - used to indicate "what fired". */
   highlight?: { y: number; x: number } | null;
   /** Optional label shown above the map in handwriting font. */
   label?: string;
@@ -39,7 +39,7 @@ const DEFAULT_VALUES: Pixels2D = [
 ];
 
 /**
- * <FeatureMap /> — a read-only activation map display. Similar to ImageGrid
+ * <FeatureMap /> - a read-only activation map display. Similar to ImageGrid
  * but styled for "post-conv output" displays: slightly chunkier cells, a
  * bold border, and a coral default colormap.
  */

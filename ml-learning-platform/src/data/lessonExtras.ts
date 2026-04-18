@@ -67,13 +67,13 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
   "/level2/outliers": {
     predict: {
       type: "mcq",
-      question: "In the list 3, 4, 5, 4, 3, 5, 99, 4 — which value is the outlier?",
+      question: "In the list 3, 4, 5, 4, 3, 5, 99, 4 - which value is the outlier?",
       options: ["3", "4", "5", "99"],
     },
     cards: [
-      { question: "What is an outlier?", answer: "A data point that lies far away from the rest — much higher or lower than the typical values." },
+      { question: "What is an outlier?", answer: "A data point that lies far away from the rest - much higher or lower than the typical values." },
       { question: "How does an outlier affect the mean (average)?", answer: "It pulls the mean toward itself, making the average misleading." },
-      { question: "Should you always delete outliers?", answer: "No — sometimes they're mistakes, but other times they're the most important discovery in your data." },
+      { question: "Should you always delete outliers?", answer: "No - sometimes they're mistakes, but other times they're the most important discovery in your data." },
     ],
   },
   "/level2/averages": {
@@ -84,7 +84,7 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
     cards: [
       { question: "How do you compute the mean?", answer: "Add all the values and divide by how many there are." },
       { question: "How do you compute the median?", answer: "Sort the values and pick the one in the middle." },
-      { question: "Which is more affected by outliers — mean or median?", answer: "The mean. The median ignores extreme values and only cares about the middle position." },
+      { question: "Which is more affected by outliers - mean or median?", answer: "The mean. The median ignores extreme values and only cares about the middle position." },
     ],
   },
   "/level3/predictions": {
@@ -169,13 +169,13 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
       question: "If a student memorizes the practice test answers and gets 100% on the same test, did they really learn?",
       options: [
         "Yes, 100% means they learned",
-        "No — memorizing isn't learning. We need a NEW test.",
+        "No - memorizing isn't learning. We need a NEW test.",
         "Only if the test was hard",
         "Yes, but only on Tuesdays",
       ],
     },
     cards: [
-      { question: "Why split data into training and test sets?", answer: "So we can test the model on data it has never seen — the only honest way to know it learned the pattern." },
+      { question: "Why split data into training and test sets?", answer: "So we can test the model on data it has never seen - the only honest way to know it learned the pattern." },
       { question: "What's a typical train/test split ratio?", answer: "80% training, 20% test. Big enough to learn from, big enough to grade fairly." },
       { question: "What is a 'data leak'?", answer: "When test data accidentally appears in the training set, making model scores look better than they really are." },
     ],
@@ -194,8 +194,8 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
     },
     cards: [
       { question: "What does a confusion matrix show?", answer: "A 2x2 grid breaking down predictions into True Positives, False Positives, True Negatives, and False Negatives." },
-      { question: "What is a False Negative?", answer: "When the model predicts NO but the real answer was YES — a missed catch." },
-      { question: "Why is accuracy alone not enough?", answer: "It hides which KIND of mistake the model makes — and some mistakes (like missing a fire) are far worse than others." },
+      { question: "What is a False Negative?", answer: "When the model predicts NO but the real answer was YES - a missed catch." },
+      { question: "Why is accuracy alone not enough?", answer: "It hides which KIND of mistake the model makes - and some mistakes (like missing a fire) are far worse than others." },
     ],
   },
   "/level5/unsupervised-learning": {
@@ -205,7 +205,7 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
       options: ["More numbers", "No labels (no correct answers given)", "Pictures only", "A teacher watching"],
     },
     cards: [
-      { question: "What is unsupervised learning?", answer: "Learning patterns from data that has no labels — the computer finds groups on its own." },
+      { question: "What is unsupervised learning?", answer: "Learning patterns from data that has no labels - the computer finds groups on its own." },
     ],
   },
   "/level5/kmeans": {
@@ -234,7 +234,7 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
       options: ["A calculator", "A single brain cell (neuron)", "A computer chip", "A camera"],
     },
     cards: [
-      { question: "What is a perceptron?", answer: "The simplest neural network — one neuron that takes inputs, weights them, sums them up, and fires." },
+      { question: "What is a perceptron?", answer: "The simplest neural network - one neuron that takes inputs, weights them, sums them up, and fires." },
     ],
   },
   "/level6/activation-functions": {
@@ -253,7 +253,7 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
       options: ["One giant neuron", "Many neurons connected in layers", "Wires only", "Transistors"],
     },
     cards: [
-      { question: "What are 'layers' in a neural network?", answer: "Groups of neurons stacked together — input layer, hidden layers, and output layer." },
+      { question: "What are 'layers' in a neural network?", answer: "Groups of neurons stacked together - input layer, hidden layers, and output layer." },
     ],
   },
   "/level6/backpropagation": {
@@ -310,7 +310,7 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
       options: ["Learn fast and perfect", "Overshoot and never settle", "Never start", "Crash"],
     },
     cards: [
-      { question: "What is the learning rate?", answer: "How big a step the model takes when updating its weights — too big overshoots, too small is slow." },
+      { question: "What is the learning rate?", answer: "How big a step the model takes when updating its weights - too big overshoots, too small is slow." },
     ],
   },
   "/level7/overfitting": {
@@ -340,7 +340,7 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
       options: ["A drawing", "A grid of numbers (pixel values)", "A video", "A word"],
     },
     cards: [
-      { question: "How does a computer see an image?", answer: "As a grid of pixel values — each pixel is a number representing brightness or color." },
+      { question: "How does a computer see an image?", answer: "As a grid of pixel values - each pixel is a number representing brightness or color." },
     ],
   },
   "/level8/filters": {
@@ -375,7 +375,7 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
       hint: "It was way earlier than you might think!",
     },
     cards: [
-      { question: "When was the first Perceptron built and by whom?", answer: "Frank Rosenblatt built it in 1958 — the first machine that could learn from examples." },
+      { question: "When was the first Perceptron built and by whom?", answer: "Frank Rosenblatt built it in 1958 - the first machine that could learn from examples." },
       { question: "What was AlexNet (2012) and why did it matter?", answer: "A deep neural network that crushed image recognition using GPUs. It started the modern deep learning boom." },
       { question: "What architecture powers ChatGPT and Claude?", answer: "The Transformer, introduced in the 2017 paper 'Attention Is All You Need'." },
     ],
@@ -386,7 +386,7 @@ export const LESSON_EXTRAS: Record<string, LessonExtras> = {
       question: "If you were building a CNN to spot cats, what features would the early layers learn first?",
     },
     cards: [
-      { question: "What is a CNN?", answer: "A Convolutional Neural Network — a neural network that uses convolution filters to recognize patterns in images." },
+      { question: "What is a CNN?", answer: "A Convolutional Neural Network - a neural network that uses convolution filters to recognize patterns in images." },
     ],
   },
 };

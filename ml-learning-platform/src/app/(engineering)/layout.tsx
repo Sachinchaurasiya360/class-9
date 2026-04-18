@@ -4,7 +4,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import EngineeringSidebar from "@/components/engineering/EngineeringSidebar";
-import { CN_ALL_LESSONS_META } from "@/components/engineering/EngineeringSidebar";
+import { getLessonMeta } from "@/components/engineering/EngineeringSidebar";
 
 const BREADCRUMB_MAP: Record<string, { level: string; lesson: string }> = {
   "/engineering": { level: "Engineering", lesson: "All Subjects" },
@@ -15,11 +15,12 @@ const BREADCRUMB_MAP: Record<string, { level: string; lesson: string }> = {
   "/engineering/cn/level1/tcp-ip-model": { level: "CN · Level 1", lesson: "The TCP/IP Model" },
   "/engineering/cn/level1/switching": { level: "CN · Level 1", lesson: "Switching Techniques" },
   // CN Level 2
-  "/engineering/cn/level2/physical-layer": { level: "CN · Level 2", lesson: "Physical Layer — Signals" },
+  "/engineering/cn/level2/physical-layer": { level: "CN · Level 2", lesson: "Physical Layer - Signals" },
   "/engineering/cn/level2/framing-error-detection": { level: "CN · Level 2", lesson: "Framing & Error Detection" },
   "/engineering/cn/level2/arq-protocols": { level: "CN · Level 2", lesson: "ARQ Protocols" },
   "/engineering/cn/level2/mac-protocols": { level: "CN · Level 2", lesson: "Medium Access Control" },
   "/engineering/cn/level2/ethernet-lan": { level: "CN · Level 2", lesson: "Ethernet & LAN Standards" },
+  "/engineering/cn/level2/network-devices": { level: "CN · Level 2", lesson: "Network Devices Compared" },
   // CN Level 3
   "/engineering/cn/level3/ipv4-addressing": { level: "CN · Level 3", lesson: "IPv4 Addressing" },
   "/engineering/cn/level3/subnetting-cidr": { level: "CN · Level 3", lesson: "Subnetting & CIDR" },
@@ -27,9 +28,9 @@ const BREADCRUMB_MAP: Record<string, { level: string; lesson: string }> = {
   "/engineering/cn/level3/ipv6": { level: "CN · Level 3", lesson: "IPv6 Basics" },
   "/engineering/cn/level3/nat-icmp-arp": { level: "CN · Level 3", lesson: "NAT, ICMP & ARP" },
   // CN Level 4
-  "/engineering/cn/level4/tcp-connection": { level: "CN · Level 4", lesson: "TCP — Connection Management" },
-  "/engineering/cn/level4/tcp-reliable-transfer": { level: "CN · Level 4", lesson: "TCP — Reliable Data Transfer" },
-  "/engineering/cn/level4/tcp-congestion": { level: "CN · Level 4", lesson: "TCP — Congestion Control" },
+  "/engineering/cn/level4/tcp-connection": { level: "CN · Level 4", lesson: "TCP - Connection Management" },
+  "/engineering/cn/level4/tcp-reliable-transfer": { level: "CN · Level 4", lesson: "TCP - Reliable Data Transfer" },
+  "/engineering/cn/level4/tcp-congestion": { level: "CN · Level 4", lesson: "TCP - Congestion Control" },
   "/engineering/cn/level4/udp": { level: "CN · Level 4", lesson: "UDP" },
   "/engineering/cn/level4/ports-multiplexing": { level: "CN · Level 4", lesson: "Port Numbers & Multiplexing" },
   // CN Level 5
@@ -47,13 +48,20 @@ const BREADCRUMB_MAP: Record<string, { level: string; lesson: string }> = {
   "/engineering/cn/level7/cdn": { level: "CN · Level 7", lesson: "CDN" },
   "/engineering/cn/level7/cloud-networking": { level: "CN · Level 7", lesson: "Cloud Networking" },
   "/engineering/cn/level7/modern-protocols": { level: "CN · Level 7", lesson: "Modern Protocols" },
+  "/engineering/cn/level7/proxy-gateway": { level: "CN · Level 7", lesson: "Proxy, Reverse Proxy & API Gateway" },
+  "/engineering/cn/level7/url-end-to-end": { level: "CN · Level 7", lesson: "What Happens When You Type a URL" },
 };
 
 export default function EngineeringLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
-  const crumb = pathname ? BREADCRUMB_MAP[pathname] : undefined;
+  const meta = getLessonMeta(pathname);
+  const crumb = meta
+    ? { level: `${meta.subject === "Computer Networks" ? "CN" : "DSA"} · Level ${meta.level}`, lesson: meta.label }
+    : pathname
+      ? BREADCRUMB_MAP[pathname]
+      : undefined;
 
   return (
     <div className="flex h-screen" style={{ background: "var(--eng-bg)", fontFamily: "var(--eng-font)" }}>

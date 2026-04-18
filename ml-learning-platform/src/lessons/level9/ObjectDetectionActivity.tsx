@@ -132,7 +132,7 @@ function LiveDetectionTab() {
           ctx.strokeStyle = INK;
           ctx.strokeRect(x - 1, y - 1, w + 2, h + 2);
 
-          // Label background — drawn flipped so the text reads correctly
+          // Label background - drawn flipped so the text reads correctly
           // since the whole canvas is CSS scale-x(-1)
           const label = `${d.category} ${(d.score * 100).toFixed(0)}%`;
           ctx.font = "bold 16px Kalam, sans-serif";
@@ -221,7 +221,7 @@ function LiveDetectionTab() {
               {loadError && <p className="font-hand text-sm text-accent-coral">⚠ {loadError}</p>}
               {error && <p className="font-hand text-sm text-accent-coral">⚠ {error}</p>}
               {!loading && !loadError && !error && (
-                <p className="font-hand text-sm">Point your camera at things — phones, cups, books, pets — and watch them get boxed!</p>
+                <p className="font-hand text-sm">Point your camera at things - phones, cups, books, pets - and watch them get boxed!</p>
               )}
             </div>
           )}
@@ -311,12 +311,12 @@ function LiveDetectionTab() {
 
       <InfoBox variant="amber">
         <span className="font-hand text-base">
-          📦 Object detection draws a <b>bounding box</b> around each thing it sees and labels it. The model is <b>EfficientDet-Lite0</b> — small enough to run on a phone, trained on the COCO dataset (80 everyday objects).
+          📦 Object detection draws a <b>bounding box</b> around each thing it sees and labels it. The model is <b>EfficientDet-Lite0</b> - small enough to run on a phone, trained on the COCO dataset (80 everyday objects).
         </span>
       </InfoBox>
 
       <RikuSays>
-        The bar chart below keeps a running tally of what your camera has seen. Point at different stuff — a book, a mug, yourself — and watch the counts climb. This exact idea powers inventory cameras in warehouses and shelf-checking robots in supermarkets.
+        The bar chart below keeps a running tally of what your camera has seen. Point at different stuff - a book, a mug, yourself - and watch the counts climb. This exact idea powers inventory cameras in warehouses and shelf-checking robots in supermarkets.
       </RikuSays>
     </div>
   );
@@ -337,7 +337,7 @@ function HowItWorksTab() {
     },
     {
       title: "2. Backbone extracts features",
-      body: "A small CNN finds edges, textures, and shapes — exactly like Level 8's filters, just stacked deep.",
+      body: "A small CNN finds edges, textures, and shapes - exactly like Level 8's filters, just stacked deep.",
       emoji: "🧱",
       color: "#b18cf2",
     },
@@ -355,7 +355,7 @@ function HowItWorksTab() {
     },
     {
       title: "5. Non-max suppression",
-      body: "Many boxes overlap on the same object. Keep only the best one per object — everything else is removed.",
+      body: "Many boxes overlap on the same object. Keep only the best one per object - everything else is removed.",
       emoji: "✂️",
       color: "#ffb88c",
     },
@@ -370,7 +370,7 @@ function HowItWorksTab() {
   return (
     <div className="space-y-5">
       <RikuSays>
-        Here&apos;s the six-step recipe a detector uses on every single frame. Click through the steps — each one is actually a separate little algorithm stitched together. The whole thing runs in about 30 milliseconds on a laptop.
+        Here&apos;s the six-step recipe a detector uses on every single frame. Click through the steps - each one is actually a separate little algorithm stitched together. The whole thing runs in about 30 milliseconds on a laptop.
       </RikuSays>
 
       <div className="card-sketchy p-4 notebook-grid space-y-4">
@@ -422,7 +422,7 @@ function HowItWorksTab() {
       </InfoBox>
 
       <RikuSays>
-        You just ran a full neural network on your own face. On a webpage. With zero installs. Five years ago this was a research paper. Now it&apos;s a Tuesday. Congratulations — you officially know how modern computer vision works end-to-end.
+        You just ran a full neural network on your own face. On a webpage. With zero installs. Five years ago this was a research paper. Now it&apos;s a Tuesday. Congratulations - you officially know how modern computer vision works end-to-end.
       </RikuSays>
     </div>
   );
@@ -470,7 +470,7 @@ const quizQuestions = [
     question: "EfficientDet-Lite0 is trained on the COCO dataset. How many object classes is that?",
     options: ["10", "80", "1000", "10000"],
     correctIndex: 1,
-    explanation: "COCO has 80 common object categories — people, animals, vehicles, food, household items, etc.",
+    explanation: "COCO has 80 common object categories - people, animals, vehicles, food, household items, etc.",
   },
 ];
 
@@ -490,20 +490,20 @@ export default function ObjectDetectionActivity() {
       lessonNumber={3}
       tabs={tabs}
       quiz={quizQuestions}
-      nextLessonHint="You've now seen how computers can sense the world: hands, gestures, and objects — all in your browser, with no installs."
+      nextLessonHint="You've now seen how computers can sense the world: hands, gestures, and objects - all in your browser, with no installs."
       story={
         <StorySection
           paragraphs={[
             "Aru held up her water bottle. The screen flashed: 'bottle 94%'. Then her cat walked by. 'cat 88%'. Then her phone. 'cell phone 91%'.",
             "Aru: \"How does it know what they ALL are?\"",
-            "Byte: \"It's a network trained on a giant dataset called COCO — 80 common objects, hundreds of thousands of photos, each with rectangles drawn around the things in them.\"",
+            "Byte: \"It's a network trained on a giant dataset called COCO - 80 common objects, hundreds of thousands of photos, each with rectangles drawn around the things in them.\"",
             "Aru: \"So it learned the shapes?\"",
-            "Byte: \"It learned the patterns of pixels that usually mean 'cat-ness' or 'phone-ness'. Then for every new image it asks: is there a cat HERE? a phone HERE? a cup HERE? — and draws a box wherever the answer is yes.\"",
+            "Byte: \"It learned the patterns of pixels that usually mean 'cat-ness' or 'phone-ness'. Then for every new image it asks: is there a cat HERE? a phone HERE? a cup HERE? - and draws a box wherever the answer is yes.\"",
             "Aru: \"And it does this 30 times a second?\"",
             "Byte: \"Yep. Right inside your browser. Welcome to live computer vision.\"",
           ]}
           conceptTitle="Key Concept"
-          conceptSummary="Object detection finds and labels every object in an image with a bounding box. EfficientDet-Lite0 (the model used here) is small and fast enough to run live in a browser, recognizing 80 common COCO classes — people, animals, vehicles, food, and household objects."
+          conceptSummary="Object detection finds and labels every object in an image with a bounding box. EfficientDet-Lite0 (the model used here) is small and fast enough to run live in a browser, recognizing 80 common COCO classes - people, animals, vehicles, food, and household objects."
         />
       }
     />

@@ -136,7 +136,7 @@ export default function CareerQuizPage() {
                 15 quick questions
               </p>
               <p className="font-hand text-sm text-foreground/80">
-                Takes about 2 minutes — answer honestly, no &quot;right&quot; answers
+                Takes about 2 minutes - answer honestly, no &quot;right&quot; answers
               </p>
             </div>
           </div>
@@ -281,7 +281,7 @@ export default function CareerQuizPage() {
           <span className="marker-highlight-yellow">Your top AI career matches</span>
         </h1>
         <p className="font-hand text-sm text-muted-foreground mt-2">
-          Based on your answers. Remember — these are starting points, not
+          Based on your answers. Remember - these are starting points, not
           verdicts. You earned +40 XP and the Career Ready badge!
         </p>
       </div>
